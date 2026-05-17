@@ -1,0 +1,22 @@
+{
+  "id": "hd001",
+  "title": "Premium Unipole — Connaught Place",
+  "location": "Connaught Place, New Delhi",
+  "locationType": "URBAN",
+  "coordinates": { "latitude": 28.6315, "longitude": 77.2167 },
+  "width": 40,
+  "height": 25,
+  "preferredAdTypes": ["FMCG", "Real Estate", "Automobile", "Fashion"],
+  "rentalCost": 120000,
+  "status": "PUBLISHED",
+  "ownerVerified": true,
+  "ownerId": "owner-001",
+  "photos": [
+    "https://loremflickr.com/800/500/billboard,outdoor?lock=11",
+    "https://loremflickr.com/800/500/billboard,advertising?lock=12",
+    "https://loremflickr.com/800/500/hoarding,sign?lock=33"
+  ],
+  "createdAt": "2026-03-10T09:15:00",
+  "bookedFrom": null,
+  "bookedTo": null
+}

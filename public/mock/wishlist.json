@@ -1,0 +1,58 @@
+[
+  {
+    "wishlistItemId": "wl-001",
+    "savedAt": "2026-05-05T18:30:00",
+    "holdingId": "hd002",
+    "holdingTitle": "Highway Gantry Billboard — NH-48 Mumbai",
+    "location": "NH-48 Panvel Junction, Mumbai",
+    "locationType": "URBAN",
+    "width": 50,
+    "height": 20,
+    "rentalCost": 85000,
+    "status": "PUBLISHED",
+    "ownerVerified": true,
+    "thumbnail": "https://loremflickr.com/800/500/billboard,highway?lock=21"
+  },
+  {
+    "wishlistItemId": "wl-002",
+    "savedAt": "2026-05-08T11:15:00",
+    "holdingId": "hd004",
+    "holdingTitle": "Flyover Hoarding — Jubilee Hills",
+    "location": "Jubilee Hills Road No. 10, Hyderabad",
+    "locationType": "URBAN",
+    "width": 40,
+    "height": 20,
+    "rentalCost": 75000,
+    "status": "PUBLISHED",
+    "ownerVerified": true,
+    "thumbnail": "https://loremflickr.com/800/500/billboard,building?lock=41"
+  },
+  {
+    "wishlistItemId": "wl-003",
+    "savedAt": "2026-05-12T09:00:00",
+    "holdingId": "hd010",
+    "holdingTitle": "Airport Road Unipole — Kochi",
+    "location": "NH-66 Airport Road, Ernakulam, Kochi",
+    "locationType": "URBAN",
+    "width": 40,
+    "height": 20,
+    "rentalCost": 60000,
+    "status": "PUBLISHED",
+    "ownerVerified": true,
+    "thumbnail": "https://loremflickr.com/800/500/billboard,airport?lock=101"
+  },
+  {
+    "wishlistItemId": "wl-004",
+    "savedAt": "2026-05-14T14:45:00",
+    "holdingId": "hd011",
+    "holdingTitle": "Chowk Junction Hoarding — FC Road",
+    "location": "FC Road Near Deccan Gymkhana, Pune",
+    "locationType": "URBAN",
+    "width": 30,
+    "height": 20,
+    "rentalCost": 55000,
+    "status": "PUBLISHED",
+    "ownerVerified": false,
+    "thumbnail": "https://loremflickr.com/800/500/billboard,junction?lock=111"
+  }
+]

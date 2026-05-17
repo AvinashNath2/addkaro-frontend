@@ -1,54 +1,59 @@
-// admin.api.ts — API functions for authenticated ADMIN operations
-//
-// Admins can update holding statuses (approve, reject, delist, re-enable).
-// All status transitions go through PATCH /admin/holdings/:id/status.
-
 import api from './axios'
 import type { CoreResponse } from '@/types/auth.types'
 import type { AdminDashboard, AdminHolding, AdminUser, PageResponse } from '@/types/index'
+import { IS_MOCK, mockFetch } from '@/lib/mockMode'
 
-// GET /api/v1/admin/dashboard
 export async function getAdminDashboard(): Promise<AdminDashboard> {
+  if (IS_MOCK) return mockFetch<AdminDashboard>('admin-dashboard.json')
   const res = await api.get<CoreResponse<AdminDashboard>>('/admin/dashboard')
   return res.data.data
 }
 
-// GET /api/v1/admin/holdings?status=PENDING_REVIEW&page=0
-// Used for the "Pending Approvals" section
 export async function getPendingHoldings(): Promise<PageResponse<AdminHolding>> {
+  if (IS_MOCK) {
+    const data = await mockFetch<PageResponse<AdminHolding>>('admin-holdings.json')
+    return { ...data, items: data.items.filter((h) => h.status === 'PENDING_REVIEW') }
+  }
   const res = await api.get<CoreResponse<PageResponse<AdminHolding>>>('/admin/holdings', {
     params: { status: 'PENDING_REVIEW', limit: 50 },
   })
   return res.data.data
 }
 
-// GET /api/v1/admin/holdings?status=PUBLISHED&page=0&limit=15
 export async function getAllAdminHoldings(
   params: { status?: string; page?: number; limit?: number } = {},
 ): Promise<PageResponse<AdminHolding>> {
+  if (IS_MOCK) {
+    const data = await mockFetch<PageResponse<AdminHolding>>('admin-holdings.json')
+    const filtered = params.status ? { ...data, items: data.items.filter((h) => h.status === params.status) } : data
+    return filtered
+  }
   const res = await api.get<CoreResponse<PageResponse<AdminHolding>>>('/admin/holdings', { params })
   return res.data.data
 }
 
-// PATCH /api/v1/admin/holdings/:id/status  body: { toStatus, reason? }
-// Single unified status transition endpoint for all admin actions:
-//   PENDING_REVIEW → PUBLISHED  (approve)
-//   PENDING_REVIEW → ADMIN_REJECT  (reject, reason required)
-//   PUBLISHED → DELISTED_BY_ADMIN  (delist, reason required)
-//   DELISTED_BY_ADMIN → PUBLISHED  (re-enable)
 export async function updateAdminHoldingStatus(
   id: string,
   toStatus: string,
   reason?: string,
 ): Promise<AdminHolding> {
+  if (IS_MOCK) {
+    const data = await mockFetch<PageResponse<AdminHolding>>('admin-holdings.json')
+    const holding = data.items.find((h) => h.id === id) ?? data.items[0]
+    return { ...holding, status: toStatus as AdminHolding['status'], rejectionReason: reason ?? null }
+  }
   const res = await api.patch<CoreResponse<AdminHolding>>(`/admin/holdings/${id}/status`, { toStatus, reason })
   return res.data.data
 }
 
-// GET /api/v1/admin/users?role=OWNER&page=0&limit=15
 export async function getAllUsers(
   params: { role?: string; page?: number; limit?: number } = {},
 ): Promise<PageResponse<AdminUser>> {
+  if (IS_MOCK) {
+    const data = await mockFetch<PageResponse<AdminUser>>('admin-users.json')
+    const filtered = params.role ? { ...data, items: data.items.filter((u) => u.role === params.role) } : data
+    return filtered
+  }
   const res = await api.get<CoreResponse<PageResponse<AdminUser>>>('/admin/users', { params })
   return res.data.data
 }

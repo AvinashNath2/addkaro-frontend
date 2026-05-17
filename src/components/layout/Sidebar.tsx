@@ -16,20 +16,22 @@ export default function Sidebar({ onClose }: SidebarProps) {
     navigate('/login')
   }
 
-  const customerLinks = [
+  type NavItem = { to: string; icon: typeof MapPin; label: string; end?: boolean }
+
+  const customerLinks: NavItem[] = [
     { to: '/browse',    icon: MapPin,          label: 'Browse' },
     { to: '/my-offers', icon: FileText,         label: 'My Offers' },
     { to: '/wishlist',  icon: Heart,            label: 'Wishlist' },
     { to: '/settings',  icon: Settings,         label: 'Preferences' },
   ]
 
-  const ownerLinks = [
+  const ownerLinks: NavItem[] = [
     { to: '/owner/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/owner/holdings',  icon: Building2,        label: 'My Listings' },
     { to: '/settings',        icon: Settings,         label: 'Preferences' },
   ]
 
-  const adminLinks = [
+  const adminLinks: NavItem[] = [
     { to: '/admin',          end: true, icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/admin/holdings',            icon: Building2,        label: 'Holdings' },
     { to: '/admin/users',               icon: Users,            label: 'Users' },

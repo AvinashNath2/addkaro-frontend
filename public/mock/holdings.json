@@ -1,0 +1,189 @@
+{
+  "items": [
+    {
+      "id": "hd001",
+      "title": "Premium Unipole — Connaught Place",
+      "location": "Connaught Place, New Delhi",
+      "locationType": "URBAN",
+      "width": 40,
+      "height": 25,
+      "rentalCost": 120000,
+      "status": "PUBLISHED",
+      "ownerVerified": true,
+      "photos": [
+        "https://loremflickr.com/800/500/billboard,outdoor?lock=11",
+        "https://loremflickr.com/800/500/billboard,advertising?lock=12"
+      ]
+    },
+    {
+      "id": "hd002",
+      "title": "Highway Gantry Billboard — NH-48 Mumbai",
+      "location": "NH-48 Panvel Junction, Mumbai",
+      "locationType": "URBAN",
+      "width": 50,
+      "height": 20,
+      "rentalCost": 85000,
+      "status": "PUBLISHED",
+      "ownerVerified": true,
+      "photos": [
+        "https://loremflickr.com/800/500/billboard,highway?lock=21",
+        "https://loremflickr.com/800/500/billboard,outdoor?lock=22"
+      ]
+    },
+    {
+      "id": "hd003",
+      "title": "Metro Station Facade — Indiranagar",
+      "location": "Indiranagar Metro Station, Bangalore",
+      "locationType": "URBAN",
+      "width": 30,
+      "height": 15,
+      "rentalCost": 65000,
+      "status": "PUBLISHED",
+      "ownerVerified": true,
+      "photos": [
+        "https://loremflickr.com/800/500/outdoor,advertising?lock=31",
+        "https://loremflickr.com/800/500/billboard,city?lock=32",
+        "https://loremflickr.com/800/500/hoarding,sign?lock=33"
+      ]
+    },
+    {
+      "id": "hd004",
+      "title": "Flyover Hoarding — Jubilee Hills",
+      "location": "Jubilee Hills Road No. 10, Hyderabad",
+      "locationType": "URBAN",
+      "width": 40,
+      "height": 20,
+      "rentalCost": 75000,
+      "status": "PUBLISHED",
+      "ownerVerified": true,
+      "photos": [
+        "https://loremflickr.com/800/500/billboard,building?lock=41",
+        "https://loremflickr.com/800/500/outdoor,sign?lock=42"
+      ]
+    },
+    {
+      "id": "hd005",
+      "title": "Market Area Display — Anna Nagar",
+      "location": "Anna Nagar 2nd Avenue, Chennai",
+      "locationType": "LOCAL",
+      "width": 25,
+      "height": 15,
+      "rentalCost": 45000,
+      "status": "PUBLISHED",
+      "ownerVerified": false,
+      "photos": [
+        "https://loremflickr.com/800/500/billboard,advertising?lock=51"
+      ]
+    },
+    {
+      "id": "hd006",
+      "title": "IT Park Entry Billboard — Hinjewadi",
+      "location": "Hinjewadi Phase 1, Pune",
+      "locationType": "URBAN",
+      "width": 45,
+      "height": 22,
+      "rentalCost": 80000,
+      "status": "PUBLISHED",
+      "ownerVerified": true,
+      "photos": [
+        "https://loremflickr.com/800/500/billboard,urban?lock=61",
+        "https://loremflickr.com/800/500/outdoor,hoarding?lock=62",
+        "https://loremflickr.com/800/500/advertising,city?lock=63"
+      ]
+    },
+    {
+      "id": "hd007",
+      "title": "Mall Facade Hoarding — Salt Lake City",
+      "location": "City Centre Mall, Salt Lake, Kolkata",
+      "locationType": "URBAN",
+      "width": 50,
+      "height": 25,
+      "rentalCost": 90000,
+      "status": "PUBLISHED",
+      "ownerVerified": true,
+      "photos": [
+        "https://loremflickr.com/800/500/billboard,mall?lock=71",
+        "https://loremflickr.com/800/500/advertising,outdoor?lock=72"
+      ]
+    },
+    {
+      "id": "hd008",
+      "title": "Commercial Street Billboard — MG Road",
+      "location": "MG Road Near Trinity Circle, Bangalore",
+      "locationType": "URBAN",
+      "width": 35,
+      "height": 18,
+      "rentalCost": 70000,
+      "status": "PUBLISHED",
+      "ownerVerified": true,
+      "photos": [
+        "https://loremflickr.com/800/500/outdoor,advertisement?lock=81",
+        "https://loremflickr.com/800/500/billboard,street?lock=82"
+      ]
+    },
+    {
+      "id": "hd009",
+      "title": "Town Centre Hoarding — SG Road",
+      "location": "SG Highway Near Makarba, Ahmedabad",
+      "locationType": "LOCAL",
+      "width": 20,
+      "height": 12,
+      "rentalCost": 40000,
+      "status": "PUBLISHED",
+      "ownerVerified": false,
+      "photos": [
+        "https://loremflickr.com/800/500/billboard,road?lock=91"
+      ]
+    },
+    {
+      "id": "hd010",
+      "title": "Airport Road Unipole — Kochi",
+      "location": "NH-66 Airport Road, Ernakulam, Kochi",
+      "locationType": "URBAN",
+      "width": 40,
+      "height": 20,
+      "rentalCost": 60000,
+      "status": "PUBLISHED",
+      "ownerVerified": true,
+      "photos": [
+        "https://loremflickr.com/800/500/billboard,airport?lock=101",
+        "https://loremflickr.com/800/500/outdoor,advertising?lock=102"
+      ]
+    },
+    {
+      "id": "hd011",
+      "title": "Chowk Junction Hoarding — FC Road",
+      "location": "FC Road Near Deccan Gymkhana, Pune",
+      "locationType": "URBAN",
+      "width": 30,
+      "height": 20,
+      "rentalCost": 55000,
+      "status": "PUBLISHED",
+      "ownerVerified": false,
+      "photos": [
+        "https://loremflickr.com/800/500/billboard,junction?lock=111",
+        "https://loremflickr.com/800/500/hoarding,outdoor?lock=112"
+      ]
+    },
+    {
+      "id": "hd012",
+      "title": "Ring Road Gantry Sign — Bhopal",
+      "location": "ISBT Ring Road Near Habibganj, Bhopal",
+      "locationType": "LOCAL",
+      "width": 30,
+      "height": 15,
+      "rentalCost": 35000,
+      "status": "PUBLISHED",
+      "ownerVerified": true,
+      "photos": [
+        "https://loremflickr.com/800/500/billboard,sign?lock=121"
+      ]
+    }
+  ],
+  "page": 0,
+  "size": 12,
+  "totalElements": 48,
+  "totalPages": 4,
+  "hasNext": true,
+  "hasPrevious": false
+}

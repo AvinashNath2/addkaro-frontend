@@ -1,28 +1,25 @@
-// LoginPage.tsx — sign-in form
-//
-// Flow:
-//   User fills in email + password
-//   → Zod validates (non-empty, valid email format)
-//   → useMutation calls POST /api/v1/auth/login
-//   → On success: saves user in Zustand store (which also writes JWT to localStorage)
-//   → Redirects to the user's role-appropriate home page
-
 import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
-import { Loader2 } from 'lucide-react'
+import { Loader2, User, Building2, ShieldCheck } from 'lucide-react'
 import { loginSchema, type LoginFormData } from '@/lib/schemas/login.schema'
 import { loginUser } from '@/api/auth.api'
 import { useAuthStore } from '@/store/auth.store'
 import { cn } from '@/lib/utils'
+import { IS_MOCK } from '@/lib/mockMode'
+import type { AuthUser } from '@/types/auth.types'
+
+const DEMO_USERS: AuthUser[] = [
+  { userId: 'demo-customer', name: 'Priya Sharma (Customer)', email: 'priya@demo.in', role: 'CUSTOMER', token: 'mock-token' },
+  { userId: 'demo-owner', name: 'Vikram Malhotra (Owner)', email: 'vikram@demo.in', role: 'OWNER', token: 'mock-token' },
+  { userId: 'demo-admin', name: 'Admin User', email: 'admin@demo.in', role: 'ADMIN', token: 'mock-token' },
+]
 
 export default function LoginPage() {
   const navigate = useNavigate()
-  // setAuth saves the user object to Zustand store and writes the token to localStorage
   const setAuth = useAuthStore((s) => s.setAuth)
 
-  // Set up the form with Zod validation
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   })
@@ -30,9 +27,7 @@ export default function LoginPage() {
   const mutation = useMutation({
     mutationFn: loginUser,
     onSuccess: (user) => {
-      setAuth(user) // save to store + localStorage
-
-      // Each role has a different home page — route them to the right one
+      setAuth(user)
       const role = user.role.toUpperCase()
       if (role === 'OWNER') navigate('/owner/dashboard')
       else if (role === 'ADMIN') navigate('/admin')
@@ -40,22 +35,56 @@ export default function LoginPage() {
     },
   })
 
+  const loginAs = (user: AuthUser) => {
+    setAuth(user)
+    const role = user.role.toUpperCase()
+    if (role === 'OWNER') navigate('/owner/dashboard')
+    else if (role === 'ADMIN') navigate('/admin')
+    else navigate('/browse')
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
 
-        {/* Page header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">AddKaro</h1>
           <p className="mt-2 text-gray-500">Sign in to your account</p>
         </div>
 
-        {/* White card */}
+        {IS_MOCK && (
+          <div className="mb-6 rounded-2xl border border-brand-200 bg-brand-50 p-5">
+            <p className="text-xs font-semibold text-brand-700 uppercase tracking-wider mb-3">Demo Mode — choose a role</p>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                onClick={() => loginAs(DEMO_USERS[0])}
+                className="flex flex-col items-center gap-1.5 rounded-xl border border-brand-200 bg-white px-2 py-3 text-xs font-medium text-brand-700 hover:bg-brand-100 transition-colors"
+              >
+                <User className="w-5 h-5 text-brand-500" />
+                Customer
+              </button>
+              <button
+                onClick={() => loginAs(DEMO_USERS[1])}
+                className="flex flex-col items-center gap-1.5 rounded-xl border border-green-200 bg-white px-2 py-3 text-xs font-medium text-green-700 hover:bg-green-50 transition-colors"
+              >
+                <Building2 className="w-5 h-5 text-green-500" />
+                Owner
+              </button>
+              <button
+                onClick={() => loginAs(DEMO_USERS[2])}
+                className="flex flex-col items-center gap-1.5 rounded-xl border border-purple-200 bg-white px-2 py-3 text-xs font-medium text-purple-700 hover:bg-purple-50 transition-colors"
+              >
+                <ShieldCheck className="w-5 h-5 text-purple-500" />
+                Admin
+              </button>
+            </div>
+            <p className="text-[10px] text-brand-500 mt-3 text-center">No password needed in demo mode</p>
+          </div>
+        )}
+
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-          {/* noValidate disables browser built-in validation — Zod handles it */}
           <form onSubmit={handleSubmit((d) => mutation.mutate(d))} noValidate className="space-y-4">
 
-            {/* Email field */}
             <div>
               <label htmlFor="email" className="label">Email Address</label>
               <input
@@ -68,7 +97,6 @@ export default function LoginPage() {
               {errors.email && <p className="error-text">{errors.email.message}</p>}
             </div>
 
-            {/* Password field */}
             <div>
               <label htmlFor="password" className="label">Password</label>
               <input
@@ -81,7 +109,6 @@ export default function LoginPage() {
               {errors.password && <p className="error-text">{errors.password.message}</p>}
             </div>
 
-            {/* API error — shown when the server returns an error (wrong password, etc.) */}
             {mutation.isError && (
               <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
                 {mutation.error.message}
@@ -96,7 +123,6 @@ export default function LoginPage() {
           </form>
         </div>
 
-        {/* Link to registration page */}
         <p className="mt-6 text-center text-sm text-gray-500">
           Don&apos;t have an account?{' '}
           <Link to="/register" className="font-medium text-brand-600 hover:text-brand-700">

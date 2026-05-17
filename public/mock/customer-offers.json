@@ -1,0 +1,75 @@
+{
+  "items": [
+    {
+      "offerId": "off-001",
+      "holdingId": "hd003",
+      "holdingTitle": "Metro Station Facade — Indiranagar",
+      "holdingLocation": "Indiranagar Metro Station, Bangalore",
+      "offeredPrice": 58000,
+      "desiredStartDate": "2026-06-01",
+      "desiredDuration": 90,
+      "message": "We are launching a new fitness brand and Indiranagar is our primary target demographic. Happy to discuss branding guidelines.",
+      "contactNumber": "+91 98765 43210",
+      "status": "NEGOTIATING",
+      "createdAt": "2026-05-01T11:30:00"
+    },
+    {
+      "offerId": "off-002",
+      "holdingId": "hd001",
+      "holdingTitle": "Premium Unipole — Connaught Place",
+      "holdingLocation": "Connaught Place, New Delhi",
+      "offeredPrice": 110000,
+      "desiredStartDate": "2026-07-01",
+      "desiredDuration": 180,
+      "message": "Interested in a 6-month campaign for our e-commerce platform launch.",
+      "contactNumber": "+91 98765 43210",
+      "status": "CONTACTED",
+      "createdAt": "2026-04-22T14:10:00"
+    },
+    {
+      "offerId": "off-003",
+      "holdingId": "hd006",
+      "holdingTitle": "IT Park Entry Billboard — Hinjewadi",
+      "holdingLocation": "Hinjewadi Phase 1, Pune",
+      "offeredPrice": 72000,
+      "desiredStartDate": "2026-06-15",
+      "desiredDuration": 60,
+      "message": "Short-term campaign for our software product launch targeting IT professionals.",
+      "contactNumber": "+91 98765 43210",
+      "status": "NEW",
+      "createdAt": "2026-05-10T09:45:00"
+    },
+    {
+      "offerId": "off-004",
+      "holdingId": "hd007",
+      "holdingTitle": "Mall Facade Hoarding — Salt Lake City",
+      "holdingLocation": "City Centre Mall, Salt Lake, Kolkata",
+      "offeredPrice": 88000,
+      "desiredStartDate": "2026-04-01",
+      "desiredDuration": 120,
+      "message": null,
+      "contactNumber": "+91 98765 43210",
+      "status": "CLOSED",
+      "createdAt": "2026-03-15T16:20:00"
+    },
+    {
+      "offerId": "off-005",
+      "holdingId": "hd009",
+      "holdingTitle": "Town Centre Hoarding — SG Road",
+      "holdingLocation": "SG Highway Near Makarba, Ahmedabad",
+      "offeredPrice": 35000,
+      "desiredStartDate": null,
+      "desiredDuration": null,
+      "message": "Looking for flexible month-to-month arrangement.",
+      "contactNumber": "+91 98765 43210",
+      "status": "DECLINED",
+      "createdAt": "2026-03-05T10:00:00"
+    }
+  ],
+  "page": 0,
+  "size": 10,
+  "totalElements": 5,
+  "totalPages": 1,
+  "hasNext": false,
+  "hasPrevious": false
+}

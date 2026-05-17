@@ -308,7 +308,7 @@ function HoldingOffersPanel({ holdingId }: { holdingId: string }) {
 }
 
 // ── Sub-view panel (expands below a selected holding row) ──────────────────
-function HoldingSubView({ holding, onClose }: { holding: OwnerHolding; onClose: () => void }) {
+function HoldingSubView({ holding, onClose: _onClose }: { holding: OwnerHolding; onClose: () => void }) {
   const navigate = useNavigate()
   const [showStatusEditor, setShowStatusEditor] = useState(false)
 

@@ -1,47 +1,37 @@
-// holdings.api.ts — API functions for the PUBLIC holdings endpoints
-//
-// These endpoints don't require authentication — anyone (including guests) can
-// browse and view holding details. The axios instance still sends the token if
-// one is present, which is fine; the backend just ignores it for public routes.
-
 import api from './axios'
 import type { CoreResponse } from '@/types/auth.types'
 import type { HoldingCard, HoldingDetail, NearbyHolding, PageResponse } from '@/types/index'
+import { IS_MOCK, mockFetch } from '@/lib/mockMode'
 
-// Parameters accepted by the search/browse endpoint.
-// All are optional — calling searchHoldings() with no args returns the first page of all published holdings.
 export interface HoldingSearchParams {
-  location?: string      // free text partial match on location
-  type?: string          // 'URBAN' | 'LOCAL'
-  minPrice?: number      // minimum rental cost filter
-  maxPrice?: number      // maximum rental cost filter
-  page?: number          // 0-indexed page number (backend default: 0)
-  limit?: number         // page size (backend default: typically 10 or 12)
-  sortBy?: string        // e.g. 'rentalCost' or 'createdAt'
-  availableFrom?: string // ISO date — only show holdings available from this date
-  availableTo?: string   // ISO date — only show holdings available to this date
+  location?: string
+  type?: string
+  minPrice?: number
+  maxPrice?: number
+  page?: number
+  limit?: number
+  sortBy?: string
+  availableFrom?: string
+  availableTo?: string
 }
 
-// GET /api/v1/holdings?location=...&type=...&page=...
-// Returns a paginated list of holding cards for the browse page.
-//
-// The backend returns: CoreResponse<PageResponse<HoldingCard>>
-// We unwrap down to just PageResponse<HoldingCard> so callers get the pagination data.
 export async function searchHoldings(params: HoldingSearchParams = {}): Promise<PageResponse<HoldingCard>> {
+  if (IS_MOCK) return mockFetch<PageResponse<HoldingCard>>('holdings.json')
   const res = await api.get<CoreResponse<PageResponse<HoldingCard>>>('/holdings', { params })
   return res.data.data
 }
 
-// GET /api/v1/holdings/:id
-// Returns the full detail of a single holding for the detail page.
 export async function getHoldingDetail(id: string): Promise<HoldingDetail> {
+  if (IS_MOCK) {
+    const data = await mockFetch<PageResponse<HoldingCard>>('holdings.json')
+    const card = data.items.find((h) => h.id === id) ?? data.items[0]
+    const detail = await mockFetch<HoldingDetail>('holding-detail.json')
+    return { ...detail, id: card.id, title: card.title, location: card.location, rentalCost: card.rentalCost, photos: card.photos }
+  }
   const res = await api.get<CoreResponse<HoldingDetail>>(`/holdings/${id}`)
   return res.data.data
 }
 
-// GET /api/v1/holdings/nearby?lat=...&lng=...&radius=15000&limit=20
-// radiusKm is in kilometres — converted to metres before sending because the
-// backend's `radius` param is in metres (filter: distanceKm * 1000 <= radiusMeters).
 export async function nearbyHoldings(params: {
   lat: number
   lng: number
@@ -49,6 +39,23 @@ export async function nearbyHoldings(params: {
   type?: string
   limit?: number
 }): Promise<NearbyHolding[]> {
+  if (IS_MOCK) {
+    const data = await mockFetch<PageResponse<HoldingCard>>('holdings.json')
+    return data.items.slice(0, 6).map((h, i) => ({
+      id: h.id,
+      title: h.title,
+      location: h.location,
+      latitude: 12.97 + i * 0.01,
+      longitude: 77.59 + i * 0.01,
+      distanceKm: Math.round((0.5 + i * 0.8) * 10) / 10,
+      locationType: h.locationType,
+      width: h.width,
+      height: h.height,
+      rentalCost: h.rentalCost,
+      ownerVerified: h.ownerVerified,
+      thumbnail: h.photos[0] ?? null,
+    }))
+  }
   const { radiusKm = 15, ...rest } = params
   const res = await api.get<CoreResponse<NearbyHolding[]>>('/holdings/nearby', {
     params: { ...rest, radius: radiusKm * 1000, limit: rest.limit ?? 20 },
