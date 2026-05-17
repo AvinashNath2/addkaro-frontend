@@ -1,0 +1,38 @@
+[
+  {
+    "messageId": "msg-001",
+    "offerId": "off-001",
+    "senderId": "owner-001",
+    "senderRole": "OWNER",
+    "message": "Hi! Thanks for your interest in our Indiranagar billboard. The location gets very high footfall from IT professionals and young residents. Happy to discuss further.",
+    "sentAt": "2026-05-02T10:00:00",
+    "readAt": "2026-05-02T10:15:00"
+  },
+  {
+    "messageId": "msg-002",
+    "offerId": "off-001",
+    "senderId": "cust-demo",
+    "senderRole": "CUSTOMER",
+    "message": "Great! We are launching a premium fitness brand called FitPeak. The demographics at Indiranagar are ideal. Can we do a 3-month agreement starting June 1st?",
+    "sentAt": "2026-05-02T10:45:00",
+    "readAt": "2026-05-02T11:00:00"
+  },
+  {
+    "messageId": "msg-003",
+    "offerId": "off-001",
+    "senderId": "owner-001",
+    "senderRole": "OWNER",
+    "message": "3 months works for us. Your offered price of ₹58,000 is a bit below our listed rate. We could meet at ₹61,000/month for a 90-day term. Does that work?",
+    "sentAt": "2026-05-02T11:30:00",
+    "readAt": "2026-05-02T12:00:00"
+  },
+  {
+    "messageId": "msg-004",
+    "offerId": "off-001",
+    "senderId": "cust-demo",
+    "senderRole": "CUSTOMER",
+    "message": "We can do ₹60,000. That is our maximum for this campaign budget. Looking forward to working together!",
+    "sentAt": "2026-05-02T12:30:00",
+    "readAt": null
+  }
+]
