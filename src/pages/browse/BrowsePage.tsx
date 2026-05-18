@@ -189,6 +189,10 @@ export default function BrowsePage() {
       sortBy: '',
       availableFrom: defaultDateRange.from,
       availableTo: defaultDateRange.to,
+      city: '',
+      holdingType: '',
+      isIlluminated: undefined,
+      locationAdvantages: [],
     }
   })
   const [appliedFilters, setAppliedFilters] = useState<HoldingSearchParams>({
@@ -289,6 +293,10 @@ export default function BrowsePage() {
     if (draftFilters.sortBy) cleaned.sortBy = draftFilters.sortBy
     if (draftFilters.availableFrom) cleaned.availableFrom = draftFilters.availableFrom
     if (draftFilters.availableTo) cleaned.availableTo = draftFilters.availableTo
+    if (draftFilters.city) cleaned.city = draftFilters.city
+    if (draftFilters.holdingType) cleaned.holdingType = draftFilters.holdingType
+    if (draftFilters.isIlluminated !== undefined) cleaned.isIlluminated = draftFilters.isIlluminated
+    if (draftFilters.locationAdvantages?.length) cleaned.locationAdvantages = draftFilters.locationAdvantages
     setCurrentPage(0)
     setAppliedFilters(cleaned)
   }
@@ -385,6 +393,77 @@ export default function BrowsePage() {
                   : <Navigation className="w-4 h-4" />}
                 <span className="hidden sm:inline">My Location</span>
               </button>
+            </div>
+
+            {/* City + HoldingType + Illumination row */}
+            <div className="flex flex-wrap items-center gap-3 mb-3 pb-3 border-b border-gray-100">
+              <input
+                type="text"
+                placeholder="City (e.g. Mumbai)"
+                className="input-field w-36"
+                value={draftFilters.city ?? ''}
+                onChange={(e) => setDraftFilters((f) => ({ ...f, city: e.target.value }))}
+              />
+              <select
+                className="input-field w-44"
+                value={draftFilters.holdingType ?? ''}
+                onChange={(e) => setDraftFilters((f) => ({ ...f, holdingType: e.target.value }))}
+              >
+                <option value="">All Types</option>
+                <option value="BILLBOARD">Billboard</option>
+                <option value="UNIPOLE">Unipole</option>
+                <option value="GANTRY">Gantry</option>
+                <option value="LED_SCREEN">LED Screen</option>
+                <option value="WALL_PAINTING">Wall Painting</option>
+                <option value="SKYWALK">Skywalk</option>
+                <option value="BUS_SHELTER">Bus Shelter</option>
+                <option value="SCROLLING">Scrolling</option>
+                <option value="POLE_KIOSK">Pole Kiosk</option>
+                <option value="AIRPORT">Airport</option>
+              </select>
+              <select
+                className="input-field w-36"
+                value={draftFilters.isIlluminated === undefined ? '' : String(draftFilters.isIlluminated)}
+                onChange={(e) => setDraftFilters((f) => ({
+                  ...f,
+                  isIlluminated: e.target.value === '' ? undefined : e.target.value === 'true',
+                }))}
+              >
+                <option value="">Illumination</option>
+                <option value="true">Illuminated</option>
+                <option value="false">Non-Illuminated</option>
+              </select>
+            </div>
+
+            {/* Location advantages */}
+            <div className="flex flex-wrap items-start gap-2 mb-3 pb-3 border-b border-gray-100">
+              <span className="text-xs font-medium text-gray-500 whitespace-nowrap pt-1">Advantages:</span>
+              {[
+                'SIGNAL_JUNCTION', 'PEDESTRIAN_FOOTPATH_ZONE', 'NATIONAL_HIGHWAY_FACING',
+                'NEAR_METRO_STATION', 'NEAR_AIRPORT', 'NEAR_IT_PARK',
+                'NEAR_SHOPPING_MALL', 'HIGH_VEHICLE_TRAFFIC', 'TOURIST_HERITAGE_AREA',
+              ].map((adv) => {
+                const selected = draftFilters.locationAdvantages?.includes(adv)
+                return (
+                  <button
+                    key={adv}
+                    type="button"
+                    onClick={() => setDraftFilters((f) => ({
+                      ...f,
+                      locationAdvantages: selected
+                        ? f.locationAdvantages?.filter((a) => a !== adv) ?? []
+                        : [...(f.locationAdvantages ?? []), adv],
+                    }))}
+                    className={`text-xs px-2.5 py-1 rounded-lg border font-medium transition-colors ${
+                      selected
+                        ? 'bg-brand-600 text-white border-brand-600'
+                        : 'bg-white text-gray-600 border-gray-200 hover:border-brand-400'
+                    }`}
+                  >
+                    {adv.replace(/_/g, ' ')}
+                  </button>
+                )
+              })}
             </div>
 
             {/* Date range filter */}

@@ -1,24 +1,30 @@
 import api from './axios'
-import type { CoreResponse } from '@/types/auth.types'
 import type { HoldingCard, HoldingDetail, NearbyHolding, PageResponse } from '@/types/index'
 import { IS_MOCK, mockFetch } from '@/lib/mockMode'
+import { fromSpringPage } from '@/lib/springPage'
 
 export interface HoldingSearchParams {
   location?: string
   type?: string
+  availability?: string
   minPrice?: number
   maxPrice?: number
+  minWidth?: number
+  minHeight?: number
   page?: number
   limit?: number
   sortBy?: string
-  availableFrom?: string
-  availableTo?: string
+  // New section-based filters
+  city?: string
+  holdingType?: string
+  isIlluminated?: boolean
+  locationAdvantages?: string[]
 }
 
 export async function searchHoldings(params: HoldingSearchParams = {}): Promise<PageResponse<HoldingCard>> {
   if (IS_MOCK) return mockFetch<PageResponse<HoldingCard>>('holdings.json')
-  const res = await api.get<CoreResponse<PageResponse<HoldingCard>>>('/holdings', { params })
-  return res.data.data
+  const res = await api.get('/holdings', { params })
+  return fromSpringPage<HoldingCard>(res.data)
 }
 
 export async function getHoldingDetail(id: string): Promise<HoldingDetail> {
@@ -28,8 +34,8 @@ export async function getHoldingDetail(id: string): Promise<HoldingDetail> {
     const detail = await mockFetch<HoldingDetail>('holding-detail.json')
     return { ...detail, id: card.id, title: card.title, location: card.location, rentalCost: card.rentalCost, photos: card.photos }
   }
-  const res = await api.get<CoreResponse<HoldingDetail>>(`/holdings/${id}`)
-  return res.data.data
+  const res = await api.get<HoldingDetail>(`/holdings/${id}`)
+  return res.data
 }
 
 export async function nearbyHoldings(params: {
@@ -57,8 +63,8 @@ export async function nearbyHoldings(params: {
     }))
   }
   const { radiusKm = 15, ...rest } = params
-  const res = await api.get<CoreResponse<NearbyHolding[]>>('/holdings/nearby', {
+  const res = await api.get<NearbyHolding[]>('/holdings/nearby', {
     params: { ...rest, radius: radiusKm * 1000, limit: rest.limit ?? 20 },
   })
-  return res.data.data
+  return res.data
 }

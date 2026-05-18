@@ -1,17 +1,7 @@
 // index.ts — central export for all shared TypeScript types
-//
-// TypeScript types are compile-time only — they disappear in the final JavaScript.
-// Keeping them all in one file means you always know where to look when you
-// need to understand what shape a piece of data has.
-
-// Re-export everything from auth.types.ts so you can import from '@/types' instead
-// of having to know the exact sub-file. e.g. import type { AuthUser } from '@/types'
 export * from './auth.types'
 
 // ── Pagination ─────────────────────────────────────────────────────────────
-// The backend wraps every paginated list in this envelope.
-// T is a "generic type parameter" — it means "a list of whatever T is".
-// PageResponse<HoldingCard> means { items: HoldingCard[], page: number, ... }
 export interface PageResponse<T> {
   items: T[]
   page: number
@@ -22,24 +12,123 @@ export interface PageResponse<T> {
   hasPrevious: boolean
 }
 
-// ── Holding types ──────────────────────────────────────────────────────────
-// These enums match the Java backend enums exactly (case-sensitive).
-
-// Unified holding status: full lifecycle from creation to delist
+// ── Holding enums ──────────────────────────────────────────────────────────
+// Backend values: PENDING, ACTIVE, REJECTED, SUSPENDED
+// Extended UI workflow values (frontend-only until backend supports them):
 export type HoldingStatus =
-  | 'DRAFT'
-  | 'PENDING_REVIEW'
-  | 'ADMIN_REJECT'
-  | 'PUBLISHED'
-  | 'BOOKED'
-  | 'OWNER_PAUSE'
-  | 'DELISTED_BY_ADMIN'
-
-// Urban = major city, Local = smaller town/area
+  | 'PENDING' | 'ACTIVE' | 'REJECTED' | 'SUSPENDED'
+  | 'DRAFT' | 'PENDING_REVIEW' | 'ADMIN_REJECT' | 'PUBLISHED'
+  | 'BOOKED' | 'OWNER_PAUSE' | 'DELISTED_BY_ADMIN'
 export type HoldingLocationType = 'URBAN' | 'LOCAL'
+export type HoldingAvailability = 'AVAILABLE' | 'BOOKED' | 'PARTIAL'
 
-// Minimal card shape — returned in the public search/browse API
-// Only fields needed to render a card in the grid
+export type HoldingType =
+  | 'BILLBOARD' | 'UNIPOLE' | 'GANTRY' | 'SKYWALK' | 'BUS_SHELTER'
+  | 'WALL_PAINTING' | 'LED_SCREEN' | 'SCROLLING' | 'POLE_KIOSK' | 'AIRPORT'
+
+export type LocationAdvantage =
+  | 'NATIONAL_HIGHWAY_FACING' | 'STATE_HIGHWAY_FACING' | 'MAIN_CITY_ROAD'
+  | 'SIGNAL_JUNCTION' | 'FLYOVER_APPROACH' | 'TOLL_BOOTH_AREA'
+  | 'NEAR_METRO_STATION' | 'NEAR_RAILWAY_STATION' | 'NEAR_BUS_STAND'
+  | 'NEAR_AIRPORT' | 'HIGH_VEHICLE_TRAFFIC' | 'PEDESTRIAN_FOOTPATH_ZONE'
+  | 'NEAR_SHOPPING_MALL' | 'IN_MARKET_BAZAAR' | 'NEAR_SUPERMARKET'
+  | 'NEAR_HOSPITAL' | 'NEAR_BANK_FINANCIAL' | 'NEAR_IT_PARK'
+  | 'NEAR_INDUSTRIAL_AREA' | 'NEAR_GOVERNMENT_OFFICE' | 'NEAR_COURT'
+  | 'NEAR_CINEMA' | 'NEAR_HOTEL' | 'NEAR_STADIUM'
+  | 'NEAR_SCHOOL_COLLEGE' | 'NEAR_UNIVERSITY' | 'NEAR_RESIDENTIAL_COLONY'
+  | 'NEAR_APARTMENT_COMPLEX' | 'NEAR_TEMPLE' | 'NEAR_PARK'
+  | 'NEAR_POST_OFFICE' | 'NEAR_POLICE_STATION' | 'NEAR_MUNICIPALITY'
+  | 'TOURIST_HERITAGE_AREA' | 'UPSCALE_NEIGHBOURHOOD' | 'FAMILY_RESIDENTIAL_ZONE'
+
+// ── Section data shapes (mirrors backend inner records) ────────────────────
+export interface AddressData {
+  street: string | null
+  area: string | null
+  city: string | null
+  state: string | null
+  pinCode: string | null
+  landmark: string | null
+  locationSubtype: string | null
+  nearestMetro: string | null
+  nearestRailway: string | null
+  googleMapsUrl: string | null
+}
+
+export interface TypeSpecsData {
+  holdingType: HoldingType | null
+  numFaces: string | null
+  displayTechnology: string | null
+  printableAreaSqft: number | null
+  facingDirection: string | null
+  mountingHeightFt: number | null
+  roadSide: string | null
+  dimensionUnit: string | null
+  viewingAngle: string | null
+}
+
+export interface IlluminationData {
+  isIlluminated: boolean | null
+  illuminationType: string | null
+  illuminationHours: string | null
+  numSpotLights: number | null
+  lightWattage: number | null
+}
+
+export interface AmenitiesData {
+  electricityAvailable: boolean | null
+  powerSupplyType: string | null
+  batteryBackup: boolean | null
+  batteryBackupHours: number | null
+  solarPanelInstalled: boolean | null
+  solarWattage: number | null
+  upsAvailable: boolean | null
+  generatorAvailable: boolean | null
+  weatherproof: boolean | null
+  easyMaintenanceAccess: boolean | null
+  onSiteWatchman: boolean | null
+  nearbyParking: boolean | null
+  remoteContentMgmt: boolean | null
+  internetAvailable: boolean | null
+  contentLoopSeconds: number | null
+}
+
+export interface AudienceData {
+  estimatedDailyVehicles: number | null
+  estimatedDailyFootfall: number | null
+  audienceTypes: string[]
+  peakHours: string[]
+  nearbyPopulation: string | null
+  trafficDataSource: string | null
+}
+
+export interface PricingData {
+  monthlyRate: number | null
+  quarterlyRate: number | null
+  halfYearlyRate: number | null
+  annualRate: number | null
+  minimumBookingDays: number | null
+  securityDeposit: number | null
+  printingCostIncluded: boolean | null
+  installationCostIncluded: boolean | null
+  gstIncluded: boolean | null
+  advancePaymentMonths: number | null
+  paymentModes: string[]
+  cancellationPolicy: string | null
+}
+
+export interface LegalData {
+  ownerDescription: string | null
+  sellingPoints: string[]
+  hoardingAge: string | null
+  previousClients: string[]
+  permitStatus: string | null
+  permitNumber: string | null
+  permitValidTill: string | null
+  tdrCertificate: boolean | null
+  nocFromAuthority: boolean | null
+}
+
+// ── HoldingCard — public browse grid ──────────────────────────────────────
 export interface HoldingCard {
   id: string
   title: string
@@ -51,9 +140,15 @@ export interface HoldingCard {
   status: HoldingStatus
   ownerVerified: boolean
   photos: string[]
+  holdingType: HoldingType | null
+  city: string | null
+  area: string | null
+  isIlluminated: boolean | null
+  minimumBookingDays: number | null
+  topAdvantages: string[]
 }
 
-// Full detail — returned when viewing a single holding's page
+// ── HoldingDetail — full public detail page ───────────────────────────────
 export interface HoldingDetail {
   id: string
   title: string
@@ -64,16 +159,26 @@ export interface HoldingDetail {
   height: number
   preferredAdTypes: string[]
   rentalCost: number
+  availability: HoldingAvailability
   status: HoldingStatus
   ownerVerified: boolean
   ownerId: string
   photos: string[]
   createdAt: string
-  bookedFrom: string | null
-  bookedTo: string | null
+  visibilityDistanceMetres: number | null
+  trafficLaneCount: number | null
+  distanceFromHighwayKm: number | null
+  address: AddressData | null
+  typeSpecs: TypeSpecsData | null
+  illumination: IlluminationData | null
+  amenities: AmenitiesData | null
+  audience: AudienceData | null
+  pricing: PricingData | null
+  legal: LegalData | null
+  locationAdvantages: string[]
 }
 
-// Shape returned by owner's own holdings list — includes admin status + document URLs
+// ── OwnerHolding — owner's own listing view ───────────────────────────────
 export interface OwnerHolding {
   id: string
   title: string
@@ -85,19 +190,29 @@ export interface OwnerHolding {
   height: number
   preferredAdTypes: string[]
   rentalCost: number
+  availability: HoldingAvailability
   status: HoldingStatus
   ownerVerified: boolean
   rejectionReason: string | null
-  bookedFrom: string | null
-  bookedTo: string | null
   photos: string[]
   documents: string[]
   offersCount: number
   createdAt: string
   updatedAt: string
+  visibilityDistanceMetres: number | null
+  trafficLaneCount: number | null
+  distanceFromHighwayKm: number | null
+  address: AddressData | null
+  typeSpecs: TypeSpecsData | null
+  illumination: IlluminationData | null
+  amenities: AmenitiesData | null
+  audience: AudienceData | null
+  pricing: PricingData | null
+  legal: LegalData | null
+  locationAdvantages: string[]
 }
 
-// Shape returned in admin holding management — includes owner identity info
+// ── AdminHolding ───────────────────────────────────────────────────────────
 export interface AdminHolding {
   id: string
   title: string
@@ -122,10 +237,8 @@ export interface AdminHolding {
 }
 
 // ── Offer types ────────────────────────────────────────────────────────────
-// Lifecycle: NEW → CONTACTED → NEGOTIATING → CLOSED or DECLINED
 export type OfferStatus = 'NEW' | 'CONTACTED' | 'NEGOTIATING' | 'CLOSED' | 'DECLINED'
 
-// What a customer sees when they view their own offers
 export interface CustomerOffer {
   offerId: string
   holdingId: string
@@ -140,7 +253,6 @@ export interface CustomerOffer {
   createdAt: string
 }
 
-// What an owner sees for offers on their holdings — includes customer identity
 export interface OwnerOffer {
   offerId: string
   holdingId: string
@@ -157,7 +269,6 @@ export interface OwnerOffer {
   createdAt: string
 }
 
-// What the customer submits when making an offer
 export interface OfferRequest {
   offeredPrice: number
   desiredStartDate?: string
@@ -167,8 +278,6 @@ export interface OfferRequest {
 }
 
 // ── Wishlist ───────────────────────────────────────────────────────────────
-// A saved holding in the customer's wishlist — includes a snapshot of holding details
-// so the card can render without fetching each holding separately
 export interface WishlistItem {
   wishlistItemId: string
   savedAt: string
@@ -184,8 +293,7 @@ export interface WishlistItem {
   thumbnail: string | null
 }
 
-// ── Owner dashboard ────────────────────────────────────────────────────────
-// Summary counts for the owner's dashboard page
+// ── Dashboards ─────────────────────────────────────────────────────────────
 export interface OwnerDashboard {
   totalHoldings: number
   activeHoldings: number
@@ -196,8 +304,6 @@ export interface OwnerDashboard {
   activeNegotiations: number
 }
 
-// ── Admin ──────────────────────────────────────────────────────────────────
-// Summary counts for the admin dashboard page
 export interface AdminDashboard {
   totalUsers: number
   totalCustomers: number
@@ -209,7 +315,7 @@ export interface AdminDashboard {
   totalOffers: number
 }
 
-// Nearby search result — returned by GET /holdings/nearby
+// ── Nearby search ──────────────────────────────────────────────────────────
 export interface NearbyHolding {
   id: string
   title: string
@@ -225,7 +331,7 @@ export interface NearbyHolding {
   thumbnail: string | null
 }
 
-// User record as seen by an admin
+// ── Admin user ─────────────────────────────────────────────────────────────
 export interface AdminUser {
   userId: string
   name: string

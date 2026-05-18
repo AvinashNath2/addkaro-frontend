@@ -1,6 +1,12 @@
 import { cn } from '@/lib/utils'
 
 const STATUS_STYLES: Record<string, { pill: string; dot: string }> = {
+  // Backend holding statuses
+  PENDING:            { pill: 'bg-amber-50    text-amber-700',  dot: 'bg-amber-400' },
+  ACTIVE:             { pill: 'bg-emerald-50  text-emerald-700',dot: 'bg-emerald-500' },
+  REJECTED:           { pill: 'bg-red-50      text-red-700',    dot: 'bg-red-500' },
+  SUSPENDED:          { pill: 'bg-rose-50     text-rose-700',   dot: 'bg-rose-500' },
+  // Extended UI workflow statuses
   DRAFT:              { pill: 'bg-gray-100    text-gray-600',   dot: 'bg-gray-400' },
   PENDING_REVIEW:     { pill: 'bg-amber-50    text-amber-700',  dot: 'bg-amber-400' },
   ADMIN_REJECT:       { pill: 'bg-red-50      text-red-700',    dot: 'bg-red-500' },

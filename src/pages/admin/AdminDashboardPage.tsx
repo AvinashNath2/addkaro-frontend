@@ -17,7 +17,8 @@ import { Loader2, CheckCircle, XCircle } from 'lucide-react'
 import {
   getAdminDashboard,
   getPendingHoldings,
-  updateAdminHoldingStatus,
+  approveHolding,
+  rejectHolding,
 } from '@/api/admin.api'
 import StatCard from '@/components/ui/StatCard'
 import StatusBadge from '@/components/ui/StatusBadge'
@@ -59,14 +60,14 @@ export default function AdminDashboardPage() {
 
   // Approve mutation: PENDING_REVIEW → PUBLISHED
   const approveMutation = useMutation({
-    mutationFn: (id: string) => updateAdminHoldingStatus(id, 'PUBLISHED'),
+    mutationFn: (id: string) => approveHolding(id),
     onSuccess: invalidateAll,
   })
 
   // Reject mutation: PENDING_REVIEW → ADMIN_REJECT
   const rejectMutation = useMutation({
     mutationFn: ({ id, reason }: { id: string; reason: string }) =>
-      updateAdminHoldingStatus(id, 'ADMIN_REJECT', reason),
+      rejectHolding(id, reason),
     onSuccess: (_, { id }) => {
       // Clear the reject input for this holding
       setRejectInputs((prev) => {

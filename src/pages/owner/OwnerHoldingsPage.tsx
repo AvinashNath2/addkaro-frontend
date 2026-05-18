@@ -5,7 +5,6 @@ import { Loader2, Plus, Trash2, ChevronDown, ChevronUp, Edit2, MessageCircle } f
 import {
   getOwnerHoldings,
   deleteHolding,
-  updateHoldingStatus,
   getOwnerOffersByHolding,
   revealContact,
   updateOfferStatus,
@@ -13,16 +12,14 @@ import {
 import StatusBadge from '@/components/ui/StatusBadge'
 import EmptyState from '@/components/ui/EmptyState'
 import ChatBox from '@/components/chat/ChatBox'
-import type { OwnerHolding, HoldingStatus } from '@/types'
+import type { OwnerHolding } from '@/types'
 
 const STATUS_TABS = [
   { label: 'All', value: '' },
-  { label: 'Draft', value: 'DRAFT' },
-  { label: 'Pending Review', value: 'PENDING_REVIEW' },
-  { label: 'Rejected', value: 'ADMIN_REJECT' },
-  { label: 'Published', value: 'PUBLISHED' },
-  { label: 'Booked', value: 'BOOKED' },
-  { label: 'Paused', value: 'OWNER_PAUSE' },
+  { label: 'Pending Review', value: 'PENDING' },
+  { label: 'Active', value: 'ACTIVE' },
+  { label: 'Rejected', value: 'REJECTED' },
+  { label: 'Suspended', value: 'SUSPENDED' },
 ]
 
 function formatRupees(amount: number): string {
@@ -31,144 +28,6 @@ function formatRupees(amount: number): string {
 
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
-}
-
-// ── Sub-view: status editor ─────────────────────────────────────────────────
-function StatusEditor({ holding, onDone }: { holding: OwnerHolding; onDone: () => void }) {
-  const queryClient = useQueryClient()
-  const [bookedFrom, setBookedFrom] = useState(holding.bookedFrom ?? '')
-  const [bookedTo, setBookedTo] = useState(holding.bookedTo ?? '')
-  const [error, setError] = useState('')
-
-  const mutation = useMutation({
-    mutationFn: (payload: { toStatus: string; bookedFrom?: string | null; bookedTo?: string | null }) =>
-      updateHoldingStatus(holding.id, payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['owner-holdings'] })
-      onDone()
-    },
-    onError: (err: Error) => setError(err.message),
-  })
-
-  const handleTransition = (toStatus: string) => {
-    if (toStatus === 'BOOKED') {
-      if (!bookedFrom || !bookedTo) { setError('Please enter both From and To dates for a Booked holding.'); return }
-      if (bookedFrom > bookedTo) { setError('From date must be before To date.'); return }
-      mutation.mutate({ toStatus, bookedFrom, bookedTo })
-    } else {
-      mutation.mutate({ toStatus })
-    }
-  }
-
-  const status = holding.status as HoldingStatus
-
-  return (
-    <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mt-3 space-y-3">
-      <p className="text-sm font-semibold text-amber-800">Update Status</p>
-
-      {/* DRAFT: submit for review */}
-      {status === 'DRAFT' && (
-        <button
-          onClick={() => handleTransition('PENDING_REVIEW')}
-          disabled={mutation.isPending}
-          className="px-4 py-2 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700 disabled:opacity-50 transition-colors flex items-center gap-2"
-        >
-          {mutation.isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-          Submit for Review
-        </button>
-      )}
-
-      {/* ADMIN_REJECT: resubmit */}
-      {status === 'ADMIN_REJECT' && (
-        <button
-          onClick={() => handleTransition('PENDING_REVIEW')}
-          disabled={mutation.isPending}
-          className="px-4 py-2 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700 disabled:opacity-50 transition-colors flex items-center gap-2"
-        >
-          {mutation.isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-          Resubmit for Review
-        </button>
-      )}
-
-      {/* PUBLISHED: mark as booked or pause */}
-      {status === 'PUBLISHED' && (
-        <div className="space-y-3">
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-gray-700">Mark as Booked (requires date range):</p>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">Booked From</label>
-                <input
-                  type="date"
-                  value={bookedFrom}
-                  onChange={(e) => setBookedFrom(e.target.value)}
-                  className="input-field text-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">Booked To</label>
-                <input
-                  type="date"
-                  value={bookedTo}
-                  onChange={(e) => setBookedTo(e.target.value)}
-                  className="input-field text-sm"
-                />
-              </div>
-            </div>
-            <button
-              onClick={() => handleTransition('BOOKED')}
-              disabled={mutation.isPending}
-              className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center gap-2"
-            >
-              {mutation.isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-              Mark as Booked
-            </button>
-          </div>
-          <button
-            onClick={() => handleTransition('OWNER_PAUSE')}
-            disabled={mutation.isPending}
-            className="px-4 py-2 rounded-lg bg-orange-600 text-white text-sm font-medium hover:bg-orange-700 disabled:opacity-50 transition-colors flex items-center gap-2"
-          >
-            {mutation.isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-            Pause Listing
-          </button>
-        </div>
-      )}
-
-      {/* BOOKED: mark available again */}
-      {status === 'BOOKED' && (
-        <button
-          onClick={() => handleTransition('PUBLISHED')}
-          disabled={mutation.isPending}
-          className="px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-colors flex items-center gap-2"
-        >
-          {mutation.isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-          Mark Available Again
-        </button>
-      )}
-
-      {/* OWNER_PAUSE: re-publish */}
-      {status === 'OWNER_PAUSE' && (
-        <button
-          onClick={() => handleTransition('PUBLISHED')}
-          disabled={mutation.isPending}
-          className="px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-colors flex items-center gap-2"
-        >
-          {mutation.isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-          Re-publish Listing
-        </button>
-      )}
-
-      {error && <p className="text-xs text-red-600">{error}</p>}
-
-      <button
-        onClick={onDone}
-        className="px-4 py-2 rounded-lg border border-gray-300 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
-      >
-        Cancel
-      </button>
-    </div>
-  )
 }
 
 // ── Sub-view: offers for a holding ──────────────────────────────────────────
@@ -308,16 +167,12 @@ function HoldingOffersPanel({ holdingId }: { holdingId: string }) {
 }
 
 // ── Sub-view panel (expands below a selected holding row) ──────────────────
-function HoldingSubView({ holding, onClose: _onClose }: { holding: OwnerHolding; onClose: () => void }) {
+function HoldingSubView({ holding }: { holding: OwnerHolding }) {
   const navigate = useNavigate()
-  const [showStatusEditor, setShowStatusEditor] = useState(false)
-
-  // Statuses that allow showing a status editor
-  const canEditStatus = ['DRAFT', 'ADMIN_REJECT', 'PUBLISHED', 'BOOKED', 'OWNER_PAUSE'].includes(holding.status)
+  const canEdit = holding.status === 'PENDING' || holding.status === 'REJECTED'
 
   return (
     <div className="bg-gray-50 border-t border-brand-200 px-6 py-5">
-      {/* Details + actions row */}
       <div className="flex flex-wrap items-start gap-4 justify-between mb-4">
         <div className="space-y-1 text-sm text-gray-700 min-w-0">
           <p><span className="font-medium">Size:</span> {holding.width} × {holding.height} ft</p>
@@ -327,41 +182,21 @@ function HoldingSubView({ holding, onClose: _onClose }: { holding: OwnerHolding;
             <span className="font-medium">Status:</span>{' '}
             <StatusBadge status={holding.status} />
           </p>
-          {holding.status === 'BOOKED' && holding.bookedFrom && holding.bookedTo && (
-            <p className="text-xs text-gray-500">
-              Booked: {formatDate(holding.bookedFrom)} → {formatDate(holding.bookedTo)}
-            </p>
-          )}
-          {(holding.status === 'ADMIN_REJECT' || holding.status === 'DELISTED_BY_ADMIN') && holding.rejectionReason && (
+          {(holding.status === 'REJECTED' || holding.status === 'SUSPENDED') && holding.rejectionReason && (
             <p className="text-xs text-red-600">Admin note: {holding.rejectionReason}</p>
           )}
         </div>
 
-        <div className="flex gap-2 flex-wrap shrink-0">
-          {canEditStatus && !showStatusEditor && (
-            <button
-              onClick={() => setShowStatusEditor(true)}
-              className="flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg border border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100 transition-colors"
-            >
-              <Edit2 className="w-3.5 h-3.5" />
-              Change Status
-            </button>
-          )}
-          {(holding.status === 'DRAFT' || holding.status === 'ADMIN_REJECT') && (
-            <button
-              onClick={() => navigate(`/owner/holdings/${holding.id}/edit`)}
-              className="flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg border border-brand-300 text-brand-700 bg-brand-50 hover:bg-brand-100 transition-colors"
-            >
-              <Edit2 className="w-3.5 h-3.5" />
-              Edit Listing
-            </button>
-          )}
-        </div>
+        {canEdit && (
+          <button
+            onClick={() => navigate(`/owner/holdings/${holding.id}/edit`)}
+            className="flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg border border-brand-300 text-brand-700 bg-brand-50 hover:bg-brand-100 transition-colors shrink-0"
+          >
+            <Edit2 className="w-3.5 h-3.5" />
+            Edit Listing
+          </button>
+        )}
       </div>
-
-      {showStatusEditor && (
-        <StatusEditor holding={holding} onDone={() => setShowStatusEditor(false)} />
-      )}
 
       <HoldingOffersPanel holdingId={holding.id} />
     </div>
@@ -400,7 +235,6 @@ export default function OwnerHoldingsPage() {
 
   return (
     <div>
-      {/* Page header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">My Listings</h2>
@@ -440,7 +274,7 @@ export default function OwnerHoldingsPage() {
       )}
 
       {data && data.items.length === 0 && (
-        <EmptyState message="No listings found. Click 'Add New Listing' to create your first hoarding draft." />
+        <EmptyState message="No listings found. Click 'Add New Listing' to create your first hoarding." />
       )}
 
       {data && data.items.length > 0 && (
@@ -488,7 +322,7 @@ export default function OwnerHoldingsPage() {
                         </td>
                         <td className="px-6 py-4 text-gray-600">{holding.offersCount}</td>
                         <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
-                          {(holding.status === 'DRAFT' || holding.status === 'ADMIN_REJECT') && (
+                          {(holding.status === 'PENDING' || holding.status === 'REJECTED') && (
                             <button
                               onClick={() => handleDelete(holding.id, holding.title)}
                               disabled={deleteMutation.isPending}
@@ -504,7 +338,7 @@ export default function OwnerHoldingsPage() {
                       {expandedId === holding.id && (
                         <tr className="border-b border-brand-200">
                           <td colSpan={7} className="p-0">
-                            <HoldingSubView holding={holding} onClose={() => setExpandedId(null)} />
+                            <HoldingSubView holding={holding} />
                           </td>
                         </tr>
                       )}
@@ -515,7 +349,6 @@ export default function OwnerHoldingsPage() {
             </div>
           </div>
 
-          {/* Pagination */}
           {data.totalPages > 1 && (
             <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
               <button

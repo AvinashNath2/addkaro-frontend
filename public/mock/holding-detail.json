@@ -8,7 +8,8 @@
   "height": 25,
   "preferredAdTypes": ["FMCG", "Real Estate", "Automobile", "Fashion"],
   "rentalCost": 120000,
-  "status": "PUBLISHED",
+  "availability": "AVAILABLE",
+  "status": "ACTIVE",
   "ownerVerified": true,
   "ownerId": "owner-001",
   "photos": [
@@ -17,6 +18,88 @@
     "https://loremflickr.com/800/500/hoarding,sign?lock=33"
   ],
   "createdAt": "2026-03-10T09:15:00",
-  "bookedFrom": null,
-  "bookedTo": null
+  "visibilityDistanceMetres": 500,
+  "trafficLaneCount": 4,
+  "distanceFromHighwayKm": null,
+  "address": {
+    "street": "Connaught Place Inner Circle",
+    "area": "Connaught Place",
+    "city": "New Delhi",
+    "state": "Delhi",
+    "pinCode": "110001",
+    "landmark": "Near Palika Bazaar",
+    "locationSubtype": "MAIN_ROAD",
+    "nearestMetro": "Rajiv Chowk",
+    "nearestRailway": "New Delhi",
+    "googleMapsUrl": "https://maps.google.com/?q=28.6315,77.2167"
+  },
+  "typeSpecs": {
+    "holdingType": "UNIPOLE",
+    "numFaces": "SINGLE",
+    "displayTechnology": "FLEX_VINYL",
+    "printableAreaSqft": 1000,
+    "facingDirection": "NORTH",
+    "mountingHeightFt": 40,
+    "roadSide": "LEFT",
+    "dimensionUnit": "FEET",
+    "viewingAngle": "180_DEGREE"
+  },
+  "illumination": {
+    "isIlluminated": true,
+    "illuminationType": "FRONT_LIT",
+    "illuminationHours": "SIX_PM_TO_MIDNIGHT",
+    "numSpotLights": 4,
+    "lightWattage": 250
+  },
+  "amenities": {
+    "electricityAvailable": true,
+    "powerSupplyType": "TWENTY_FOUR_SEVEN",
+    "batteryBackup": false,
+    "batteryBackupHours": null,
+    "solarPanelInstalled": false,
+    "solarWattage": null,
+    "upsAvailable": false,
+    "generatorAvailable": false,
+    "weatherproof": true,
+    "easyMaintenanceAccess": true,
+    "onSiteWatchman": false,
+    "nearbyParking": true,
+    "remoteContentMgmt": false,
+    "internetAvailable": false,
+    "contentLoopSeconds": null
+  },
+  "audience": {
+    "estimatedDailyVehicles": 85000,
+    "estimatedDailyFootfall": 120000,
+    "audienceTypes": ["CORPORATE", "RETAIL_SHOPPERS", "TOURISTS"],
+    "peakHours": ["9AM_TO_11AM", "5PM_TO_9PM"],
+    "nearbyPopulation": "HIGH_DENSITY",
+    "trafficDataSource": "OWNER_ESTIMATE"
+  },
+  "pricing": {
+    "monthlyRate": 120000,
+    "quarterlyRate": 330000,
+    "halfYearlyRate": 630000,
+    "annualRate": 1200000,
+    "minimumBookingDays": 30,
+    "securityDeposit": 60000,
+    "printingCostIncluded": false,
+    "installationCostIncluded": false,
+    "gstIncluded": false,
+    "advancePaymentMonths": 1,
+    "paymentModes": ["BANK_TRANSFER", "CHEQUE"],
+    "cancellationPolicy": "30_DAYS_NOTICE"
+  },
+  "legal": {
+    "ownerDescription": "Prime unipole at the heart of New Delhi's commercial district. Excellent visibility for premium brands targeting urban professionals and tourists.",
+    "sellingPoints": ["High footfall zone", "Corporate hub", "Tourist destination", "Traffic signal facing"],
+    "hoardingAge": "3 years",
+    "previousClients": ["Maruti Suzuki", "HDFC Bank", "Zomato"],
+    "permitStatus": "YES",
+    "permitNumber": "MCD-2024-CP-001",
+    "permitValidTill": "2027-03-31",
+    "tdrCertificate": true,
+    "nocFromAuthority": true
+  },
+  "locationAdvantages": ["SIGNAL_JUNCTION", "PEDESTRIAN_FOOTPATH_ZONE", "NEAR_IT_PARK", "IN_MARKET_BAZAAR", "TOURIST_HERITAGE_AREA"]
 }

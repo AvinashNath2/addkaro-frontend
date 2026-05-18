@@ -1,5 +1,4 @@
 import api from './axios'
-import type { CoreResponse } from '@/types/auth.types'
 import type { ChatMessage } from '@/types/index'
 import { IS_MOCK, mockFetch } from '@/lib/mockMode'
 
@@ -8,8 +7,8 @@ export async function getChatHistory(offerId: string): Promise<ChatMessage[]> {
     const msgs = await mockFetch<ChatMessage[]>('chat-messages.json')
     return msgs.filter((m) => m.offerId === offerId || true).slice(0, 4)
   }
-  const res = await api.get<CoreResponse<ChatMessage[]>>(`/offers/${offerId}/chat`)
-  return res.data.data
+  const res = await api.get<ChatMessage[]>(`/offers/${offerId}/chat`)
+  return res.data
 }
 
 export async function sendChatMessage(offerId: string, message: string): Promise<ChatMessage> {
@@ -24,6 +23,6 @@ export async function sendChatMessage(offerId: string, message: string): Promise
       readAt: null,
     }
   }
-  const res = await api.post<CoreResponse<ChatMessage>>(`/offers/${offerId}/chat`, { message })
-  return res.data.data
+  const res = await api.post<ChatMessage>(`/offers/${offerId}/chat`, { message })
+  return res.data
 }
