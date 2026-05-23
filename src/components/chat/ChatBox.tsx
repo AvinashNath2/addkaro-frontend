@@ -23,7 +23,7 @@ export default function ChatBox({ offerId, offerLabel, onClose }: ChatBoxProps) 
   const inputRef = useRef<HTMLInputElement>(null)
 
   // Poll every 5 s for new messages while the box is open
-  const { data: messages = [], isLoading, isError } = useQuery({
+  const { data: messages = [], isLoading, isError, error } = useQuery({
     queryKey: ['chat', offerId],
     queryFn: () => getChatHistory(offerId),
     refetchInterval: 5000,
@@ -105,8 +105,8 @@ export default function ChatBox({ offerId, offerLabel, onClose }: ChatBoxProps) 
           )}
 
           {isError && (
-            <div className="text-center py-12 text-sm text-red-600">
-              Failed to load messages. Please try again.
+            <div className="text-center py-12 text-sm text-red-600 px-4">
+              {(error as Error)?.message ?? 'Failed to load messages.'}
             </div>
           )}
 

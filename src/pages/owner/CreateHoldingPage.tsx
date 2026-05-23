@@ -1,15 +1,3 @@
-// CreateHoldingPage.tsx — form for owners to submit a new hoarding listing
-//
-// After submission the listing enters PENDING status and awaits admin approval.
-// The owner is shown a brief success message then redirected to their listings page.
-//
-// The form is split into:
-//   1. Base required fields (title, location, coordinates, dimensions, rental cost)
-//   2. Optional section accordions (address, type specs, illumination, amenities,
-//      audience, pricing, legal + location advantages)
-//
-// Owners can fill sections progressively — only base fields are required.
-
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
@@ -20,18 +8,9 @@ import { createHolding } from '@/api/owner.api'
 import { holdingSchema, type HoldingFormData } from '@/lib/schemas/holding.schema'
 import { cn } from '@/lib/utils'
 
-// ── Reusable accordion section wrapper ────────────────────────────────────────
 function SectionAccordion({
-  title,
-  hint,
-  children,
-  defaultOpen = false,
-}: {
-  title: string
-  hint?: string
-  children: React.ReactNode
-  defaultOpen?: boolean
-}) {
+  title, hint, children, defaultOpen = false,
+}: { title: string; hint?: string; children: React.ReactNode; defaultOpen?: boolean }) {
   const [open, setOpen] = useState(defaultOpen)
   return (
     <div className="border border-gray-200 rounded-xl overflow-hidden">
@@ -51,7 +30,6 @@ function SectionAccordion({
   )
 }
 
-// Common location advantages to choose from
 const LOCATION_ADVANTAGES = [
   'SIGNAL_JUNCTION', 'PEDESTRIAN_FOOTPATH_ZONE', 'HIGH_VEHICLE_TRAFFIC',
   'NATIONAL_HIGHWAY_FACING', 'STATE_HIGHWAY_FACING', 'NEAR_METRO_STATION',
@@ -66,12 +44,7 @@ export default function CreateHoldingPage() {
   const navigate = useNavigate()
   const [selectedAdvantages, setSelectedAdvantages] = useState<string[]>([])
 
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    formState: { errors },
-  } = useForm<HoldingFormData>({
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm<HoldingFormData>({
     resolver: zodResolver(holdingSchema),
   })
 
@@ -84,16 +57,8 @@ export default function CreateHoldingPage() {
   }
 
   const mutation = useMutation({
-    mutationFn: (data: HoldingFormData) => {
-      const payload = {
-        ...data,
-        preferredAdTypes: data.preferredAdTypes
-          ? data.preferredAdTypes.split(',').map((s) => s.trim()).filter(Boolean)
-          : [],
-        locationAdvantages: selectedAdvantages,
-      }
-      return createHolding(payload)
-    },
+    mutationFn: (data: HoldingFormData) =>
+      createHolding({ ...data, locationAdvantages: selectedAdvantages }),
     onSuccess: () => {
       setTimeout(() => navigate('/owner/holdings'), 1500)
     },
@@ -101,7 +66,6 @@ export default function CreateHoldingPage() {
 
   return (
     <div className="max-w-2xl">
-      {/* Back nav */}
       <button
         onClick={() => navigate('/owner/holdings')}
         className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-800 mb-6 transition-colors"
@@ -113,7 +77,7 @@ export default function CreateHoldingPage() {
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-900">Add New Listing</h2>
         <p className="text-sm text-gray-500 mt-1">
-          Submit your hoarding for admin review. Only the base fields are required — you can fill the optional sections later.
+          Submit your hoarding for admin review. Only the base fields are required.
         </p>
       </div>
 
@@ -129,7 +93,7 @@ export default function CreateHoldingPage() {
 
       <form onSubmit={handleSubmit((d) => mutation.mutate(d))} noValidate className="space-y-5">
 
-        {/* ── Required base fields ─────────────────────────────────────── */}
+        {/* ── Required base fields ──────────────────────────────────────── */}
         <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm space-y-5">
           <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Required Details</h3>
 
@@ -143,8 +107,7 @@ export default function CreateHoldingPage() {
           <div>
             <label className="label">Location / Address</label>
             <input type="text" placeholder="e.g. MG Road, Bengaluru, Karnataka 560001"
-              className={cn('input-field', errors.location && 'input-error')} {...register('location')} />
-            {errors.location && <p className="error-text">{errors.location.message}</p>}
+              className="input-field" {...register('location')} />
           </div>
 
           <div>
@@ -197,38 +160,13 @@ export default function CreateHoldingPage() {
               className={cn('input-field', errors.rentalCost && 'input-error')} {...register('rentalCost')} />
             {errors.rentalCost && <p className="error-text">{errors.rentalCost.message}</p>}
           </div>
-
-          <div>
-            <label className="label">Preferred Ad Types (optional)</label>
-            <input type="text" placeholder="e.g. FMCG, Automobile, Real Estate"
-              className="input-field" {...register('preferredAdTypes')} />
-            <p className="mt-1 text-xs text-gray-400">Separate multiple types with commas</p>
-          </div>
-
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <label className="label">Visibility Distance (m)</label>
-              <input type="number" placeholder="e.g. 300"
-                className="input-field" {...register('visibilityDistanceMetres')} />
-            </div>
-            <div>
-              <label className="label">Traffic Lanes</label>
-              <input type="number" placeholder="e.g. 4"
-                className="input-field" {...register('trafficLaneCount')} />
-            </div>
-            <div>
-              <label className="label">Distance from Highway (km)</label>
-              <input type="number" step="0.1" placeholder="e.g. 1.5"
-                className="input-field" {...register('distanceFromHighwayKm')} />
-            </div>
-          </div>
         </div>
 
         {/* ── Optional sections ─────────────────────────────────────────── */}
         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-1">Optional Sections</p>
 
-        {/* Address section */}
-        <SectionAccordion title="Address Details" hint="Area, city, state, PIN, metro">
+        {/* Address */}
+        <SectionAccordion title="Address Details" hint="Area, city, state, PIN">
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
               <label className="label">Street</label>
@@ -244,14 +182,14 @@ export default function CreateHoldingPage() {
             </div>
             <div>
               <label className="label">City *</label>
-              <input type="text" placeholder="e.g. Mumbai"
+              <input type="text" placeholder="e.g. Bangalore"
                 className={cn('input-field', errors.address?.city && 'input-error')}
                 {...register('address.city')} />
               {errors.address?.city && <p className="error-text">{errors.address.city.message}</p>}
             </div>
             <div>
               <label className="label">State *</label>
-              <input type="text" placeholder="e.g. Maharashtra"
+              <input type="text" placeholder="e.g. Karnataka"
                 className={cn('input-field', errors.address?.state && 'input-error')}
                 {...register('address.state')} />
               {errors.address?.state && <p className="error-text">{errors.address.state.message}</p>}
@@ -263,27 +201,10 @@ export default function CreateHoldingPage() {
                 {...register('address.pinCode')} />
               {errors.address?.pinCode && <p className="error-text">{errors.address.pinCode.message}</p>}
             </div>
-            <div>
-              <label className="label">Landmark</label>
-              <input type="text" placeholder="e.g. Near Juhu Beach"
-                className="input-field" {...register('address.landmark')} />
-            </div>
-            <div>
-              <label className="label">Nearest Metro</label>
-              <input type="text" placeholder="e.g. Andheri Metro"
-                className="input-field" {...register('address.nearestMetro')} />
-            </div>
-            <div>
-              <label className="label">Nearest Railway</label>
-              <input type="text" placeholder="e.g. Andheri Station"
-                className="input-field" {...register('address.nearestRailway')} />
-            </div>
             <div className="col-span-2">
-              <label className="label">Google Maps URL</label>
-              <input type="url" placeholder="https://maps.google.com/..."
-                className={cn('input-field', errors.address?.googleMapsUrl && 'input-error')}
-                {...register('address.googleMapsUrl')} />
-              {errors.address?.googleMapsUrl && <p className="error-text">{errors.address.googleMapsUrl.message}</p>}
+              <label className="label">Landmark</label>
+              <input type="text" placeholder="e.g. Near MG Road Metro Station"
+                className="input-field" {...register('address.landmark')} />
             </div>
           </div>
         </SectionAccordion>
@@ -351,30 +272,11 @@ export default function CreateHoldingPage() {
               <input type="number" placeholder="e.g. 30"
                 className="input-field" {...register('typeSpecs.mountingHeightFt')} />
             </div>
-            <div>
-              <label className="label">Road Side</label>
-              <select className="input-field" {...register('typeSpecs.roadSide')}>
-                <option value="">Select…</option>
-                <option value="LEFT">Left</option>
-                <option value="RIGHT">Right</option>
-                <option value="MEDIAN">Median</option>
-              </select>
-            </div>
-            <div>
-              <label className="label">Viewing Angle</label>
-              <select className="input-field" {...register('typeSpecs.viewingAngle')}>
-                <option value="">Select…</option>
-                <option value="90_DEGREE">90°</option>
-                <option value="180_DEGREE">180°</option>
-                <option value="270_DEGREE">270°</option>
-                <option value="360_DEGREE">360°</option>
-              </select>
-            </div>
           </div>
         </SectionAccordion>
 
         {/* Illumination */}
-        <SectionAccordion title="Illumination" hint="Lighting type, hours, wattage">
+        <SectionAccordion title="Illumination" hint="Lighting type and hours">
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2 flex items-center gap-3">
               <input type="checkbox" id="isIlluminated" className="w-4 h-4 accent-brand-600"
@@ -402,42 +304,33 @@ export default function CreateHoldingPage() {
                 <option value="DAYLIGHT_ONLY">Daylight Only</option>
               </select>
             </div>
-            <div>
-              <label className="label">Number of Spotlights</label>
-              <input type="number" placeholder="e.g. 4"
-                className="input-field" {...register('illumination.numSpotLights')} />
-            </div>
-            <div>
-              <label className="label">Light Wattage (W)</label>
-              <input type="number" placeholder="e.g. 200"
-                className="input-field" {...register('illumination.lightWattage')} />
-            </div>
           </div>
         </SectionAccordion>
 
         {/* Audience */}
-        <SectionAccordion title="Audience & Traffic" hint="Footfall, vehicles, peak hours">
+        <SectionAccordion title="Audience & Traffic" hint="Vehicle / footfall ranges and data source">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="label">Est. Daily Vehicles</label>
-              <input type="number" placeholder="e.g. 50000"
-                className="input-field" {...register('audience.estimatedDailyVehicles')} />
-            </div>
-            <div>
-              <label className="label">Est. Daily Footfall</label>
-              <input type="number" placeholder="e.g. 30000"
-                className="input-field" {...register('audience.estimatedDailyFootfall')} />
-            </div>
-            <div>
-              <label className="label">Nearby Population</label>
-              <select className="input-field" {...register('audience.nearbyPopulation')}>
+              <label className="label">Daily Vehicle Range</label>
+              <select className="input-field" {...register('audience.dailyVehiclesRange')}>
                 <option value="">Select…</option>
-                <option value="HIGH_DENSITY">High Density</option>
-                <option value="MEDIUM_DENSITY">Medium Density</option>
-                <option value="LOW_DENSITY">Low Density</option>
+                <option value="UNDER_10K">Under 10,000</option>
+                <option value="10K_50K">10,000 – 50,000</option>
+                <option value="50K_100K">50,000 – 1,00,000</option>
+                <option value="ABOVE_100K">Above 1,00,000</option>
               </select>
             </div>
             <div>
+              <label className="label">Daily Footfall Range</label>
+              <select className="input-field" {...register('audience.dailyFootfallRange')}>
+                <option value="">Select…</option>
+                <option value="UNDER_5K">Under 5,000</option>
+                <option value="5K_20K">5,000 – 20,000</option>
+                <option value="20K_50K">20,000 – 50,000</option>
+                <option value="ABOVE_50K">Above 50,000</option>
+              </select>
+            </div>
+            <div className="col-span-2">
               <label className="label">Traffic Data Source</label>
               <select className="input-field" {...register('audience.trafficDataSource')}>
                 <option value="">Select…</option>
@@ -451,85 +344,79 @@ export default function CreateHoldingPage() {
         </SectionAccordion>
 
         {/* Pricing */}
-        <SectionAccordion title="Pricing Details" hint="Rates, deposit, cancellation policy">
+        <SectionAccordion title="Pricing Details" hint="Discounts, deposit, installation">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="label">Quarterly Rate (₹)</label>
-              <input type="number" className="input-field" {...register('pricing.quarterlyRate')} />
+              <label className="label">Min. Booking (months)</label>
+              <input type="number" placeholder="e.g. 3"
+                className="input-field" {...register('pricing.minimumBookingMonths')} />
             </div>
             <div>
-              <label className="label">Half-Yearly Rate (₹)</label>
-              <input type="number" className="input-field" {...register('pricing.halfYearlyRate')} />
+              <label className="label">Quarterly Discount (%)</label>
+              <input type="number" step="0.5" placeholder="e.g. 5"
+                className="input-field" {...register('pricing.quarterlyDiscountPct')} />
             </div>
             <div>
-              <label className="label">Annual Rate (₹)</label>
-              <input type="number" className="input-field" {...register('pricing.annualRate')} />
+              <label className="label">Half-Yearly Discount (%)</label>
+              <input type="number" step="0.5" placeholder="e.g. 10"
+                className="input-field" {...register('pricing.halfYearlyDiscountPct')} />
             </div>
             <div>
-              <label className="label">Security Deposit (₹)</label>
-              <input type="number" className="input-field" {...register('pricing.securityDeposit')} />
+              <label className="label">Yearly Discount (%)</label>
+              <input type="number" step="0.5" placeholder="e.g. 15"
+                className="input-field" {...register('pricing.yearlyDiscountPct')} />
             </div>
             <div>
-              <label className="label">Min. Booking Days</label>
-              <input type="number" placeholder="e.g. 30"
-                className="input-field" {...register('pricing.minimumBookingDays')} />
+              <label className="label">Security Deposit Range</label>
+              <input type="text" placeholder="e.g. ₹50,000 – ₹1,00,000"
+                className="input-field" {...register('pricing.securityDepositRange')} />
             </div>
             <div>
-              <label className="label">Advance Payment (months)</label>
-              <input type="number" placeholder="e.g. 1"
-                className="input-field" {...register('pricing.advancePaymentMonths')} />
+              <label className="label">Installation Cost Range</label>
+              <input type="text" placeholder="e.g. ₹10,000 – ₹25,000"
+                className="input-field" {...register('pricing.installationCostRange')} />
             </div>
-            <div>
-              <label className="label">Cancellation Policy</label>
-              <select className="input-field" {...register('pricing.cancellationPolicy')}>
-                <option value="">Select…</option>
-                <option value="NO_REFUND">No Refund</option>
-                <option value="15_DAYS_NOTICE">15 Days Notice</option>
-                <option value="30_DAYS_NOTICE">30 Days Notice</option>
-                <option value="60_DAYS_NOTICE">60 Days Notice</option>
-              </select>
-            </div>
-            <div className="col-span-2 flex flex-wrap gap-4">
-              {[
-                { name: 'pricing.printingCostIncluded' as const, label: 'Printing cost included' },
-                { name: 'pricing.installationCostIncluded' as const, label: 'Installation cost included' },
-                { name: 'pricing.gstIncluded' as const, label: 'GST included' },
-              ].map(({ name, label }) => (
-                <label key={name} className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" className="w-4 h-4 accent-brand-600" {...register(name)} />
-                  <span className="text-sm text-gray-700">{label}</span>
-                </label>
-              ))}
+            <div className="col-span-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" className="w-4 h-4 accent-brand-600"
+                  {...register('pricing.securityDepositRequired')} />
+                <span className="text-sm text-gray-700">Security deposit required</span>
+              </label>
             </div>
           </div>
         </SectionAccordion>
 
         {/* Amenities */}
-        <SectionAccordion title="Amenities & Infrastructure" hint="Power, backup, parking, access">
+        <SectionAccordion title="Amenities & Infrastructure" hint="Power, access, security">
           <div className="grid grid-cols-2 gap-3">
             {[
               { name: 'amenities.electricityAvailable' as const, label: 'Electricity available' },
-              { name: 'amenities.batteryBackup' as const, label: 'Battery backup' },
-              { name: 'amenities.solarPanelInstalled' as const, label: 'Solar panel installed' },
-              { name: 'amenities.upsAvailable' as const, label: 'UPS available' },
-              { name: 'amenities.generatorAvailable' as const, label: 'Generator available' },
-              { name: 'amenities.weatherproof' as const, label: 'Weatherproof' },
-              { name: 'amenities.easyMaintenanceAccess' as const, label: 'Easy maintenance access' },
+              { name: 'amenities.ladderAccess' as const, label: 'Ladder access' },
               { name: 'amenities.onSiteWatchman' as const, label: 'On-site watchman' },
               { name: 'amenities.nearbyParking' as const, label: 'Nearby parking' },
-              { name: 'amenities.remoteContentMgmt' as const, label: 'Remote content management' },
-              { name: 'amenities.internetAvailable' as const, label: 'Internet available' },
+              { name: 'amenities.cctvInstalled' as const, label: 'CCTV installed' },
+              { name: 'amenities.waterAvailable' as const, label: 'Water available' },
             ].map(({ name, label }) => (
               <label key={name} className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" className="w-4 h-4 accent-brand-600" {...register(name)} />
                 <span className="text-sm text-gray-700">{label}</span>
               </label>
             ))}
+            <div className="col-span-2">
+              <label className="label">Power Supply Type</label>
+              <select className="input-field" {...register('amenities.powerSupplyType')}>
+                <option value="">Select…</option>
+                <option value="EB">EB (Grid)</option>
+                <option value="GENERATOR">Generator</option>
+                <option value="SOLAR">Solar</option>
+                <option value="EB_AND_GENERATOR">EB + Generator</option>
+              </select>
+            </div>
           </div>
         </SectionAccordion>
 
         {/* Legal */}
-        <SectionAccordion title="Legal & Permits" hint="Permit status, TDR, NOC, previous clients">
+        <SectionAccordion title="Legal & Permits" hint="Permit status and NOC">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="label">Permit Status</label>
@@ -548,25 +435,11 @@ export default function CreateHoldingPage() {
               <label className="label">Permit Valid Till</label>
               <input type="date" className="input-field" {...register('legal.permitValidTill')} />
             </div>
-            <div>
-              <label className="label">Hoarding Age</label>
-              <input type="text" placeholder="e.g. 2 years"
-                className="input-field" {...register('legal.hoardingAge')} />
-            </div>
-            <div className="col-span-2 flex gap-6">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" className="w-4 h-4 accent-brand-600" {...register('legal.tdrCertificate')} />
-                <span className="text-sm text-gray-700">TDR Certificate</span>
-              </label>
+            <div className="flex items-center">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" className="w-4 h-4 accent-brand-600" {...register('legal.nocFromAuthority')} />
                 <span className="text-sm text-gray-700">NOC from Authority</span>
               </label>
-            </div>
-            <div className="col-span-2">
-              <label className="label">Owner Description</label>
-              <textarea rows={3} placeholder="Describe your hoarding's key strengths…"
-                className="input-field resize-none" {...register('legal.ownerDescription')} />
             </div>
           </div>
         </SectionAccordion>
@@ -595,7 +468,6 @@ export default function CreateHoldingPage() {
           </div>
         </SectionAccordion>
 
-        {/* Submit */}
         {mutation.isError && (
           <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
             {mutation.error.message}

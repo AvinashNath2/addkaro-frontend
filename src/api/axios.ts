@@ -54,8 +54,14 @@ api.interceptors.request.use((config) => {
 //   so in components we can just write: mutation.error.message
 //   instead of: mutation.error.response?.data?.message ?? 'Something went wrong'
 api.interceptors.response.use(
-  // Success (2xx): pass the response through unchanged
-  (response) => response,
+  // Success (2xx): unwrap CoreResponse<T> envelope so callers get the data directly
+  (response) => {
+    const body = response.data as CoreResponse<unknown> | undefined
+    if (body && typeof body === 'object' && 'code' in body && 'data' in body) {
+      response.data = body.data
+    }
+    return response
+  },
 
   // Error (4xx, 5xx): extract the backend's message and throw a clean Error
   (error) => {

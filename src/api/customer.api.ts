@@ -1,7 +1,6 @@
 import api from './axios'
 import type { CustomerOffer, OfferRequest, WishlistItem, PageResponse } from '@/types/index'
 import { IS_MOCK, mockFetch } from '@/lib/mockMode'
-import { fromSpringPage } from '@/lib/springPage'
 
 // ── Offers ─────────────────────────────────────────────────────────────────
 
@@ -34,7 +33,7 @@ export async function getMyOffers(status?: string, page = 0, limit = 10): Promis
   const params: Record<string, unknown> = { page, limit }
   if (status) params.status = status
   const res = await api.get('/customer/offers', { params })
-  return fromSpringPage<CustomerOffer>(res.data)
+  return res.data as PageResponse<CustomerOffer>
 }
 
 export async function withdrawOffer(offerId: string): Promise<void> {
@@ -60,11 +59,11 @@ export async function removeFromWishlist(holdingId: string): Promise<void> {
   await api.delete(`/customer/wishlist/${holdingId}`)
 }
 
-export async function checkWishlist(holdingId: string): Promise<{ holdingId: string; wishlisted: boolean }> {
+export async function checkWishlist(holdingId: string): Promise<{ holdingId: string; saved: boolean }> {
   if (IS_MOCK) {
-    const wishlisted = ['hd002', 'hd004', 'hd010', 'hd011'].includes(holdingId)
-    return { holdingId, wishlisted }
+    const saved = ['hd002', 'hd004', 'hd010', 'hd011'].includes(holdingId)
+    return { holdingId, saved }
   }
-  const res = await api.get<{ holdingId: string; wishlisted: boolean }>(`/customer/wishlist/${holdingId}/check`)
+  const res = await api.get<{ holdingId: string; saved: boolean }>(`/customer/wishlist/${holdingId}/check`)
   return res.data
 }

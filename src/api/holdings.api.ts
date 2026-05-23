@@ -1,7 +1,6 @@
 import api from './axios'
 import type { HoldingCard, HoldingDetail, NearbyHolding, PageResponse } from '@/types/index'
 import { IS_MOCK, mockFetch } from '@/lib/mockMode'
-import { fromSpringPage } from '@/lib/springPage'
 
 export interface HoldingSearchParams {
   location?: string
@@ -14,8 +13,8 @@ export interface HoldingSearchParams {
   page?: number
   limit?: number
   sortBy?: string
-  // New section-based filters
   city?: string
+  state?: string
   holdingType?: string
   isIlluminated?: boolean
   locationAdvantages?: string[]
@@ -24,7 +23,7 @@ export interface HoldingSearchParams {
 export async function searchHoldings(params: HoldingSearchParams = {}): Promise<PageResponse<HoldingCard>> {
   if (IS_MOCK) return mockFetch<PageResponse<HoldingCard>>('holdings.json')
   const res = await api.get('/holdings', { params })
-  return fromSpringPage<HoldingCard>(res.data)
+  return res.data as PageResponse<HoldingCard>
 }
 
 export async function getHoldingDetail(id: string): Promise<HoldingDetail> {
@@ -63,8 +62,8 @@ export async function nearbyHoldings(params: {
     }))
   }
   const { radiusKm = 15, ...rest } = params
-  const res = await api.get<NearbyHolding[]>('/holdings/nearby', {
+  const res = await api.get('/holdings/nearby', {
     params: { ...rest, radius: radiusKm * 1000, limit: rest.limit ?? 20 },
   })
-  return res.data
+  return res.data as NearbyHolding[]
 }

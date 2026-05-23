@@ -111,13 +111,15 @@ function OfferDetailPanel({
           </div>
 
           <div className="flex flex-wrap gap-2 pt-2">
-            <button
-              onClick={onChat}
-              className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg bg-brand-600 text-white hover:bg-brand-700 transition-colors"
-            >
-              <MessageCircle className="w-3.5 h-3.5" />
-              Chat with Owner
-            </button>
+            {offer.status !== 'NEW' && (
+              <button
+                onClick={onChat}
+                className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg bg-brand-600 text-white hover:bg-brand-700 transition-colors"
+              >
+                <MessageCircle className="w-3.5 h-3.5" />
+                Chat with Owner
+              </button>
+            )}
 
             <button
               onClick={onNavigate}

@@ -13,12 +13,7 @@ export interface PageResponse<T> {
 }
 
 // ── Holding enums ──────────────────────────────────────────────────────────
-// Backend values: PENDING, ACTIVE, REJECTED, SUSPENDED
-// Extended UI workflow values (frontend-only until backend supports them):
-export type HoldingStatus =
-  | 'PENDING' | 'ACTIVE' | 'REJECTED' | 'SUSPENDED'
-  | 'DRAFT' | 'PENDING_REVIEW' | 'ADMIN_REJECT' | 'PUBLISHED'
-  | 'BOOKED' | 'OWNER_PAUSE' | 'DELISTED_BY_ADMIN'
+export type HoldingStatus = 'PENDING' | 'ACTIVE' | 'REJECTED' | 'SUSPENDED' | 'DELETED'
 export type HoldingLocationType = 'URBAN' | 'LOCAL'
 export type HoldingAvailability = 'AVAILABLE' | 'BOOKED' | 'PARTIAL'
 
@@ -40,7 +35,7 @@ export type LocationAdvantage =
   | 'NEAR_POST_OFFICE' | 'NEAR_POLICE_STATION' | 'NEAR_MUNICIPALITY'
   | 'TOURIST_HERITAGE_AREA' | 'UPSCALE_NEIGHBOURHOOD' | 'FAMILY_RESIDENTIAL_ZONE'
 
-// ── Section data shapes (mirrors backend inner records) ────────────────────
+// ── Section data shapes (mirrors V18 backend schema) ──────────────────────
 export interface AddressData {
   street: string | null
   area: string | null
@@ -48,10 +43,6 @@ export interface AddressData {
   state: string | null
   pinCode: string | null
   landmark: string | null
-  locationSubtype: string | null
-  nearestMetro: string | null
-  nearestRailway: string | null
-  googleMapsUrl: string | null
 }
 
 export interface TypeSpecsData {
@@ -61,70 +52,45 @@ export interface TypeSpecsData {
   printableAreaSqft: number | null
   facingDirection: string | null
   mountingHeightFt: number | null
-  roadSide: string | null
-  dimensionUnit: string | null
-  viewingAngle: string | null
 }
 
 export interface IlluminationData {
   isIlluminated: boolean | null
   illuminationType: string | null
   illuminationHours: string | null
-  numSpotLights: number | null
-  lightWattage: number | null
 }
 
 export interface AmenitiesData {
   electricityAvailable: boolean | null
   powerSupplyType: string | null
-  batteryBackup: boolean | null
-  batteryBackupHours: number | null
-  solarPanelInstalled: boolean | null
-  solarWattage: number | null
-  upsAvailable: boolean | null
-  generatorAvailable: boolean | null
-  weatherproof: boolean | null
-  easyMaintenanceAccess: boolean | null
+  ladderAccess: boolean | null
   onSiteWatchman: boolean | null
   nearbyParking: boolean | null
-  remoteContentMgmt: boolean | null
-  internetAvailable: boolean | null
-  contentLoopSeconds: number | null
+  cctvInstalled: boolean | null
+  waterAvailable: boolean | null
 }
 
 export interface AudienceData {
-  estimatedDailyVehicles: number | null
-  estimatedDailyFootfall: number | null
-  audienceTypes: string[]
-  peakHours: string[]
-  nearbyPopulation: string | null
+  dailyVehiclesRange: string | null
+  dailyFootfallRange: string | null
   trafficDataSource: string | null
 }
 
 export interface PricingData {
   monthlyRate: number | null
-  quarterlyRate: number | null
-  halfYearlyRate: number | null
-  annualRate: number | null
-  minimumBookingDays: number | null
-  securityDeposit: number | null
-  printingCostIncluded: boolean | null
-  installationCostIncluded: boolean | null
-  gstIncluded: boolean | null
-  advancePaymentMonths: number | null
-  paymentModes: string[]
-  cancellationPolicy: string | null
+  minimumBookingMonths: number | null
+  quarterlyDiscountPct: number | null
+  halfYearlyDiscountPct: number | null
+  yearlyDiscountPct: number | null
+  securityDepositRequired: boolean | null
+  securityDepositRange: string | null
+  installationCostRange: string | null
 }
 
 export interface LegalData {
-  ownerDescription: string | null
-  sellingPoints: string[]
-  hoardingAge: string | null
-  previousClients: string[]
   permitStatus: string | null
   permitNumber: string | null
   permitValidTill: string | null
-  tdrCertificate: boolean | null
   nocFromAuthority: boolean | null
 }
 
@@ -144,7 +110,7 @@ export interface HoldingCard {
   city: string | null
   area: string | null
   isIlluminated: boolean | null
-  minimumBookingDays: number | null
+  minimumBookingMonths: number | null
   topAdvantages: string[]
 }
 
@@ -157,17 +123,14 @@ export interface HoldingDetail {
   coordinates: { latitude: number; longitude: number }
   width: number
   height: number
-  preferredAdTypes: string[]
   rentalCost: number
   availability: HoldingAvailability
   status: HoldingStatus
   ownerVerified: boolean
   ownerId: string
+  ownerType: string | null
   photos: string[]
   createdAt: string
-  visibilityDistanceMetres: number | null
-  trafficLaneCount: number | null
-  distanceFromHighwayKm: number | null
   address: AddressData | null
   typeSpecs: TypeSpecsData | null
   illumination: IlluminationData | null
@@ -188,20 +151,17 @@ export interface OwnerHolding {
   longitude: number
   width: number
   height: number
-  preferredAdTypes: string[]
   rentalCost: number
   availability: HoldingAvailability
   status: HoldingStatus
   ownerVerified: boolean
+  ownerType: string | null
   rejectionReason: string | null
   photos: string[]
   documents: string[]
   offersCount: number
   createdAt: string
   updatedAt: string
-  visibilityDistanceMetres: number | null
-  trafficLaneCount: number | null
-  distanceFromHighwayKm: number | null
   address: AddressData | null
   typeSpecs: TypeSpecsData | null
   illumination: IlluminationData | null
@@ -226,7 +186,6 @@ export interface AdminHolding {
   status: HoldingStatus
   ownerVerified: boolean
   rejectionReason: string | null
-  preferredAdTypes: string[]
   photos: string[]
   ownerId: string
   ownerName: string
@@ -237,7 +196,7 @@ export interface AdminHolding {
 }
 
 // ── Offer types ────────────────────────────────────────────────────────────
-export type OfferStatus = 'NEW' | 'CONTACTED' | 'NEGOTIATING' | 'CLOSED' | 'DECLINED'
+export type OfferStatus = 'NEW' | 'CONTACTED' | 'NEGOTIATING' | 'CLOSED' | 'DECLINED' | 'WITHDRAWN'
 
 export interface CustomerOffer {
   offerId: string
@@ -279,10 +238,10 @@ export interface OfferRequest {
 
 // ── Wishlist ───────────────────────────────────────────────────────────────
 export interface WishlistItem {
-  wishlistItemId: string
+  id: string
   savedAt: string
   holdingId: string
-  holdingTitle: string
+  title: string
   location: string
   locationType: HoldingLocationType
   width: number
@@ -333,7 +292,7 @@ export interface NearbyHolding {
 
 // ── Admin user ─────────────────────────────────────────────────────────────
 export interface AdminUser {
-  userId: string
+  id: string
   name: string
   email: string
   phone: string

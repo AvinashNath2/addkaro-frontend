@@ -23,6 +23,6 @@ export async function sendChatMessage(offerId: string, message: string): Promise
       readAt: null,
     }
   }
-  const res = await api.post<ChatMessage>(`/offers/${offerId}/chat`, { message })
+  const res = await api.post<ChatMessage>(`/offers/${offerId}/chat`, { content: message })
   return res.data
 }

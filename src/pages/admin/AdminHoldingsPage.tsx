@@ -253,17 +253,6 @@ export default function AdminHoldingsPage() {
                 )}
               </div>
 
-              {selectedHolding.preferredAdTypes.length > 0 && (
-                <div className="mb-4">
-                  <p className="text-xs text-gray-400 mb-2 font-medium uppercase tracking-wide">Preferred Ad Types</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {selectedHolding.preferredAdTypes.map((t) => (
-                      <span key={t} className="text-xs bg-gray-100 text-gray-700 px-2.5 py-1 rounded-full">{t}</span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
               <p className="text-xs text-gray-400 mb-4">Submitted: {formatDate(selectedHolding.createdAt)}</p>
 
               {selectedHolding.rejectionReason && (

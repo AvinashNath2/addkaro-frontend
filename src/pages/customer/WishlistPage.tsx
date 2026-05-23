@@ -91,7 +91,7 @@ export default function WishlistPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {items.map((item) => (
               <div
-                key={item.wishlistItemId}
+                key={item.id}
                 className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow"
               >
                 {/* Card photo or placeholder */}
@@ -99,7 +99,7 @@ export default function WishlistPage() {
                   {item.thumbnail ? (
                     <img
                       src={item.thumbnail}
-                      alt={item.holdingTitle}
+                      alt={item.title}
                       className="w-full h-full object-cover"
                     />
                   ) : (
@@ -117,7 +117,7 @@ export default function WishlistPage() {
                 <div className="p-4">
                   <div className="flex items-start justify-between gap-2 mb-1">
                     <h3 className="font-semibold text-gray-900 text-sm leading-tight line-clamp-2">
-                      {item.holdingTitle}
+                      {item.title}
                     </h3>
                     <span className="shrink-0 text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium">
                       {item.locationType}

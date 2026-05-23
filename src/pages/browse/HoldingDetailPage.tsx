@@ -8,7 +8,7 @@
 // The offer form is inline on the page (not a modal) so the user can see
 // the holding details while filling in their offer.
 
-import { useState } from 'react'
+import { useState, lazy, Suspense } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
@@ -98,17 +98,6 @@ function HoldingSections({ holding }: { holding: HoldingDetail }) {
           <InfoRow label="State" value={address.state} />
           <InfoRow label="PIN Code" value={address.pinCode} />
           <InfoRow label="Landmark" value={address.landmark} />
-          <InfoRow label="Location Subtype" value={address.locationSubtype} />
-          <InfoRow label="Nearest Metro" value={address.nearestMetro} />
-          <InfoRow label="Nearest Railway" value={address.nearestRailway} />
-          {address.googleMapsUrl && (
-            <div className="pt-2">
-              <a href={address.googleMapsUrl} target="_blank" rel="noopener noreferrer"
-                className="text-xs text-brand-600 hover:underline font-medium">
-                View on Google Maps →
-              </a>
-            </div>
-          )}
         </SectionPanel>
       )}
 
@@ -121,41 +110,23 @@ function HoldingSections({ holding }: { holding: HoldingDetail }) {
           <InfoRow label="Printable Area" value={typeSpecs.printableAreaSqft ? `${typeSpecs.printableAreaSqft} sqft` : null} />
           <InfoRow label="Facing Direction" value={typeSpecs.facingDirection} />
           <InfoRow label="Mounting Height" value={typeSpecs.mountingHeightFt ? `${typeSpecs.mountingHeightFt} ft` : null} />
-          <InfoRow label="Road Side" value={typeSpecs.roadSide} />
-          <InfoRow label="Viewing Angle" value={typeSpecs.viewingAngle} />
         </SectionPanel>
       )}
 
       {/* Illumination */}
       {illumination && (
         <SectionPanel title="Illumination">
-          <InfoRow label="Illuminated" value={<BoolBadge value={illumination.isIlluminated} />} />
           <InfoRow label="Type" value={illumination.illuminationType} />
           <InfoRow label="Hours" value={illumination.illuminationHours} />
-          <InfoRow label="Spotlights" value={illumination.numSpotLights} />
-          <InfoRow label="Wattage" value={illumination.lightWattage ? `${illumination.lightWattage} W` : null} />
         </SectionPanel>
       )}
 
       {/* Audience */}
       {audience && (
         <SectionPanel title="Audience & Traffic">
-          <InfoRow label="Est. Daily Vehicles" value={audience.estimatedDailyVehicles?.toLocaleString('en-IN')} />
-          <InfoRow label="Est. Daily Footfall" value={audience.estimatedDailyFootfall?.toLocaleString('en-IN')} />
-          <InfoRow label="Nearby Population" value={audience.nearbyPopulation} />
+          <InfoRow label="Daily Vehicles" value={audience.dailyVehiclesRange} />
+          <InfoRow label="Daily Footfall" value={audience.dailyFootfallRange} />
           <InfoRow label="Traffic Data Source" value={audience.trafficDataSource} />
-          {audience.audienceTypes && audience.audienceTypes.length > 0 && (
-            <InfoRow label="Audience Types" value={
-              <div className="flex flex-wrap gap-1 justify-end">
-                {audience.audienceTypes.map((t) => (
-                  <span key={t} className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded">{t.replace(/_/g, ' ')}</span>
-                ))}
-              </div>
-            } />
-          )}
-          {audience.peakHours && audience.peakHours.length > 0 && (
-            <InfoRow label="Peak Hours" value={audience.peakHours.map((h) => h.replace(/_/g, ' ')).join(', ')} />
-          )}
         </SectionPanel>
       )}
 
@@ -163,18 +134,13 @@ function HoldingSections({ holding }: { holding: HoldingDetail }) {
       {pricing && (
         <SectionPanel title="Pricing Details">
           <InfoRow label="Monthly Rate" value={pricing.monthlyRate ? `₹${pricing.monthlyRate.toLocaleString('en-IN')}` : null} />
-          <InfoRow label="Quarterly Rate" value={pricing.quarterlyRate ? `₹${pricing.quarterlyRate.toLocaleString('en-IN')}` : null} />
-          <InfoRow label="Half-Yearly Rate" value={pricing.halfYearlyRate ? `₹${pricing.halfYearlyRate.toLocaleString('en-IN')}` : null} />
-          <InfoRow label="Annual Rate" value={pricing.annualRate ? `₹${pricing.annualRate.toLocaleString('en-IN')}` : null} />
-          <InfoRow label="Min. Booking Days" value={pricing.minimumBookingDays ? `${pricing.minimumBookingDays} days` : null} />
-          <InfoRow label="Security Deposit" value={pricing.securityDeposit ? `₹${pricing.securityDeposit.toLocaleString('en-IN')}` : null} />
-          <InfoRow label="Printing Included" value={<BoolBadge value={pricing.printingCostIncluded} />} />
-          <InfoRow label="Installation Included" value={<BoolBadge value={pricing.installationCostIncluded} />} />
-          <InfoRow label="GST Included" value={<BoolBadge value={pricing.gstIncluded} />} />
-          <InfoRow label="Cancellation Policy" value={pricing.cancellationPolicy?.replace(/_/g, ' ')} />
-          {pricing.paymentModes && pricing.paymentModes.length > 0 && (
-            <InfoRow label="Payment Modes" value={pricing.paymentModes.map((m) => m.replace(/_/g, ' ')).join(', ')} />
-          )}
+          <InfoRow label="Min. Booking" value={pricing.minimumBookingMonths ? `${pricing.minimumBookingMonths} month${pricing.minimumBookingMonths > 1 ? 's' : ''}` : null} />
+          <InfoRow label="Quarterly Discount" value={pricing.quarterlyDiscountPct ? `${pricing.quarterlyDiscountPct}%` : null} />
+          <InfoRow label="Half-Yearly Discount" value={pricing.halfYearlyDiscountPct ? `${pricing.halfYearlyDiscountPct}%` : null} />
+          <InfoRow label="Yearly Discount" value={pricing.yearlyDiscountPct ? `${pricing.yearlyDiscountPct}%` : null} />
+          <InfoRow label="Security Deposit" value={<BoolBadge value={pricing.securityDepositRequired} />} />
+          <InfoRow label="Deposit Range" value={pricing.securityDepositRange} />
+          <InfoRow label="Installation Cost" value={pricing.installationCostRange} />
         </SectionPanel>
       )}
 
@@ -183,15 +149,12 @@ function HoldingSections({ holding }: { holding: HoldingDetail }) {
         <SectionPanel title="Amenities & Features">
           <div className="grid grid-cols-2 gap-x-4">
             <InfoRow label="Electricity" value={<BoolBadge value={amenities.electricityAvailable} />} />
-            <InfoRow label="Weatherproof" value={<BoolBadge value={amenities.weatherproof} />} />
-            <InfoRow label="Battery Backup" value={<BoolBadge value={amenities.batteryBackup} />} />
-            <InfoRow label="Solar Panel" value={<BoolBadge value={amenities.solarPanelInstalled} />} />
-            <InfoRow label="UPS" value={<BoolBadge value={amenities.upsAvailable} />} />
-            <InfoRow label="Generator" value={<BoolBadge value={amenities.generatorAvailable} />} />
+            <InfoRow label="Power Supply" value={amenities.powerSupplyType?.replace(/_/g, ' ')} />
+            <InfoRow label="Ladder Access" value={<BoolBadge value={amenities.ladderAccess} />} />
             <InfoRow label="On-site Watchman" value={<BoolBadge value={amenities.onSiteWatchman} />} />
             <InfoRow label="Nearby Parking" value={<BoolBadge value={amenities.nearbyParking} />} />
-            <InfoRow label="Remote Content Mgmt" value={<BoolBadge value={amenities.remoteContentMgmt} />} />
-            <InfoRow label="Internet" value={<BoolBadge value={amenities.internetAvailable} />} />
+            <InfoRow label="CCTV" value={<BoolBadge value={amenities.cctvInstalled} />} />
+            <InfoRow label="Water Available" value={<BoolBadge value={amenities.waterAvailable} />} />
           </div>
         </SectionPanel>
       )}
@@ -202,30 +165,37 @@ function HoldingSections({ holding }: { holding: HoldingDetail }) {
           <InfoRow label="Permit Status" value={legal.permitStatus} />
           <InfoRow label="Permit Number" value={legal.permitNumber} />
           <InfoRow label="Valid Till" value={legal.permitValidTill} />
-          <InfoRow label="TDR Certificate" value={<BoolBadge value={legal.tdrCertificate} />} />
           <InfoRow label="NOC from Authority" value={<BoolBadge value={legal.nocFromAuthority} />} />
-          <InfoRow label="Hoarding Age" value={legal.hoardingAge} />
-          {legal.sellingPoints && legal.sellingPoints.length > 0 && (
-            <div className="pt-2">
-              <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">Selling Points</p>
-              <ul className="list-disc list-inside space-y-1">
-                {legal.sellingPoints.map((sp, i) => (
-                  <li key={i} className="text-sm text-gray-700">{sp}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-          {legal.previousClients && legal.previousClients.length > 0 && (
-            <InfoRow label="Previous Clients" value={legal.previousClients.join(', ')} />
-          )}
-          {legal.ownerDescription && (
-            <div className="pt-3 mt-2 border-t border-gray-100">
-              <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Owner's Note</p>
-              <p className="text-sm text-gray-700 leading-relaxed">{legal.ownerDescription}</p>
-            </div>
-          )}
         </SectionPanel>
       )}
+    </div>
+  )
+}
+
+// ── Location map — lazy-loaded so leaflet tiles don't block the initial render ─
+const HoldingMap = lazy(() => import('@/components/browse/HoldingMap'))
+
+function HoldingLocationMap({ lat, lng, title }: { lat: number; lng: number; title: string }) {
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+      <div className="px-4 pt-3 pb-2">
+        <h3 className="font-semibold text-gray-900 text-sm flex items-center gap-1.5">
+          <MapPin className="w-4 h-4 text-brand-600" />
+          Location
+        </h3>
+        <p className="text-xs text-gray-400 mt-0.5">
+          {lat.toFixed(5)}, {lng.toFixed(5)}
+        </p>
+      </div>
+      <div style={{ height: 220 }}>
+        <Suspense fallback={
+          <div className="h-full flex items-center justify-center bg-gray-50 text-xs text-gray-400">
+            Loading map…
+          </div>
+        }>
+          <HoldingMap lat={lat} lng={lng} title={title} />
+        </Suspense>
+      </div>
     </div>
   )
 }
@@ -234,7 +204,12 @@ function AvailabilityCalendar({ availability }: { availability: string }) {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
-  // Returns the 6-week grid for a given year/month (0-indexed)
+  // 6 months starting from the current month
+  const months = Array.from({ length: 6 }, (_, i) => {
+    const d = new Date(today.getFullYear(), today.getMonth() + i, 1)
+    return { year: d.getFullYear(), month: d.getMonth() }
+  })
+
   function buildMonthGrid(year: number, month: number): (Date | null)[] {
     const firstDay = new Date(year, month, 1).getDay()
     const daysInMonth = new Date(year, month + 1, 0).getDate()
@@ -244,55 +219,72 @@ function AvailabilityCalendar({ availability }: { availability: string }) {
     return cells
   }
 
-  function classForDay(date: Date | null): string {
+  function dayClass(date: Date | null): string {
     if (!date) return ''
-    const isPast = date < today
-    if (isPast) return 'text-gray-300'
-    if (date.toDateString() === today.toDateString()) {
-      return 'bg-brand-100 text-brand-700 rounded-full font-semibold'
-    }
-    return availability === 'AVAILABLE'
-      ? 'text-green-700'
-      : availability === 'BOOKED'
-      ? 'text-red-400'
-      : 'text-yellow-600'
+    if (date < today) return 'text-gray-300 text-[10px]'
+    if (date.toDateString() === today.toDateString())
+      return 'bg-brand-600 text-white rounded font-semibold text-[10px]'
+    if (availability === 'BOOKED')
+      return 'bg-red-100 text-red-700 rounded font-bold text-[10px]'
+    if (availability === 'AVAILABLE')
+      return 'bg-green-100 text-green-700 rounded text-[10px]'
+    // PARTIAL
+    return 'bg-yellow-100 text-yellow-700 rounded text-[10px]'
   }
 
-  const months = [
-    { year: today.getFullYear(), month: today.getMonth() },
-    {
-      year: today.getMonth() === 11 ? today.getFullYear() + 1 : today.getFullYear(),
-      month: (today.getMonth() + 1) % 12,
-    },
-  ]
+  const isBooked = availability === 'BOOKED'
+  const isAvailable = availability === 'AVAILABLE'
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-      <h3 className="font-semibold text-gray-900 mb-1">Availability Calendar</h3>
-      <p className="text-xs text-gray-500 mb-4">
-        {availability === 'AVAILABLE'
-          ? 'Available for booking'
-          : availability === 'BOOKED'
-          ? 'Currently booked'
-          : 'Partially available — contact owner for dates'}
-      </p>
+    <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-3">
+        <div>
+          <h3 className="font-semibold text-gray-900 text-sm">Availability — Next 6 Months</h3>
+          <p className="text-xs text-gray-500 mt-0.5">
+            {isAvailable
+              ? 'Open for booking'
+              : isBooked
+              ? 'Currently booked — not available'
+              : 'Partially available — contact owner for exact dates'}
+          </p>
+        </div>
+        {/* Legend */}
+        <div className="flex items-center gap-3 text-xs shrink-0">
+          <span className="flex items-center gap-1 text-gray-500">
+            <span className="w-3 h-3 rounded-sm bg-green-200 inline-block" />
+            Free
+          </span>
+          <span className="flex items-center gap-1 text-gray-500">
+            <span className="w-3 h-3 rounded-sm bg-red-200 inline-block" />
+            Booked
+          </span>
+          <span className="flex items-center gap-1 text-gray-500">
+            <span className="w-3 h-3 rounded-sm bg-brand-500 inline-block" />
+            Today
+          </span>
+        </div>
+      </div>
 
-      <div className="flex gap-6 flex-wrap">
+      {/* 3 × 2 grid of months */}
+      <div className="grid grid-cols-3 gap-x-4 gap-y-4">
         {months.map(({ year, month }) => {
           const cells = buildMonthGrid(year, month)
           return (
-            <div key={`${year}-${month}`} className="min-w-[196px]">
-              <p className="text-xs font-semibold text-gray-700 mb-2 text-center">
-                {MONTH_NAMES[month]} {year}
+            <div key={`${year}-${month}`}>
+              <p className="text-[10px] font-bold text-gray-600 text-center mb-1 uppercase tracking-wide">
+                {MONTH_NAMES[month].slice(0, 3)} {year}
               </p>
-              <div className="grid grid-cols-7 gap-0.5 text-center text-xs">
-                {DAY_NAMES.map((d) => (
-                  <div key={d} className="py-1 text-gray-400 font-medium">{d}</div>
+              <div className="grid grid-cols-7 gap-px">
+                {/* Day headers — single letter */}
+                {['S','M','T','W','T','F','S'].map((d, i) => (
+                  <div key={i} className="text-[9px] text-gray-400 text-center pb-0.5">{d}</div>
                 ))}
+                {/* Day cells */}
                 {cells.map((date, i) => (
-                  <div key={i} className="py-1 flex items-center justify-center">
+                  <div key={i} className="flex items-center justify-center h-[18px]">
                     {date && (
-                      <span className={`w-7 h-7 flex items-center justify-center text-xs ${classForDay(date)}`}>
+                      <span className={`w-[18px] h-[18px] flex items-center justify-center ${dayClass(date)}`}>
                         {date.getDate()}
                       </span>
                     )}
@@ -302,30 +294,6 @@ function AvailabilityCalendar({ availability }: { availability: string }) {
             </div>
           )
         })}
-      </div>
-
-      {/* Legend */}
-      <div className="flex items-center gap-4 mt-4 pt-3 border-t border-gray-100 text-xs text-gray-500">
-        {availability === 'AVAILABLE' && (
-          <span className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-full bg-green-500 inline-block" />
-            Available
-          </span>
-        )}
-        {availability === 'BOOKED' && (
-          <span className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-full bg-red-400 inline-block" />
-            Booked
-          </span>
-        )}
-        <span className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded-full bg-brand-200 inline-block" />
-          Today
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded-full bg-gray-200 inline-block" />
-          Past
-        </span>
       </div>
     </div>
   )
@@ -356,7 +324,7 @@ export default function HoldingDetailPage() {
     enabled: !!id && !!user && user.role.toUpperCase() === 'CUSTOMER',
   })
 
-  const isSaved = wishlistStatus?.wishlisted ?? false
+  const isSaved = wishlistStatus?.saved ?? false
 
   const wishlistMutation = useMutation({
     mutationFn: () => isSaved ? removeFromWishlist(id!) : addToWishlist(id!),
@@ -517,12 +485,6 @@ export default function HoldingDetailPage() {
                   </p>
                 </div>
               )}
-              {holding.visibilityDistanceMetres && (
-                <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-wide">Visibility</p>
-                  <p className="text-sm font-medium text-gray-900 mt-1">{holding.visibilityDistanceMetres} m</p>
-                </div>
-              )}
               {holding.coordinates && (
                 <div>
                   <p className="text-xs text-gray-500 uppercase tracking-wide">Coordinates</p>
@@ -531,23 +493,20 @@ export default function HoldingDetailPage() {
                   </p>
                 </div>
               )}
-              {holding.preferredAdTypes && holding.preferredAdTypes.length > 0 && (
-                <div className="col-span-2">
-                  <p className="text-xs text-gray-500 uppercase tracking-wide">Preferred Ad Types</p>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {holding.preferredAdTypes.map((type) => (
-                      <span key={type} className="text-xs bg-brand-50 text-brand-600 px-2 py-0.5 rounded">
-                        {type}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
 
           {/* ── Section panels ───────────────────────────────────────── */}
           <HoldingSections holding={holding} />
+
+          {/* Location map */}
+          {holding.coordinates?.latitude && holding.coordinates?.longitude && (
+            <HoldingLocationMap
+              lat={holding.coordinates.latitude}
+              lng={holding.coordinates.longitude}
+              title={holding.title}
+            />
+          )}
 
           {/* Availability calendar */}
           <AvailabilityCalendar availability={holding.availability} />

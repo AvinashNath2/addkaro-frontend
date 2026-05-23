@@ -1,7 +1,6 @@
 import api from './axios'
 import type { OwnerDashboard, OwnerHolding, OwnerOffer, PageResponse } from '@/types/index'
 import { IS_MOCK, mockFetch } from '@/lib/mockMode'
-import { fromSpringPage } from '@/lib/springPage'
 
 // ── Dashboard ──────────────────────────────────────────────────────────────
 
@@ -31,7 +30,7 @@ export async function getOwnerHoldings(status?: string, page = 0, limit = 10): P
   const params: Record<string, unknown> = { page, limit }
   if (status) params.status = status
   const res = await api.get('/owner/holdings', { params })
-  return fromSpringPage<OwnerHolding>(res.data)
+  return res.data as PageResponse<OwnerHolding>
 }
 
 export async function createHolding(payload: object): Promise<OwnerHolding> {
@@ -68,7 +67,7 @@ export async function getOwnerOffers(status?: string, page = 0, limit = 10): Pro
   const params: Record<string, unknown> = { page, limit }
   if (status) params.status = status
   const res = await api.get('/owner/offers', { params })
-  return fromSpringPage<OwnerOffer>(res.data)
+  return res.data as PageResponse<OwnerOffer>
 }
 
 export async function getOwnerOffersByHolding(holdingId: string, page = 0, limit = 20): Promise<PageResponse<OwnerOffer>> {
@@ -78,7 +77,7 @@ export async function getOwnerOffersByHolding(holdingId: string, page = 0, limit
     return filtered
   }
   const res = await api.get('/owner/offers', { params: { holdingId, page, limit } })
-  return fromSpringPage<OwnerOffer>(res.data)
+  return res.data as PageResponse<OwnerOffer>
 }
 
 export async function revealContact(offerId: string): Promise<OwnerOffer> {

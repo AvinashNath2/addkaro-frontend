@@ -153,7 +153,7 @@ export default function AdminUsersPage() {
               <tbody className="divide-y divide-gray-100">
                 {filteredItems.map((user) => (
                   <tr
-                    key={user.userId}
+                    key={user.id}
                     onClick={() => setSelectedUser(user)}
                     className="hover:bg-brand-50 cursor-pointer transition-colors"
                     title="Click to view user details"
@@ -267,7 +267,7 @@ export default function AdminUsersPage() {
                 </div>
                 <div className="flex items-center gap-3 text-gray-400">
                   <Shield className="w-4 h-4 shrink-0" />
-                  <span className="font-mono text-xs">{selectedUser.userId}</span>
+                  <span className="font-mono text-xs">{selectedUser.id}</span>
                 </div>
               </div>
             </div>

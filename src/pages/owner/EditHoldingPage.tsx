@@ -82,10 +82,7 @@ export default function EditHoldingPage() {
       width: holding.width,
       height: holding.height,
       rentalCost: holding.rentalCost,
-      preferredAdTypes: holding.preferredAdTypes?.join(', ') ?? '',
-      visibilityDistanceMetres: holding.visibilityDistanceMetres ?? undefined,
-      trafficLaneCount: holding.trafficLaneCount ?? undefined,
-      distanceFromHighwayKm: holding.distanceFromHighwayKm ?? undefined,
+      ownerType: holding.ownerType ?? '',
       locationAdvantages: holding.locationAdvantages ?? [],
       // Address
       address: holding.address
@@ -96,10 +93,6 @@ export default function EditHoldingPage() {
             state: holding.address.state ?? '',
             pinCode: holding.address.pinCode ?? '',
             landmark: holding.address.landmark ?? '',
-            locationSubtype: holding.address.locationSubtype ?? '',
-            nearestMetro: holding.address.nearestMetro ?? '',
-            nearestRailway: holding.address.nearestRailway ?? '',
-            googleMapsUrl: holding.address.googleMapsUrl ?? '',
           }
         : undefined,
       // TypeSpecs
@@ -111,9 +104,6 @@ export default function EditHoldingPage() {
             printableAreaSqft: holding.typeSpecs.printableAreaSqft ?? undefined,
             facingDirection: holding.typeSpecs.facingDirection ?? '',
             mountingHeightFt: holding.typeSpecs.mountingHeightFt ?? undefined,
-            roadSide: holding.typeSpecs.roadSide ?? '',
-            dimensionUnit: holding.typeSpecs.dimensionUnit ?? '',
-            viewingAngle: holding.typeSpecs.viewingAngle ?? '',
           }
         : undefined,
       // Illumination
@@ -122,43 +112,34 @@ export default function EditHoldingPage() {
             isIlluminated: holding.illumination.isIlluminated ?? false,
             illuminationType: holding.illumination.illuminationType ?? '',
             illuminationHours: holding.illumination.illuminationHours ?? '',
-            numSpotLights: holding.illumination.numSpotLights ?? undefined,
-            lightWattage: holding.illumination.lightWattage ?? undefined,
           }
         : undefined,
       // Audience
       audience: holding.audience
         ? {
-            estimatedDailyVehicles: holding.audience.estimatedDailyVehicles ?? undefined,
-            estimatedDailyFootfall: holding.audience.estimatedDailyFootfall ?? undefined,
-            nearbyPopulation: holding.audience.nearbyPopulation ?? '',
+            dailyVehiclesRange: holding.audience.dailyVehiclesRange ?? '',
+            dailyFootfallRange: holding.audience.dailyFootfallRange ?? '',
             trafficDataSource: holding.audience.trafficDataSource ?? '',
           }
         : undefined,
       // Pricing
       pricing: holding.pricing
         ? {
-            quarterlyRate: holding.pricing.quarterlyRate ?? undefined,
-            halfYearlyRate: holding.pricing.halfYearlyRate ?? undefined,
-            annualRate: holding.pricing.annualRate ?? undefined,
-            minimumBookingDays: holding.pricing.minimumBookingDays ?? undefined,
-            securityDeposit: holding.pricing.securityDeposit ?? undefined,
-            printingCostIncluded: holding.pricing.printingCostIncluded ?? false,
-            installationCostIncluded: holding.pricing.installationCostIncluded ?? false,
-            gstIncluded: holding.pricing.gstIncluded ?? false,
-            advancePaymentMonths: holding.pricing.advancePaymentMonths ?? undefined,
-            cancellationPolicy: holding.pricing.cancellationPolicy ?? '',
+            minimumBookingMonths: holding.pricing.minimumBookingMonths ?? undefined,
+            quarterlyDiscountPct: holding.pricing.quarterlyDiscountPct ?? undefined,
+            halfYearlyDiscountPct: holding.pricing.halfYearlyDiscountPct ?? undefined,
+            yearlyDiscountPct: holding.pricing.yearlyDiscountPct ?? undefined,
+            securityDepositRequired: holding.pricing.securityDepositRequired ?? false,
+            securityDepositRange: holding.pricing.securityDepositRange ?? '',
+            installationCostRange: holding.pricing.installationCostRange ?? '',
           }
         : undefined,
       // Legal
       legal: holding.legal
         ? {
-            ownerDescription: holding.legal.ownerDescription ?? '',
-            hoardingAge: holding.legal.hoardingAge ?? '',
             permitStatus: holding.legal.permitStatus ?? '',
             permitNumber: holding.legal.permitNumber ?? '',
             permitValidTill: holding.legal.permitValidTill ?? '',
-            tdrCertificate: holding.legal.tdrCertificate ?? false,
             nocFromAuthority: holding.legal.nocFromAuthority ?? false,
           }
         : undefined,
@@ -175,13 +156,7 @@ export default function EditHoldingPage() {
 
   const mutation = useMutation({
     mutationFn: (data: HoldingFormData) => {
-      const payload = {
-        ...data,
-        preferredAdTypes: data.preferredAdTypes
-          ? data.preferredAdTypes.split(',').map((s) => s.trim()).filter(Boolean)
-          : [],
-        locationAdvantages: selectedAdvantages,
-      }
+      const payload = { ...data, locationAdvantages: selectedAdvantages }
       return updateHolding(id!, payload)
     },
     onSuccess: () => {
@@ -289,27 +264,6 @@ export default function EditHoldingPage() {
             {errors.rentalCost && <p className="error-text">{errors.rentalCost.message}</p>}
           </div>
 
-          <div>
-            <label className="label">Preferred Ad Types (optional)</label>
-            <input type="text" placeholder="e.g. Banner, Digital, Flex"
-              className="input-field" {...register('preferredAdTypes')} />
-            <p className="mt-1 text-xs text-gray-400">Separate multiple types with commas</p>
-          </div>
-
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <label className="label">Visibility Distance (m)</label>
-              <input type="number" className="input-field" {...register('visibilityDistanceMetres')} />
-            </div>
-            <div>
-              <label className="label">Traffic Lanes</label>
-              <input type="number" className="input-field" {...register('trafficLaneCount')} />
-            </div>
-            <div>
-              <label className="label">Distance from Highway (km)</label>
-              <input type="number" step="0.1" className="input-field" {...register('distanceFromHighwayKm')} />
-            </div>
-          </div>
         </div>
 
         {/* ── Optional sections ─────────────────────────────────────────── */}
@@ -342,22 +296,9 @@ export default function EditHoldingPage() {
               <input type="text" maxLength={6} className={cn('input-field', errors.address?.pinCode && 'input-error')} {...register('address.pinCode')} />
               {errors.address?.pinCode && <p className="error-text">{errors.address.pinCode.message}</p>}
             </div>
-            <div>
+            <div className="col-span-2">
               <label className="label">Landmark</label>
               <input type="text" className="input-field" {...register('address.landmark')} />
-            </div>
-            <div>
-              <label className="label">Nearest Metro</label>
-              <input type="text" className="input-field" {...register('address.nearestMetro')} />
-            </div>
-            <div>
-              <label className="label">Nearest Railway</label>
-              <input type="text" className="input-field" {...register('address.nearestRailway')} />
-            </div>
-            <div className="col-span-2">
-              <label className="label">Google Maps URL</label>
-              <input type="url" className={cn('input-field', errors.address?.googleMapsUrl && 'input-error')} {...register('address.googleMapsUrl')} />
-              {errors.address?.googleMapsUrl && <p className="error-text">{errors.address.googleMapsUrl.message}</p>}
             </div>
           </div>
         </SectionAccordion>
@@ -423,25 +364,6 @@ export default function EditHoldingPage() {
               <label className="label">Mounting Height (ft)</label>
               <input type="number" className="input-field" {...register('typeSpecs.mountingHeightFt')} />
             </div>
-            <div>
-              <label className="label">Road Side</label>
-              <select className="input-field" {...register('typeSpecs.roadSide')}>
-                <option value="">Select…</option>
-                <option value="LEFT">Left</option>
-                <option value="RIGHT">Right</option>
-                <option value="MEDIAN">Median</option>
-              </select>
-            </div>
-            <div>
-              <label className="label">Viewing Angle</label>
-              <select className="input-field" {...register('typeSpecs.viewingAngle')}>
-                <option value="">Select…</option>
-                <option value="90_DEGREE">90°</option>
-                <option value="180_DEGREE">180°</option>
-                <option value="270_DEGREE">270°</option>
-                <option value="360_DEGREE">360°</option>
-              </select>
-            </div>
           </div>
         </SectionAccordion>
 
@@ -474,38 +396,33 @@ export default function EditHoldingPage() {
                 <option value="DAYLIGHT_ONLY">Daylight Only</option>
               </select>
             </div>
-            <div>
-              <label className="label">Number of Spotlights</label>
-              <input type="number" className="input-field" {...register('illumination.numSpotLights')} />
-            </div>
-            <div>
-              <label className="label">Light Wattage (W)</label>
-              <input type="number" className="input-field" {...register('illumination.lightWattage')} />
-            </div>
           </div>
         </SectionAccordion>
 
         {/* Audience */}
-        <SectionAccordion title="Audience & Traffic" hint="Footfall, vehicles, peak hours" defaultOpen={!!holding.audience}>
+        <SectionAccordion title="Audience & Traffic" hint="Vehicle / footfall ranges and data source" defaultOpen={!!holding.audience}>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="label">Est. Daily Vehicles</label>
-              <input type="number" className="input-field" {...register('audience.estimatedDailyVehicles')} />
-            </div>
-            <div>
-              <label className="label">Est. Daily Footfall</label>
-              <input type="number" className="input-field" {...register('audience.estimatedDailyFootfall')} />
-            </div>
-            <div>
-              <label className="label">Nearby Population</label>
-              <select className="input-field" {...register('audience.nearbyPopulation')}>
+              <label className="label">Daily Vehicle Range</label>
+              <select className="input-field" {...register('audience.dailyVehiclesRange')}>
                 <option value="">Select…</option>
-                <option value="HIGH_DENSITY">High Density</option>
-                <option value="MEDIUM_DENSITY">Medium Density</option>
-                <option value="LOW_DENSITY">Low Density</option>
+                <option value="UNDER_10K">Under 10,000</option>
+                <option value="10K_50K">10,000 – 50,000</option>
+                <option value="50K_100K">50,000 – 1,00,000</option>
+                <option value="ABOVE_100K">Above 1,00,000</option>
               </select>
             </div>
             <div>
+              <label className="label">Daily Footfall Range</label>
+              <select className="input-field" {...register('audience.dailyFootfallRange')}>
+                <option value="">Select…</option>
+                <option value="UNDER_5K">Under 5,000</option>
+                <option value="5K_20K">5,000 – 20,000</option>
+                <option value="20K_50K">20,000 – 50,000</option>
+                <option value="ABOVE_50K">Above 50,000</option>
+              </select>
+            </div>
+            <div className="col-span-2">
               <label className="label">Traffic Data Source</label>
               <select className="input-field" {...register('audience.trafficDataSource')}>
                 <option value="">Select…</option>
@@ -519,83 +436,72 @@ export default function EditHoldingPage() {
         </SectionAccordion>
 
         {/* Pricing */}
-        <SectionAccordion title="Pricing Details" hint="Rates, deposit, cancellation policy" defaultOpen={!!holding.pricing}>
+        <SectionAccordion title="Pricing Details" hint="Discounts, deposit, installation" defaultOpen={!!holding.pricing}>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="label">Quarterly Rate (₹)</label>
-              <input type="number" className="input-field" {...register('pricing.quarterlyRate')} />
+              <label className="label">Min. Booking (months)</label>
+              <input type="number" placeholder="e.g. 3" className="input-field" {...register('pricing.minimumBookingMonths')} />
             </div>
             <div>
-              <label className="label">Half-Yearly Rate (₹)</label>
-              <input type="number" className="input-field" {...register('pricing.halfYearlyRate')} />
+              <label className="label">Quarterly Discount (%)</label>
+              <input type="number" step="0.5" placeholder="e.g. 5" className="input-field" {...register('pricing.quarterlyDiscountPct')} />
             </div>
             <div>
-              <label className="label">Annual Rate (₹)</label>
-              <input type="number" className="input-field" {...register('pricing.annualRate')} />
+              <label className="label">Half-Yearly Discount (%)</label>
+              <input type="number" step="0.5" placeholder="e.g. 10" className="input-field" {...register('pricing.halfYearlyDiscountPct')} />
             </div>
             <div>
-              <label className="label">Security Deposit (₹)</label>
-              <input type="number" className="input-field" {...register('pricing.securityDeposit')} />
+              <label className="label">Yearly Discount (%)</label>
+              <input type="number" step="0.5" placeholder="e.g. 15" className="input-field" {...register('pricing.yearlyDiscountPct')} />
             </div>
             <div>
-              <label className="label">Min. Booking Days</label>
-              <input type="number" className="input-field" {...register('pricing.minimumBookingDays')} />
+              <label className="label">Security Deposit Range</label>
+              <input type="text" placeholder="e.g. ₹50,000 – ₹1,00,000" className="input-field" {...register('pricing.securityDepositRange')} />
             </div>
             <div>
-              <label className="label">Advance Payment (months)</label>
-              <input type="number" className="input-field" {...register('pricing.advancePaymentMonths')} />
+              <label className="label">Installation Cost Range</label>
+              <input type="text" placeholder="e.g. ₹10,000 – ₹25,000" className="input-field" {...register('pricing.installationCostRange')} />
             </div>
-            <div>
-              <label className="label">Cancellation Policy</label>
-              <select className="input-field" {...register('pricing.cancellationPolicy')}>
-                <option value="">Select…</option>
-                <option value="NO_REFUND">No Refund</option>
-                <option value="15_DAYS_NOTICE">15 Days Notice</option>
-                <option value="30_DAYS_NOTICE">30 Days Notice</option>
-                <option value="60_DAYS_NOTICE">60 Days Notice</option>
-              </select>
-            </div>
-            <div className="col-span-2 flex flex-wrap gap-4">
-              {[
-                { name: 'pricing.printingCostIncluded' as const, label: 'Printing cost included' },
-                { name: 'pricing.installationCostIncluded' as const, label: 'Installation cost included' },
-                { name: 'pricing.gstIncluded' as const, label: 'GST included' },
-              ].map(({ name, label }) => (
-                <label key={name} className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" className="w-4 h-4 accent-brand-600" {...register(name)} />
-                  <span className="text-sm text-gray-700">{label}</span>
-                </label>
-              ))}
+            <div className="col-span-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" className="w-4 h-4 accent-brand-600" {...register('pricing.securityDepositRequired')} />
+                <span className="text-sm text-gray-700">Security deposit required</span>
+              </label>
             </div>
           </div>
         </SectionAccordion>
 
         {/* Amenities */}
-        <SectionAccordion title="Amenities & Infrastructure" hint="Power, backup, parking, access" defaultOpen={!!holding.amenities}>
+        <SectionAccordion title="Amenities & Infrastructure" hint="Power, access, security" defaultOpen={!!holding.amenities}>
           <div className="grid grid-cols-2 gap-3">
             {[
               { name: 'amenities.electricityAvailable' as const, label: 'Electricity available' },
-              { name: 'amenities.batteryBackup' as const, label: 'Battery backup' },
-              { name: 'amenities.solarPanelInstalled' as const, label: 'Solar panel installed' },
-              { name: 'amenities.upsAvailable' as const, label: 'UPS available' },
-              { name: 'amenities.generatorAvailable' as const, label: 'Generator available' },
-              { name: 'amenities.weatherproof' as const, label: 'Weatherproof' },
-              { name: 'amenities.easyMaintenanceAccess' as const, label: 'Easy maintenance access' },
+              { name: 'amenities.ladderAccess' as const, label: 'Ladder access' },
               { name: 'amenities.onSiteWatchman' as const, label: 'On-site watchman' },
               { name: 'amenities.nearbyParking' as const, label: 'Nearby parking' },
-              { name: 'amenities.remoteContentMgmt' as const, label: 'Remote content management' },
-              { name: 'amenities.internetAvailable' as const, label: 'Internet available' },
+              { name: 'amenities.cctvInstalled' as const, label: 'CCTV installed' },
+              { name: 'amenities.waterAvailable' as const, label: 'Water available' },
             ].map(({ name, label }) => (
               <label key={name} className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" className="w-4 h-4 accent-brand-600" {...register(name)} />
                 <span className="text-sm text-gray-700">{label}</span>
               </label>
             ))}
+            <div className="col-span-2">
+              <label className="label">Power Supply Type</label>
+              <select className="input-field" {...register('amenities.powerSupplyType')}>
+                <option value="">Select…</option>
+                <option value="EB">EB (Grid)</option>
+                <option value="GENERATOR">Generator</option>
+                <option value="SOLAR">Solar</option>
+                <option value="EB_AND_GENERATOR">EB + Generator</option>
+              </select>
+            </div>
           </div>
         </SectionAccordion>
 
         {/* Legal */}
-        <SectionAccordion title="Legal & Permits" hint="Permit status, TDR, NOC" defaultOpen={!!holding.legal}>
+        <SectionAccordion title="Legal & Permits" hint="Permit status and NOC" defaultOpen={!!holding.legal}>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="label">Permit Status</label>
@@ -614,23 +520,11 @@ export default function EditHoldingPage() {
               <label className="label">Permit Valid Till</label>
               <input type="date" className="input-field" {...register('legal.permitValidTill')} />
             </div>
-            <div>
-              <label className="label">Hoarding Age</label>
-              <input type="text" className="input-field" {...register('legal.hoardingAge')} />
-            </div>
-            <div className="col-span-2 flex gap-6">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" className="w-4 h-4 accent-brand-600" {...register('legal.tdrCertificate')} />
-                <span className="text-sm text-gray-700">TDR Certificate</span>
-              </label>
+            <div className="flex items-center">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" className="w-4 h-4 accent-brand-600" {...register('legal.nocFromAuthority')} />
                 <span className="text-sm text-gray-700">NOC from Authority</span>
               </label>
-            </div>
-            <div className="col-span-2">
-              <label className="label">Owner Description</label>
-              <textarea rows={3} className="input-field resize-none" {...register('legal.ownerDescription')} />
             </div>
           </div>
         </SectionAccordion>

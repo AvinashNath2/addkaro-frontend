@@ -12,8 +12,8 @@ export async function registerUser(payload: RegisterPayload): Promise<AuthUser> 
       token: 'mock-token-demo',
     }
   }
-  const res = await api.post<CoreResponse<AuthUser>>('/auth/register', payload)
-  return res.data.data
+  const res = await api.post<AuthUser>('/auth/register', payload)
+  return res.data
 }
 
 export async function loginUser(payload: { email: string; password: string }): Promise<AuthUser> {
@@ -26,6 +26,6 @@ export async function loginUser(payload: { email: string; password: string }): P
       token: 'mock-token-demo',
     }
   }
-  const res = await api.post<CoreResponse<AuthUser>>('/auth/login', payload)
-  return res.data.data
+  const res = await api.post<AuthUser>('/auth/login', payload)
+  return res.data
 }

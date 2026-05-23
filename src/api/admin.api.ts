@@ -1,7 +1,6 @@
 import api from './axios'
 import type { AdminDashboard, AdminHolding, AdminUser, PageResponse } from '@/types/index'
 import { IS_MOCK, mockFetch } from '@/lib/mockMode'
-import { fromSpringPage } from '@/lib/springPage'
 
 export async function getAdminDashboard(): Promise<AdminDashboard> {
   if (IS_MOCK) return mockFetch<AdminDashboard>('admin-dashboard.json')
@@ -15,7 +14,7 @@ export async function getPendingHoldings(): Promise<PageResponse<AdminHolding>> 
     return { ...data, items: data.items.filter((h) => h.status === 'PENDING') }
   }
   const res = await api.get('/admin/holdings', { params: { status: 'PENDING', limit: 50 } })
-  return fromSpringPage<AdminHolding>(res.data)
+  return res.data as PageResponse<AdminHolding>
 }
 
 export async function getAllAdminHoldings(
@@ -27,7 +26,7 @@ export async function getAllAdminHoldings(
     return filtered
   }
   const res = await api.get('/admin/holdings', { params })
-  return fromSpringPage<AdminHolding>(res.data)
+  return res.data as PageResponse<AdminHolding>
 }
 
 export async function approveHolding(id: string): Promise<AdminHolding> {
@@ -66,5 +65,5 @@ export async function getAllUsers(
     return filtered
   }
   const res = await api.get('/admin/users', { params })
-  return fromSpringPage<AdminUser>(res.data)
+  return res.data as PageResponse<AdminUser>
 }

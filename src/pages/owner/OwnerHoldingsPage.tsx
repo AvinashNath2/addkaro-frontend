@@ -97,13 +97,15 @@ function HoldingOffersPanel({ holdingId }: { holdingId: string }) {
               </div>
             </div>
             <div className="flex gap-2 mt-2 flex-wrap">
-              <button
-                onClick={() => setChatOffer({ offerId: offer.offerId, customerName: offer.customerName })}
-                className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-brand-600 text-white hover:bg-brand-700 transition-colors"
-              >
-                <MessageCircle className="w-3.5 h-3.5" />
-                Chat
-              </button>
+              {offer.status !== 'NEW' && (
+                <button
+                  onClick={() => setChatOffer({ offerId: offer.offerId, customerName: offer.customerName })}
+                  className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-brand-600 text-white hover:bg-brand-700 transition-colors"
+                >
+                  <MessageCircle className="w-3.5 h-3.5" />
+                  Chat
+                </button>
+              )}
 
               {offer.status === 'NEW' && (
                 <button
