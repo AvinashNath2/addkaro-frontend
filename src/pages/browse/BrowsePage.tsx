@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Heart, MapPin, Zap } from 'lucide-react'
+import { Heart, MapPin, Zap, Ruler, Calendar, CheckCircle2, ArrowRight, Building2 } from 'lucide-react'
 import { searchHoldings, type HoldingSearchParams } from '@/api/holdings.api'
 import { addToWishlist, removeFromWishlist, getWishlist } from '@/api/customer.api'
 import { useAuthStore } from '@/store/auth.store'
@@ -17,31 +17,54 @@ function formatRupees(amount: number): string {
   }).format(amount)
 }
 
+// Advantage chip colours — same palette as HoldingDetailPage
+const ADV_COLORS: Record<string, string> = {
+  NATIONAL_HIGHWAY_FACING:   'bg-blue-100 text-blue-700',
+  STATE_HIGHWAY_FACING:      'bg-blue-100 text-blue-700',
+  MAIN_CITY_ROAD:            'bg-blue-100 text-blue-700',
+  SIGNAL_JUNCTION:           'bg-amber-100 text-amber-700',
+  FLYOVER_APPROACH:          'bg-amber-100 text-amber-700',
+  NEAR_METRO_STATION:        'bg-purple-100 text-purple-700',
+  NEAR_RAILWAY_STATION:      'bg-purple-100 text-purple-700',
+  NEAR_BUS_STAND:            'bg-purple-100 text-purple-700',
+  NEAR_AIRPORT:              'bg-purple-100 text-purple-700',
+  HIGH_VEHICLE_TRAFFIC:      'bg-orange-100 text-orange-700',
+  PEDESTRIAN_FOOTPATH_ZONE:  'bg-orange-100 text-orange-700',
+  NEAR_SHOPPING_MALL:        'bg-pink-100 text-pink-700',
+  IN_MARKET_BAZAAR:          'bg-pink-100 text-pink-700',
+  NEAR_IT_PARK:              'bg-sky-100 text-sky-700',
+  NEAR_INDUSTRIAL_AREA:      'bg-sky-100 text-sky-700',
+  UPSCALE_NEIGHBOURHOOD:     'bg-emerald-100 text-emerald-700',
+  TOURIST_HERITAGE_AREA:     'bg-teal-100 text-teal-700',
+}
+function advColor(adv: string) { return ADV_COLORS[adv] ?? 'bg-gray-100 text-gray-600' }
+
 function HoldingCard({
   id, title, location, locationType, holdingType, city, area,
   width, height, rentalCost, ownerVerified, isIlluminated,
+  minimumBookingMonths, topAdvantages,
   photos, saved, isCustomer, onWishlistToggle,
 }: HoldingCardType & { saved: boolean; isCustomer: boolean; onWishlistToggle: (id: string) => void }) {
   const navigate = useNavigate()
   const imageUrl = photos?.[0] ?? null
   const displayLocation = city ? (area ? `${area}, ${city}` : city) : location
+  const sqft = width * height
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-card hover:shadow-card-md transition-all duration-200 hover:-translate-y-0.5 cursor-default">
-      {/* Image */}
+    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-card hover:shadow-card-md transition-all duration-200 hover:-translate-y-0.5 group">
+
+      {/* ── Image ─────────────────────────────────────────────────────────── */}
       <div className="relative h-48 bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden">
         {imageUrl ? (
-          <img src={imageUrl} alt={title} className="w-full h-full object-cover" />
+          <img src={imageUrl} alt={title} className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" />
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center gap-2">
-            <MapPin className="w-10 h-10 text-slate-300" />
+            <Building2 className="w-10 h-10 text-slate-300" />
             <span className="text-xs text-slate-400 font-medium">No photo</span>
           </div>
         )}
 
-        {imageUrl && (
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
 
         {/* Type badge — top-left */}
         <span
@@ -63,52 +86,94 @@ function HoldingCard({
           </button>
         )}
 
-        {/* Price badge — bottom-left */}
-        <div className="absolute bottom-3 left-3">
-          <span className="text-white font-extrabold text-base leading-none drop-shadow-sm">
-            {formatRupees(rentalCost)}
-            <span className="text-[11px] font-semibold text-white/80">/mo</span>
-          </span>
-        </div>
-
-        {/* Illuminated badge — bottom-right */}
-        {isIlluminated && (
-          <div
-            className="absolute bottom-3 right-3 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"
-            style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(6px)' }}
-          >
-            <Zap className="w-3 h-3" />
-            Lit
+        {/* Bottom overlay: price + illumination */}
+        <div className="absolute bottom-0 left-0 right-0 px-3 pb-3 flex items-end justify-between">
+          <div>
+            <p className="text-white font-extrabold text-lg leading-none drop-shadow-sm">
+              {formatRupees(rentalCost)}
+            </p>
+            <p className="text-white/70 text-[11px] font-medium">per month</p>
           </div>
-        )}
+          <div className="flex gap-1.5">
+            {isIlluminated && (
+              <span
+                className="text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"
+                style={{ background: 'rgba(251,191,36,0.85)', backdropFilter: 'blur(6px)' }}
+              >
+                <Zap className="w-3 h-3" /> Lit
+              </span>
+            )}
+            {ownerVerified && (
+              <span
+                className="text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"
+                style={{ background: 'rgba(16,185,129,0.85)', backdropFilter: 'blur(6px)' }}
+              >
+                <CheckCircle2 className="w-3 h-3" /> Verified
+              </span>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Body */}
-      <div className="px-4 pt-3.5 pb-4">
-        <h3 className="font-bold text-gray-900 text-[14px] leading-snug line-clamp-1 mb-1.5">{title}</h3>
+      {/* ── Body ──────────────────────────────────────────────────────────── */}
+      <div className="px-4 pt-3.5 pb-4 space-y-3">
 
-        <div className="flex items-center gap-1 text-[12px] text-gray-400 mb-3">
-          <MapPin className="w-3 h-3 shrink-0" />
-          <span className="truncate">{displayLocation}</span>
+        {/* Title + location */}
+        <div>
+          <h3 className="font-bold text-gray-900 text-[14px] leading-snug line-clamp-1">{title}</h3>
+          <div className="flex items-center gap-1 text-[12px] text-gray-400 mt-0.5">
+            <MapPin className="w-3 h-3 shrink-0" />
+            <span className="truncate">{displayLocation}</span>
+          </div>
         </div>
 
-        <div className="flex items-center justify-between mb-4">
-          <span className="text-[11px] font-semibold text-gray-400 bg-gray-50 px-2.5 py-1 rounded-lg">
+        {/* Key stat pills */}
+        <div className="flex flex-wrap gap-1.5">
+          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-500 bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-lg">
+            <Ruler className="w-3 h-3 text-gray-400" />
             {width} × {height} ft
           </span>
-          {ownerVerified && (
-            <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600">
-              ✓ Verified
+          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-500 bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-lg">
+            {sqft.toLocaleString('en-IN')} sqft
+          </span>
+          {minimumBookingMonths && (
+            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-600 bg-brand-50 border border-brand-100 px-2.5 py-1 rounded-lg">
+              <Calendar className="w-3 h-3" />
+              Min {minimumBookingMonths} mo
             </span>
           )}
+          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-500 bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-lg">
+            {locationType}
+          </span>
         </div>
 
+        {/* Location advantage chips */}
+        {topAdvantages && topAdvantages.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {topAdvantages.slice(0, 3).map((adv) => (
+              <span
+                key={adv}
+                className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${advColor(adv)}`}
+              >
+                {adv.replace(/_/g, ' ')}
+              </span>
+            ))}
+            {topAdvantages.length > 3 && (
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
+                +{topAdvantages.length - 3} more
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* CTA */}
         <button
           onClick={() => navigate(`/holdings/${id}`)}
-          className="w-full py-2.5 rounded-xl text-[13px] font-bold text-white transition-all active:scale-[0.98]"
+          className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[13px] font-bold text-white transition-all active:scale-[0.98]"
           style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)' }}
         >
           View Details
+          <ArrowRight className="w-3.5 h-3.5" />
         </button>
       </div>
     </div>

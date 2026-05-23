@@ -1,18 +1,9 @@
-// WishlistPage.tsx — customer's saved hoardings
-//
-// Shows a grid of saved holdings. Each card has:
-//   - Holding details (name, location, size, price)
-//   - "View Details" button to go to the detail page
-//   - "Remove" button to remove from wishlist
-//
-// When "Remove" is clicked, useMutation fires the DELETE request, then
-// we invalidate the ['wishlist'] query so the grid refreshes without the removed item.
-
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { MapPin, Loader2, Trash2 } from 'lucide-react'
+import { MapPin, Loader2, Trash2, Building2, Ruler, CheckCircle2, ArrowRight, Heart } from 'lucide-react'
 import { getWishlist, removeFromWishlist } from '@/api/customer.api'
 import StatusBadge from '@/components/ui/StatusBadge'
+import type { WishlistItem } from '@/types/index'
 
 function formatRupees(amount: number): string {
   return new Intl.NumberFormat('en-IN', {
@@ -22,67 +13,179 @@ function formatRupees(amount: number): string {
   }).format(amount)
 }
 
+function formatSavedDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString('en-IN', {
+    day: '2-digit', month: 'short', year: 'numeric',
+  })
+}
+
+function WishlistCard({
+  item,
+  onRemove,
+  removing,
+}: {
+  item: WishlistItem
+  onRemove: () => void
+  removing: boolean
+}) {
+  const navigate = useNavigate()
+  const sqft = item.width * item.height
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-card hover:shadow-card-md transition-all duration-200 hover:-translate-y-0.5 group">
+
+      {/* ── Image ──────────────────────────────────────────────────────── */}
+      <div className="relative h-48 bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden">
+        {item.thumbnail ? (
+          <img
+            src={item.thumbnail}
+            alt={item.title}
+            className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
+          />
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center gap-2">
+            <Building2 className="w-10 h-10 text-slate-300" />
+            <span className="text-xs text-slate-400 font-medium">No photo</span>
+          </div>
+        )}
+
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+
+        {/* Top-left: location type */}
+        <span
+          className="absolute top-3 left-3 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full text-white"
+          style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)' }}
+        >
+          {item.locationType}
+        </span>
+
+        {/* Top-right: remove button */}
+        <button
+          onClick={onRemove}
+          disabled={removing}
+          className="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center transition-all"
+          style={{ background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(8px)' }}
+          title="Remove from wishlist"
+        >
+          {removing
+            ? <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+            : <Heart className="w-4 h-4 fill-red-500 text-red-500" />
+          }
+        </button>
+
+        {/* Bottom overlay: price + verified */}
+        <div className="absolute bottom-0 left-0 right-0 px-3 pb-3 flex items-end justify-between">
+          <div>
+            <p className="text-white font-extrabold text-lg leading-none drop-shadow-sm">
+              {formatRupees(item.rentalCost)}
+            </p>
+            <p className="text-white/70 text-[11px] font-medium">per month</p>
+          </div>
+          <div className="flex gap-1.5">
+            <div className="shrink-0">
+              <StatusBadge status={item.status} />
+            </div>
+            {item.ownerVerified && (
+              <span
+                className="text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"
+                style={{ background: 'rgba(16,185,129,0.85)', backdropFilter: 'blur(6px)' }}
+              >
+                <CheckCircle2 className="w-3 h-3" /> Verified
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Body ───────────────────────────────────────────────────────── */}
+      <div className="px-4 pt-3.5 pb-4 space-y-3">
+
+        {/* Title + location */}
+        <div>
+          <h3 className="font-bold text-gray-900 text-[14px] leading-snug line-clamp-1">{item.title}</h3>
+          <div className="flex items-center gap-1 text-[12px] text-gray-400 mt-0.5">
+            <MapPin className="w-3 h-3 shrink-0" />
+            <span className="truncate">{item.location}</span>
+          </div>
+        </div>
+
+        {/* Stat pills */}
+        <div className="flex flex-wrap gap-1.5">
+          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-500 bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-lg">
+            <Ruler className="w-3 h-3 text-gray-400" />
+            {item.width} × {item.height} ft
+          </span>
+          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-500 bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-lg">
+            {sqft.toLocaleString('en-IN')} sqft
+          </span>
+          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-400 bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-lg">
+            Saved {formatSavedDate(item.savedAt)}
+          </span>
+        </div>
+
+        {/* CTA */}
+        <button
+          onClick={() => navigate(`/holdings/${item.holdingId}`)}
+          className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[13px] font-bold text-white transition-all active:scale-[0.98]"
+          style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)' }}
+        >
+          View Details
+          <ArrowRight className="w-3.5 h-3.5" />
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export default function WishlistPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  // Fetch all wishlist items for the logged-in customer
   const { data: items, isLoading, isError } = useQuery({
     queryKey: ['wishlist'],
     queryFn: getWishlist,
   })
 
-  // Remove-from-wishlist mutation
   const removeMutation = useMutation({
     mutationFn: (holdingId: string) => removeFromWishlist(holdingId),
     onSuccess: () => {
-      // Re-fetch the wishlist so the removed card disappears
       queryClient.invalidateQueries({ queryKey: ['wishlist'] })
-      // Also reset the check state for individual holding detail pages
       queryClient.invalidateQueries({ queryKey: ['wishlist-check'] })
     },
   })
 
   return (
     <div>
-      {/* Page header */}
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">My Wishlist</h2>
-        <p className="text-sm text-gray-500 mt-1">
-          Hoardings you've saved for later consideration
-        </p>
+      <div className="page-header">
+        <h2 className="page-title">My Wishlist</h2>
+        <p className="page-subtitle">Hoardings you've saved for later consideration</p>
       </div>
 
-      {/* Loading spinner */}
       {isLoading && (
         <div className="flex items-center justify-center py-16">
           <Loader2 className="w-6 h-6 animate-spin text-brand-600" />
         </div>
       )}
 
-      {/* Error state */}
       {isError && (
         <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center text-red-700">
           Failed to load your wishlist. Please try again.
         </div>
       )}
 
-      {/* Empty state */}
       {items && items.length === 0 && (
         <div className="text-center py-16">
-          <p className="text-gray-400 text-sm mb-4">
-            Your wishlist is empty. Browse hoardings to save ones you like.
-          </p>
-          <button
-            onClick={() => navigate('/browse')}
-            className="btn-primary w-auto px-6"
-          >
+          <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
+            <Heart className="w-8 h-8 text-gray-300" />
+          </div>
+          <p className="text-gray-500 font-medium mb-1">Your wishlist is empty</p>
+          <p className="text-gray-400 text-sm mb-5">Save hoardings while browsing to find them here.</p>
+          <button onClick={() => navigate('/browse')} className="btn-primary w-auto px-6">
             Browse Hoardings
           </button>
         </div>
       )}
 
-      {/* Wishlist cards grid */}
       {items && items.length > 0 && (
         <>
           <p className="text-sm text-gray-500 mb-4">
@@ -90,76 +193,12 @@ export default function WishlistPage() {
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {items.map((item) => (
-              <div
+              <WishlistCard
                 key={item.id}
-                className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow"
-              >
-                {/* Card photo or placeholder */}
-                <div className="h-40 bg-gray-100 relative">
-                  {item.thumbnail ? (
-                    <img
-                      src={item.thumbnail}
-                      alt={item.title}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <MapPin className="w-10 h-10 text-gray-300" />
-                    </div>
-                  )}
-                  {/* Availability badge on the photo */}
-                  <div className="absolute bottom-2 left-2">
-                    <StatusBadge status={item.status} />
-                  </div>
-                </div>
-
-                {/* Card body */}
-                <div className="p-4">
-                  <div className="flex items-start justify-between gap-2 mb-1">
-                    <h3 className="font-semibold text-gray-900 text-sm leading-tight line-clamp-2">
-                      {item.title}
-                    </h3>
-                    <span className="shrink-0 text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium">
-                      {item.locationType}
-                    </span>
-                  </div>
-
-                  <p className="flex items-center gap-1 text-xs text-gray-500 mb-3">
-                    <MapPin className="w-3 h-3 shrink-0" />
-                    <span className="truncate">{item.location}</span>
-                  </p>
-
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-xs text-gray-500">
-                      {item.width} × {item.height} ft
-                    </span>
-                    <span className="text-sm font-bold text-brand-600">
-                      {formatRupees(item.rentalCost)}/mo
-                    </span>
-                  </div>
-
-                  {/* Actions row */}
-                  <div className="flex gap-2">
-                    {/* View Details navigates to the holding detail page */}
-                    <button
-                      onClick={() => navigate(`/holdings/${item.holdingId}`)}
-                      className="flex-1 py-2 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700 transition-colors"
-                    >
-                      View Details
-                    </button>
-
-                    {/* Remove from wishlist */}
-                    <button
-                      onClick={() => removeMutation.mutate(item.holdingId)}
-                      disabled={removeMutation.isPending}
-                      className="p-2 rounded-lg border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-colors disabled:opacity-50"
-                      title="Remove from wishlist"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              </div>
+                item={item}
+                onRemove={() => removeMutation.mutate(item.holdingId)}
+                removing={removeMutation.isPending && removeMutation.variables === item.holdingId}
+              />
             ))}
           </div>
         </>
