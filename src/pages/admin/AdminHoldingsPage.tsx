@@ -86,13 +86,15 @@ export default function AdminHoldingsPage() {
       </div>
 
       {/* Status filter tabs */}
-      <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl w-fit overflow-x-auto">
+      <div className="flex gap-1 mb-6 border-b border-gray-200 overflow-x-auto">
         {STATUS_TABS.map((tab) => (
           <button
             key={tab.value}
             onClick={() => { setActiveStatus(tab.value); setCurrentPage(0) }}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
-              activeStatus === tab.value ? 'bg-white text-brand-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+            className={`px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap ${
+              activeStatus === tab.value
+                ? 'border-b-2 border-brand-500 text-brand-500'
+                : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             {tab.label}
@@ -123,11 +125,11 @@ export default function AdminHoldingsPage() {
       )}
 
       {data && data.items.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
+                <tr className="bg-gray-50 border-b border-gray-100">
                   <th className="text-left px-6 py-3 font-medium text-gray-500">Title</th>
                   <th className="text-left px-6 py-3 font-medium text-gray-500">Owner</th>
                   <th className="text-left px-6 py-3 font-medium text-gray-500">Location</th>
@@ -139,7 +141,7 @@ export default function AdminHoldingsPage() {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {data.items.map((holding) => (
-                  <tr key={holding.id} className="hover:bg-gray-50 transition-colors">
+                  <tr key={holding.id} className="bg-white hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 max-w-xs">
                       <p className="font-medium text-gray-900 truncate">{holding.title}</p>
                       {holding.rejectionReason && (
@@ -150,9 +152,9 @@ export default function AdminHoldingsPage() {
                       <p className="text-gray-900">{holding.ownerName}</p>
                       <p className="text-xs text-gray-500">{holding.ownerEmail}</p>
                     </td>
-                    <td className="px-6 py-4 text-gray-600 max-w-xs">
+                    <td className="px-6 py-4 text-gray-500 max-w-xs">
                       <p className="truncate">{holding.location}</p>
-                      <span className="text-xs text-gray-400">{holding.locationType}</span>
+                      <span className="text-xs text-gray-500">{holding.locationType}</span>
                     </td>
                     <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
                       {formatRupees(holding.rentalCost)}
@@ -160,11 +162,11 @@ export default function AdminHoldingsPage() {
                     <td className="px-6 py-4">
                       <StatusBadge status={holding.status} />
                     </td>
-                    <td className="px-6 py-4 text-gray-600">{holding.offersCount}</td>
+                    <td className="px-6 py-4 text-gray-500">{holding.offersCount}</td>
                     <td className="px-6 py-4">
                       <button
                         onClick={() => openModal(holding)}
-                        className="flex items-center gap-1.5 text-xs font-medium text-brand-600 border border-brand-200 px-3 py-1.5 rounded-lg hover:bg-brand-50 transition-colors"
+                        className="flex items-center gap-1.5 text-xs font-medium text-gray-700 border border-gray-200 bg-gray-50 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors"
                       >
                         <Eye className="w-3 h-3" />
                         View Details
@@ -183,7 +185,7 @@ export default function AdminHoldingsPage() {
           <button
             onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
             disabled={!data.hasPrevious}
-            className="px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             Previous
           </button>
@@ -191,7 +193,7 @@ export default function AdminHoldingsPage() {
           <button
             onClick={() => setCurrentPage((p) => p + 1)}
             disabled={!data.hasNext}
-            className="px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             Next
           </button>
@@ -201,14 +203,14 @@ export default function AdminHoldingsPage() {
       {/* ── Holding Detail Modal ──────────────────────────────────────────── */}
       {selectedHolding && (
         <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 overflow-y-auto py-8 px-4" onClick={closeModal}>
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl border border-gray-200" onClick={(e) => e.stopPropagation()}>
             {selectedHolding.photos.length > 0 ? (
               <div className="h-56 rounded-t-2xl overflow-hidden">
                 <img src={selectedHolding.photos[0]} alt={selectedHolding.title} className="w-full h-full object-cover" />
               </div>
             ) : (
               <div className="h-48 bg-gray-100 rounded-t-2xl flex items-center justify-center">
-                <MapPin className="w-16 h-16 text-gray-300" />
+                <MapPin className="w-16 h-16 text-gray-400" />
               </div>
             )}
 
@@ -231,33 +233,33 @@ export default function AdminHoldingsPage() {
 
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-5 text-sm">
                 <div>
-                  <p className="text-xs text-gray-400 mb-1">Type</p>
-                  <p className="font-medium text-gray-800">{selectedHolding.locationType}</p>
+                  <p className="text-xs text-gray-500 mb-1">Type</p>
+                  <p className="font-medium text-gray-900">{selectedHolding.locationType}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-400 mb-1">Size</p>
-                  <p className="font-medium text-gray-800">{selectedHolding.width} × {selectedHolding.height} ft</p>
+                  <p className="text-xs text-gray-500 mb-1">Size</p>
+                  <p className="font-medium text-gray-900">{selectedHolding.width} × {selectedHolding.height} ft</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-400 mb-1">Monthly Price</p>
-                  <p className="font-semibold text-brand-600">{formatRupees(selectedHolding.rentalCost)}</p>
+                  <p className="text-xs text-gray-500 mb-1">Monthly Price</p>
+                  <p className="font-semibold text-gray-900">{formatRupees(selectedHolding.rentalCost)}</p>
                 </div>
               </div>
 
-              <div className="bg-gray-50 rounded-xl p-4 mb-4 text-sm">
-                <p className="text-xs text-gray-400 mb-2 font-medium uppercase tracking-wide">Owner</p>
+              <div className="bg-gray-50 rounded-xl p-4 mb-4 text-sm border border-gray-100">
+                <p className="text-xs text-gray-500 mb-2 font-medium uppercase tracking-wide">Owner</p>
                 <p className="font-semibold text-gray-900">{selectedHolding.ownerName}</p>
                 <p className="text-gray-500">{selectedHolding.ownerEmail}</p>
                 {selectedHolding.ownerVerified && (
-                  <p className="text-xs text-green-600 font-medium mt-1">Verified Owner</p>
+                  <p className="text-xs text-emerald-700 font-medium mt-1">Verified Owner</p>
                 )}
               </div>
 
-              <p className="text-xs text-gray-400 mb-4">Submitted: {formatDate(selectedHolding.createdAt)}</p>
+              <p className="text-xs text-gray-500 mb-4">Submitted: {formatDate(selectedHolding.createdAt)}</p>
 
               {selectedHolding.rejectionReason && (
-                <div className="bg-red-50 border border-red-100 rounded-xl p-4 mb-4 text-sm">
-                  <p className="text-xs text-red-400 font-medium uppercase tracking-wide mb-1">Admin Note</p>
+                <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4 text-sm">
+                  <p className="text-xs text-red-700 font-medium uppercase tracking-wide mb-1">Admin Note</p>
                   <p className="text-red-700">{selectedHolding.rejectionReason}</p>
                 </div>
               )}
@@ -269,7 +271,7 @@ export default function AdminHoldingsPage() {
                     <button
                       onClick={() => approveMutation.mutate(selectedHolding.id)}
                       disabled={anyPending}
-                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
+                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 text-sm font-medium hover:bg-emerald-100 disabled:opacity-50 transition-colors"
                     >
                       {approveMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
                       Approve — Make Active
@@ -288,13 +290,13 @@ export default function AdminHoldingsPage() {
                         <button
                           onClick={() => { if (reason.trim()) rejectMutation.mutate({ id: selectedHolding.id, r: reason.trim() }) }}
                           disabled={!reason.trim() || anyPending}
-                          className="shrink-0 px-4 py-2 rounded-xl bg-red-600 text-white text-sm font-medium hover:bg-red-700 disabled:opacity-50 transition-colors"
+                          className="shrink-0 px-4 py-2 rounded-xl bg-red-50 text-red-700 border border-red-200 text-sm font-medium hover:bg-red-100 disabled:opacity-50 transition-colors"
                         >
                           {rejectMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Reject'}
                         </button>
                         <button
                           onClick={() => { setShowRejectInput(false); setReason('') }}
-                          className="shrink-0 px-3 py-2 rounded-xl border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
+                          className="shrink-0 px-3 py-2 rounded-xl border border-gray-200 text-gray-500 hover:bg-gray-100 transition-colors"
                         >
                           <X className="w-4 h-4" />
                         </button>
@@ -302,7 +304,7 @@ export default function AdminHoldingsPage() {
                     ) : (
                       <button
                         onClick={() => setShowRejectInput(true)}
-                        className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-red-200 text-red-600 text-sm font-medium hover:bg-red-50 transition-colors"
+                        className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-red-50 text-red-700 border border-red-200 text-sm font-medium hover:bg-red-100 transition-colors"
                       >
                         <XCircle className="w-4 h-4" />
                         Reject Holding
@@ -327,13 +329,13 @@ export default function AdminHoldingsPage() {
                         <button
                           onClick={() => { if (reason.trim()) suspendMutation.mutate({ id: selectedHolding.id, r: reason.trim() }) }}
                           disabled={!reason.trim() || anyPending}
-                          className="shrink-0 px-4 py-2 rounded-xl bg-rose-600 text-white text-sm font-medium hover:bg-rose-700 disabled:opacity-50 transition-colors"
+                          className="shrink-0 px-4 py-2 rounded-xl bg-red-50 text-red-700 border border-red-200 text-sm font-medium hover:bg-red-100 disabled:opacity-50 transition-colors"
                         >
                           {suspendMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Suspend'}
                         </button>
                         <button
                           onClick={() => { setShowSuspendInput(false); setReason('') }}
-                          className="shrink-0 px-3 py-2 rounded-xl border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
+                          className="shrink-0 px-3 py-2 rounded-xl border border-gray-200 text-gray-500 hover:bg-gray-100 transition-colors"
                         >
                           <X className="w-4 h-4" />
                         </button>
@@ -341,7 +343,7 @@ export default function AdminHoldingsPage() {
                     ) : (
                       <button
                         onClick={() => setShowSuspendInput(true)}
-                        className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-rose-200 text-rose-600 text-sm font-medium hover:bg-rose-50 transition-colors"
+                        className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-orange-50 text-orange-700 border border-orange-200 text-sm font-medium hover:bg-orange-100 transition-colors"
                       >
                         <AlertTriangle className="w-4 h-4" />
                         Suspend Holding
@@ -352,7 +354,7 @@ export default function AdminHoldingsPage() {
 
                 {/* REJECTED / SUSPENDED: read-only */}
                 {(selectedHolding.status === 'REJECTED' || selectedHolding.status === 'SUSPENDED') && (
-                  <p className="text-center text-sm text-gray-400 py-2">
+                  <p className="text-center text-sm text-gray-500 py-2">
                     No further admin actions available for this status.
                   </p>
                 )}

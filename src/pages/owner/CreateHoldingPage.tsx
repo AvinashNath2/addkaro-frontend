@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
-import { Loader2, ArrowLeft, CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react'
+import { Loader2, ArrowLeft, CheckCircle2, ChevronDown, ChevronUp, Plus, Trash2 } from 'lucide-react'
 import { createHolding } from '@/api/owner.api'
 import { holdingSchema, type HoldingFormData } from '@/lib/schemas/holding.schema'
 import { cn } from '@/lib/utils'
@@ -13,15 +13,15 @@ function SectionAccordion({
 }: { title: string; hint?: string; children: React.ReactNode; defaultOpen?: boolean }) {
   const [open, setOpen] = useState(defaultOpen)
   return (
-    <div className="border border-gray-200 rounded-xl overflow-hidden">
+    <div className="border border-gray-100 rounded-xl overflow-hidden">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
         className="w-full flex items-center justify-between px-5 py-4 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
       >
         <div>
-          <span className="text-sm font-semibold text-gray-800">{title}</span>
-          {hint && <span className="ml-2 text-xs text-gray-400 font-normal">{hint}</span>}
+          <span className="text-sm font-semibold text-gray-900">{title}</span>
+          {hint && <span className="ml-2 text-xs text-gray-500 font-normal">{hint}</span>}
         </div>
         {open ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
       </button>
@@ -40,11 +40,14 @@ const LOCATION_ADVANTAGES = [
   'UPSCALE_NEIGHBOURHOOD', 'TOURIST_HERITAGE_AREA', 'MAIN_CITY_ROAD',
 ]
 
+type AdvertiserEntry = { brandName: string; description: string }
+
 export default function CreateHoldingPage() {
   const navigate = useNavigate()
   const [selectedAdvantages, setSelectedAdvantages] = useState<string[]>([])
+  const [advertisers, setAdvertisers] = useState<AdvertiserEntry[]>([])
 
-  const { register, handleSubmit, setValue, formState: { errors } } = useForm<HoldingFormData>({
+  const { register, handleSubmit, getValues, setValue, formState: { errors } } = useForm<HoldingFormData>({
     resolver: zodResolver(holdingSchema),
   })
 
@@ -56,19 +59,40 @@ export default function CreateHoldingPage() {
     })
   }
 
-  const mutation = useMutation({
-    mutationFn: (data: HoldingFormData) =>
-      createHolding({ ...data, locationAdvantages: selectedAdvantages }),
-    onSuccess: () => {
-      setTimeout(() => navigate('/owner/holdings'), 1500)
-    },
+  const addAdvertiser = () => setAdvertisers((prev) => [...prev, { brandName: '', description: '' }])
+  const removeAdvertiser = (i: number) => setAdvertisers((prev) => prev.filter((_, idx) => idx !== i))
+  const updateAdvertiser = (i: number, field: keyof AdvertiserEntry, value: string) => {
+    setAdvertisers((prev) => prev.map((a, idx) => idx === i ? { ...a, [field]: value } : a))
+  }
+
+  const buildPayload = (data: Partial<HoldingFormData>, draft: boolean) => ({
+    ...data,
+    locationAdvantages: selectedAdvantages,
+    previousAdvertisers: advertisers.filter((a) => a.brandName.trim()),
+    draft,
   })
+
+  const mutation = useMutation({
+    mutationFn: (data: HoldingFormData) => createHolding(buildPayload(data, false)),
+    onSuccess: () => { setTimeout(() => navigate('/owner/holdings'), 1500) },
+  })
+
+  const draftMutation = useMutation({
+    mutationFn: () => {
+      const data = getValues()
+      return createHolding(buildPayload(data, true))
+    },
+    onSuccess: () => { setTimeout(() => navigate('/owner/holdings?status=DRAFT'), 1500) },
+  })
+
+  const isPending = mutation.isPending || draftMutation.isPending
+  const isSuccess = mutation.isSuccess || draftMutation.isSuccess
 
   return (
     <div className="max-w-2xl">
       <button
         onClick={() => navigate('/owner/holdings')}
-        className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-800 mb-6 transition-colors"
+        className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-6 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
         Back to Listings
@@ -77,16 +101,26 @@ export default function CreateHoldingPage() {
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-900">Add New Listing</h2>
         <p className="text-sm text-gray-500 mt-1">
-          Submit your hoarding for admin review. Only the base fields are required.
+          Fill in the details and submit for admin review, or save as a draft to continue later.
         </p>
       </div>
 
       {mutation.isSuccess && (
-        <div className="flex items-start gap-3 rounded-xl bg-green-50 border border-green-200 px-5 py-4 mb-6">
-          <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
+        <div className="flex items-start gap-3 rounded-xl bg-emerald-50 border border-emerald-200 px-5 py-4 mb-6">
+          <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-medium text-green-800">Submitted for review!</p>
-            <p className="text-xs text-green-700 mt-0.5">Redirecting you to listings…</p>
+            <p className="text-sm font-medium text-emerald-700">Submitted for review!</p>
+            <p className="text-xs text-emerald-600 mt-0.5">Redirecting you to listings…</p>
+          </div>
+        </div>
+      )}
+
+      {draftMutation.isSuccess && (
+        <div className="flex items-start gap-3 rounded-xl bg-blue-50 border border-blue-200 px-5 py-4 mb-6">
+          <CheckCircle2 className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-medium text-blue-700">Draft saved!</p>
+            <p className="text-xs text-blue-600 mt-0.5">Redirecting to your drafts…</p>
           </div>
         </div>
       )}
@@ -94,8 +128,8 @@ export default function CreateHoldingPage() {
       <form onSubmit={handleSubmit((d) => mutation.mutate(d))} noValidate className="space-y-5">
 
         {/* ── Required base fields ──────────────────────────────────────── */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm space-y-5">
-          <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Required Details</h3>
+        <div className="bg-white rounded-xl border border-gray-100 p-6 space-y-5">
+          <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide">Required Details</h3>
 
           <div>
             <label className="label">Listing Title</label>
@@ -117,7 +151,7 @@ export default function CreateHoldingPage() {
                 <label key={type} className="flex items-center gap-2 cursor-pointer">
                   <input type="radio" value={type} className="accent-brand-600" {...register('locationType')} />
                   <span className="text-sm font-medium text-gray-700">{type}</span>
-                  <span className="text-xs text-gray-400">{type === 'URBAN' ? '(Major city)' : '(Town / locality)'}</span>
+                  <span className="text-xs text-gray-500">{type === 'URBAN' ? '(Major city)' : '(Town / locality)'}</span>
                 </label>
               ))}
             </div>
@@ -163,7 +197,7 @@ export default function CreateHoldingPage() {
         </div>
 
         {/* ── Optional sections ─────────────────────────────────────────── */}
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-1">Optional Sections</p>
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide px-1 mt-2">Optional Sections</p>
 
         {/* Address */}
         <SectionAccordion title="Address Details" hint="Area, city, state, PIN">
@@ -457,8 +491,8 @@ export default function CreateHoldingPage() {
                   className={cn(
                     'text-xs px-3 py-1.5 rounded-lg border font-medium transition-colors',
                     selected
-                      ? 'bg-brand-600 text-white border-brand-600'
-                      : 'bg-white text-gray-600 border-gray-200 hover:border-brand-400'
+                      ? 'bg-[#C9F31D] text-[#111] border-[#C9F31D]'
+                      : 'bg-white text-gray-600 border-gray-200 hover:border-[#C9F31D]'
                   )}
                 >
                   {adv.replace(/_/g, ' ')}
@@ -468,16 +502,68 @@ export default function CreateHoldingPage() {
           </div>
         </SectionAccordion>
 
-        {mutation.isError && (
-          <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
-            {mutation.error.message}
+        {/* Previous Advertisers */}
+        <SectionAccordion title="Previous Advertisers" hint="Brands that advertised here before">
+          <div className="space-y-3">
+            {advertisers.map((adv, i) => (
+              <div key={i} className="flex gap-3 items-start">
+                <div className="flex-1 space-y-2">
+                  <input
+                    type="text"
+                    placeholder="Brand name *"
+                    value={adv.brandName}
+                    onChange={(e) => updateAdvertiser(i, 'brandName', e.target.value)}
+                    className="input-field"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Short description (optional)"
+                    value={adv.description}
+                    onChange={(e) => updateAdvertiser(i, 'description', e.target.value)}
+                    className="input-field"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeAdvertiser(i)}
+                  className="mt-1 p-2 text-gray-400 hover:text-red-500 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={addAdvertiser}
+              className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Add advertiser
+            </button>
+          </div>
+        </SectionAccordion>
+
+        {(mutation.isError || draftMutation.isError) && (
+          <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">
+            {(mutation.error ?? draftMutation.error)?.message}
           </div>
         )}
 
-        <button type="submit" disabled={mutation.isPending || mutation.isSuccess} className="btn-primary">
-          {mutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
-          {mutation.isPending ? 'Submitting…' : 'Submit for Review'}
-        </button>
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={() => draftMutation.mutate()}
+            disabled={isPending || isSuccess}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+          >
+            {draftMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+            Save as Draft
+          </button>
+          <button type="submit" disabled={isPending || isSuccess} className="btn-primary flex-1">
+            {mutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+            {mutation.isPending ? 'Submitting…' : 'Submit for Review'}
+          </button>
+        </div>
       </form>
     </div>
   )

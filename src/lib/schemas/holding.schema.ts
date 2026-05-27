@@ -64,6 +64,12 @@ const legalSchema = z.object({
   nocFromAuthority: z.boolean().optional(),
 }).optional()
 
+// ── Previous advertisers ───────────────────────────────────────────────────
+const previousAdvertiserSchema = z.object({
+  brandName  : z.string().min(1, 'Brand name is required'),
+  description: z.string().optional(),
+})
+
 // ── Root holding schema ────────────────────────────────────────────────────
 export const holdingSchema = z.object({
   title        : z.string().min(1, 'Title is required').max(200),
@@ -76,14 +82,26 @@ export const holdingSchema = z.object({
   rentalCost   : z.coerce.number().min(1, 'Rental cost must be > 0'),
   ownerType    : z.string().optional(),
 
-  address            : addressSchema,
-  typeSpecs          : typeSpecsSchema,
-  illumination       : illuminationSchema,
-  amenities          : amenitiesSchema,
-  audience           : audienceSchema,
-  pricing            : pricingSchema,
-  legal              : legalSchema,
-  locationAdvantages : z.array(z.string()).optional(),
+  address              : addressSchema,
+  typeSpecs            : typeSpecsSchema,
+  illumination         : illuminationSchema,
+  amenities            : amenitiesSchema,
+  audience             : audienceSchema,
+  pricing              : pricingSchema,
+  legal                : legalSchema,
+  locationAdvantages   : z.array(z.string()).optional(),
+  previousAdvertisers  : z.array(previousAdvertiserSchema).optional(),
+})
+
+// Draft schema — same but base fields are all optional
+export const draftHoldingSchema = holdingSchema.extend({
+  locationType : z.enum(['URBAN', 'LOCAL']).optional(),
+  latitude     : z.coerce.number().optional(),
+  longitude    : z.coerce.number().optional(),
+  width        : z.coerce.number().optional(),
+  height       : z.coerce.number().optional(),
+  rentalCost   : z.coerce.number().optional(),
 })
 
 export type HoldingFormData = z.infer<typeof holdingSchema>
+export type DraftHoldingFormData = z.infer<typeof draftHoldingSchema>

@@ -44,7 +44,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
 
         <div className="text-center mb-8">
@@ -53,36 +53,36 @@ export default function LoginPage() {
         </div>
 
         {IS_MOCK && (
-          <div className="mb-6 rounded-2xl border border-brand-200 bg-brand-50 p-5">
-            <p className="text-xs font-semibold text-brand-700 uppercase tracking-wider mb-3">Demo Mode — choose a role</p>
+          <div className="mb-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-wider mb-3 text-[#C9F31D]" style={{ color: '#6b7f00' }}>Demo Mode — choose a role</p>
             <div className="grid grid-cols-3 gap-2">
               <button
                 onClick={() => loginAs(DEMO_USERS[0])}
-                className="flex flex-col items-center gap-1.5 rounded-xl border border-brand-200 bg-white px-2 py-3 text-xs font-medium text-brand-700 hover:bg-brand-100 transition-colors"
+                className="flex flex-col items-center gap-1.5 rounded-xl border border-gray-200 bg-gray-50 px-2 py-3 text-xs font-medium text-gray-500 hover:bg-gray-100 transition-colors"
               >
-                <User className="w-5 h-5 text-brand-500" />
+                <User className="w-5 h-5 text-gray-400" />
                 Customer
               </button>
               <button
                 onClick={() => loginAs(DEMO_USERS[1])}
-                className="flex flex-col items-center gap-1.5 rounded-xl border border-green-200 bg-white px-2 py-3 text-xs font-medium text-green-700 hover:bg-green-50 transition-colors"
+                className="flex flex-col items-center gap-1.5 rounded-xl border border-gray-200 bg-gray-50 px-2 py-3 text-xs font-medium text-gray-500 hover:bg-gray-100 transition-colors"
               >
-                <Building2 className="w-5 h-5 text-green-500" />
+                <Building2 className="w-5 h-5 text-emerald-500" />
                 Owner
               </button>
               <button
                 onClick={() => loginAs(DEMO_USERS[2])}
-                className="flex flex-col items-center gap-1.5 rounded-xl border border-purple-200 bg-white px-2 py-3 text-xs font-medium text-purple-700 hover:bg-purple-50 transition-colors"
+                className="flex flex-col items-center gap-1.5 rounded-xl border border-gray-200 bg-gray-50 px-2 py-3 text-xs font-medium text-gray-500 hover:bg-gray-100 transition-colors"
               >
                 <ShieldCheck className="w-5 h-5 text-purple-500" />
                 Admin
               </button>
             </div>
-            <p className="text-[10px] text-brand-500 mt-3 text-center">No password needed in demo mode</p>
+            <p className="text-[10px] mt-3 text-center text-gray-400">No password needed in demo mode</p>
           </div>
         )}
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
           <form onSubmit={handleSubmit((d) => mutation.mutate(d))} noValidate className="space-y-4">
 
             <div>
@@ -125,7 +125,7 @@ export default function LoginPage() {
 
         <p className="mt-6 text-center text-sm text-gray-500">
           Don&apos;t have an account?{' '}
-          <Link to="/register" className="font-medium text-brand-600 hover:text-brand-700">
+          <Link to="/register" className="font-medium text-gray-900 hover:opacity-80">
             Create one
           </Link>
         </p>

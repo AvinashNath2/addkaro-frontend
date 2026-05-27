@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { MapPin, Loader2, Trash2, Building2, Ruler, CheckCircle2, ArrowRight, Heart } from 'lucide-react'
+import { MapPin, Loader2, Building2, Ruler, CheckCircle2, ArrowRight, Heart } from 'lucide-react'
 import { getWishlist, removeFromWishlist } from '@/api/customer.api'
 import StatusBadge from '@/components/ui/StatusBadge'
 import type { WishlistItem } from '@/types/index'
@@ -32,10 +32,10 @@ function WishlistCard({
   const sqft = item.width * item.height
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-card hover:shadow-card-md transition-all duration-200 hover:-translate-y-0.5 group">
+    <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-card-md transition-all duration-200 hover:-translate-y-0.5 group">
 
       {/* ── Image ──────────────────────────────────────────────────────── */}
-      <div className="relative h-48 bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden">
+      <div className="relative h-48 bg-gray-100 overflow-hidden">
         {item.thumbnail ? (
           <img
             src={item.thumbnail}
@@ -44,8 +44,8 @@ function WishlistCard({
           />
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center gap-2">
-            <Building2 className="w-10 h-10 text-slate-300" />
-            <span className="text-xs text-slate-400 font-medium">No photo</span>
+            <Building2 className="w-10 h-10 text-gray-400" />
+            <span className="text-xs font-medium text-gray-400">No photo</span>
           </div>
         )}
 
@@ -103,7 +103,7 @@ function WishlistCard({
         {/* Title + location */}
         <div>
           <h3 className="font-bold text-gray-900 text-[14px] leading-snug line-clamp-1">{item.title}</h3>
-          <div className="flex items-center gap-1 text-[12px] text-gray-400 mt-0.5">
+          <div className="flex items-center gap-1 text-[12px] text-gray-500 mt-0.5">
             <MapPin className="w-3 h-3 shrink-0" />
             <span className="truncate">{item.location}</span>
           </div>
@@ -111,14 +111,14 @@ function WishlistCard({
 
         {/* Stat pills */}
         <div className="flex flex-wrap gap-1.5">
-          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-500 bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-lg">
+          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-500 bg-gray-50 border border-gray-200 px-2.5 py-1 rounded-lg">
             <Ruler className="w-3 h-3 text-gray-400" />
             {item.width} × {item.height} ft
           </span>
-          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-500 bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-lg">
+          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-500 bg-gray-50 border border-gray-200 px-2.5 py-1 rounded-lg">
             {sqft.toLocaleString('en-IN')} sqft
           </span>
-          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-400 bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-lg">
+          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-500 bg-gray-50 border border-gray-200 px-2.5 py-1 rounded-lg">
             Saved {formatSavedDate(item.savedAt)}
           </span>
         </div>
@@ -126,8 +126,7 @@ function WishlistCard({
         {/* CTA */}
         <button
           onClick={() => navigate(`/holdings/${item.holdingId}`)}
-          className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[13px] font-bold text-white transition-all active:scale-[0.98]"
-          style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)' }}
+          className="btn-primary w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[13px] font-bold transition-all active:scale-[0.98]"
         >
           View Details
           <ArrowRight className="w-3.5 h-3.5" />
@@ -168,18 +167,18 @@ export default function WishlistPage() {
       )}
 
       {isError && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center text-red-700">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center text-red-600">
           Failed to load your wishlist. Please try again.
         </div>
       )}
 
       {items && items.length === 0 && (
         <div className="text-center py-16">
-          <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
-            <Heart className="w-8 h-8 text-gray-300" />
+          <div className="w-16 h-16 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center mx-auto mb-4">
+            <Heart className="w-8 h-8 text-gray-400" />
           </div>
           <p className="text-gray-500 font-medium mb-1">Your wishlist is empty</p>
-          <p className="text-gray-400 text-sm mb-5">Save hoardings while browsing to find them here.</p>
+          <p className="text-sm text-gray-400 mb-5">Save hoardings while browsing to find them here.</p>
           <button onClick={() => navigate('/browse')} className="btn-primary w-auto px-6">
             Browse Hoardings
           </button>

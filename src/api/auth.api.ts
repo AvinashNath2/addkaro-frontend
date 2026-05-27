@@ -1,5 +1,5 @@
 import api from './axios'
-import type { RegisterPayload, AuthUser, CoreResponse } from '@/types/auth.types'
+import type { RegisterPayload, AuthUser } from '@/types/auth.types'
 import { IS_MOCK } from '@/lib/mockMode'
 
 export async function registerUser(payload: RegisterPayload): Promise<AuthUser> {

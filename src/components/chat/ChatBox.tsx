@@ -11,11 +11,13 @@ import { cn } from '@/lib/utils'
 
 interface ChatBoxProps {
   offerId: string
-  offerLabel?: string   // e.g. "Chat with Owner" or customer name shown in header
+  offerLabel?: string
   onClose: () => void
+  /** When set, hides the send form and shows this message instead (read-only mode) */
+  lockedMessage?: string
 }
 
-export default function ChatBox({ offerId, offerLabel, onClose }: ChatBoxProps) {
+export default function ChatBox({ offerId, offerLabel, onClose, lockedMessage }: ChatBoxProps) {
   const user = useAuthStore((s) => s.user)
   const queryClient = useQueryClient()
   const [messageText, setMessageText] = useState('')
@@ -72,12 +74,12 @@ export default function ChatBox({ offerId, offerLabel, onClose }: ChatBoxProps) 
       />
 
       {/* Chat panel */}
-      <div className="fixed right-0 top-0 h-full z-50 w-full sm:w-[420px] flex flex-col bg-white shadow-2xl">
+      <div className="fixed right-0 top-0 h-full z-50 w-full sm:w-[420px] flex flex-col bg-white shadow-2xl border-l border-gray-100">
 
         {/* Header */}
-        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-gray-200 bg-white shrink-0">
-          <div className="w-9 h-9 rounded-full bg-brand-100 flex items-center justify-center shrink-0">
-            <MessageCircle className="w-5 h-5 text-brand-600" />
+        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-gray-100 bg-white shrink-0">
+          <div className="w-9 h-9 rounded-full bg-brand-50 flex items-center justify-center shrink-0">
+            <MessageCircle className="w-5 h-5 text-brand-500" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-gray-900 text-sm truncate">
@@ -89,7 +91,7 @@ export default function ChatBox({ offerId, offerLabel, onClose }: ChatBoxProps) 
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-500"
+            className="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-400"
             title="Close"
           >
             <X className="w-5 h-5" />
@@ -100,7 +102,7 @@ export default function ChatBox({ offerId, offerLabel, onClose }: ChatBoxProps) 
         <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
           {isLoading && (
             <div className="flex items-center justify-center py-16">
-              <Loader2 className="w-6 h-6 animate-spin text-brand-600" />
+              <Loader2 className="w-6 h-6 animate-spin" style={{ color: '#C9F31D' }} />
             </div>
           )}
 
@@ -115,7 +117,7 @@ export default function ChatBox({ offerId, offerLabel, onClose }: ChatBoxProps) 
               <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center mb-3">
                 <MessageCircle className="w-7 h-7 text-gray-300" />
               </div>
-              <p className="text-sm font-medium text-gray-500">No messages yet</p>
+              <p className="text-sm font-medium text-gray-400">No messages yet</p>
               <p className="text-xs text-gray-400 mt-1">Start the conversation below</p>
             </div>
           )}
@@ -133,12 +135,13 @@ export default function ChatBox({ offerId, offerLabel, onClose }: ChatBoxProps) 
                   className={cn(
                     'max-w-[75%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed',
                     isMe
-                      ? 'bg-brand-600 text-white rounded-br-sm'
+                      ? 'rounded-br-sm'
                       : 'bg-gray-100 text-gray-900 rounded-bl-sm',
                   )}
+                  style={isMe ? { background: '#C9F31D', color: '#111111' } : undefined}
                 >
                   <p>{msg.message}</p>
-                  <p className={cn('text-xs mt-1', isMe ? 'text-brand-200' : 'text-gray-400')}>
+                  <p className={cn('text-xs mt-1', isMe ? 'opacity-60' : 'text-gray-400')}>
                     {new Date(msg.sentAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
                     {isMe && msg.readAt && ' · Read'}
                   </p>
@@ -150,7 +153,7 @@ export default function ChatBox({ offerId, offerLabel, onClose }: ChatBoxProps) 
           {/* Optimistic sending bubble */}
           {sendMutation.isPending && (
             <div className="flex justify-end">
-              <div className="max-w-[75%] rounded-2xl rounded-br-sm px-3.5 py-2.5 bg-brand-400 text-white text-sm opacity-70">
+              <div className="max-w-[75%] rounded-2xl rounded-br-sm px-3.5 py-2.5 text-sm opacity-50" style={{ background: '#C9F31D', color: '#111111' }}>
                 {messageText}
               </div>
             </div>
@@ -159,33 +162,40 @@ export default function ChatBox({ offerId, offerLabel, onClose }: ChatBoxProps) 
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Send form */}
-        <form
-          onSubmit={handleSend}
-          className="flex gap-2 px-4 py-3 border-t border-gray-200 bg-white shrink-0"
-        >
-          <input
-            ref={inputRef}
-            type="text"
-            value={messageText}
-            onChange={(e) => setMessageText(e.target.value)}
-            placeholder="Type a message…"
-            className="flex-1 input-field"
-            disabled={sendMutation.isPending}
-            autoComplete="off"
-            autoFocus
-          />
-          <button
-            type="submit"
-            disabled={!messageText.trim() || sendMutation.isPending}
-            className="w-11 h-11 rounded-xl bg-brand-600 text-white flex items-center justify-center hover:bg-brand-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+        {/* Send form or locked notice */}
+        {lockedMessage ? (
+          <div className="px-4 py-3.5 border-t border-gray-100 bg-gray-50 shrink-0 text-center">
+            <p className="text-xs text-gray-400">{lockedMessage}</p>
+          </div>
+        ) : (
+          <form
+            onSubmit={handleSend}
+            className="flex gap-2 px-4 py-3 border-t border-gray-100 bg-white shrink-0"
           >
-            {sendMutation.isPending
-              ? <Loader2 className="w-4 h-4 animate-spin" />
-              : <Send className="w-4 h-4" />
-            }
-          </button>
-        </form>
+            <input
+              ref={inputRef}
+              type="text"
+              value={messageText}
+              onChange={(e) => setMessageText(e.target.value)}
+              placeholder="Type a message…"
+              className="flex-1 input-field"
+              disabled={sendMutation.isPending}
+              autoComplete="off"
+              autoFocus
+            />
+            <button
+              type="submit"
+              disabled={!messageText.trim() || sendMutation.isPending}
+              className="w-11 h-11 rounded-xl flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+              style={{ background: '#C9F31D', color: '#111111' }}
+            >
+              {sendMutation.isPending
+                ? <Loader2 className="w-4 h-4 animate-spin" />
+                : <Send className="w-4 h-4" />
+              }
+            </button>
+          </form>
+        )}
       </div>
     </>
   )

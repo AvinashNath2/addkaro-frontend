@@ -22,7 +22,7 @@ export default function UserSettingsPage() {
   return (
     <div className="max-w-xl">
       <div className="flex items-center gap-3 mb-6">
-        <Settings className="w-6 h-6 text-brand-600" />
+        <Settings className="w-6 h-6 text-gray-500" />
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Preferences</h2>
           <p className="text-sm text-gray-500 mt-0.5">These defaults auto-fill your browse filters</p>
@@ -118,7 +118,7 @@ export default function UserSettingsPage() {
           {user?.userId && (
             <div>
               <p className="text-xs text-gray-500 uppercase tracking-wide">User ID</p>
-              <p className="text-xs font-mono text-gray-500 mt-1">{user.userId}</p>
+              <p className="text-xs font-mono text-gray-400 mt-1">{user.userId}</p>
             </div>
           )}
         </div>
@@ -126,4 +126,3 @@ export default function UserSettingsPage() {
     </div>
   )
 }
-
