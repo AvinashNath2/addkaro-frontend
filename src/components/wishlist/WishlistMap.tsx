@@ -4,6 +4,38 @@ import { useNavigate } from 'react-router-dom'
 import L from 'leaflet'
 import type { WishlistItem } from '@/types'
 
+function ZoomControls() {
+  const map = useMap()
+  const btn = (label: string, onClick: () => void) => (
+    <button
+      onClick={onClick}
+      style={{
+        width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: 'white', border: 'none', cursor: 'pointer',
+        fontSize: 20, fontWeight: 300, color: '#333', lineHeight: 1,
+        fontFamily: 'system-ui, sans-serif',
+        transition: 'background 0.15s',
+      }}
+      onMouseEnter={e => (e.currentTarget.style.background = '#f5f5f5')}
+      onMouseLeave={e => (e.currentTarget.style.background = 'white')}
+    >
+      {label}
+    </button>
+  )
+  return (
+    <div style={{
+      position: 'absolute', bottom: 16, right: 16, zIndex: 1000,
+      display: 'flex', flexDirection: 'column',
+      borderRadius: 10, overflow: 'hidden',
+      boxShadow: '0 2px 12px rgba(0,0,0,0.15)',
+    }}>
+      {btn('+', () => map.zoomIn())}
+      <div style={{ height: 1, background: '#e5e7eb' }} />
+      {btn('−', () => map.zoomOut())}
+    </div>
+  )
+}
+
 // ── CartoDB Positron — minimal clean tiles ────────────────────────────────────
 const CARTO_POSITRON = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
 const CARTO_ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
@@ -79,6 +111,7 @@ export default function WishlistMap({ items }: { items: WishlistItem[] }) {
         attributionControl={false}
       >
         <TileLayer url={CARTO_POSITRON} attribution={CARTO_ATTR} />
+        <ZoomControls />
         <FitBounds items={mapped.map(i => ({ lat: i.latitude, lng: i.longitude }))} />
         {mapped.map(item => (
           <Marker
