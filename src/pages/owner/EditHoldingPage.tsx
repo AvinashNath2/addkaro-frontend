@@ -122,6 +122,8 @@ export default function EditHoldingPage() {
             securityDepositRequired: holding.pricing.securityDepositRequired ?? false,
             securityDepositRange: holding.pricing.securityDepositRange ?? '',
             installationCostRange: holding.pricing.installationCostRange ?? '',
+            setupCost: holding.pricing.setupCost ?? undefined,
+            taxPct: holding.pricing.taxPct ?? 18,
           }
         : undefined,
       legal: holding.legal
@@ -502,6 +504,14 @@ export default function EditHoldingPage() {
             <div>
               <label className="label">Installation Cost Range</label>
               <input type="text" placeholder="e.g. ₹10,000 – ₹25,000" className="input-field" {...register('pricing.installationCostRange')} />
+            </div>
+            <div>
+              <label className="label">One-time Setup Cost (₹)</label>
+              <input type="number" placeholder="e.g. 15000" className="input-field" {...register('pricing.setupCost')} />
+            </div>
+            <div>
+              <label className="label">GST / Tax (%)</label>
+              <input type="number" step="0.5" placeholder="Default: 18" className="input-field" {...register('pricing.taxPct')} />
             </div>
             <div className="col-span-2">
               <label className="flex items-center gap-2 cursor-pointer">

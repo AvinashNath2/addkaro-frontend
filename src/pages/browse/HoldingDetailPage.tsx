@@ -7,7 +7,7 @@ import {
   MapPin, CheckCircle2, Loader2, ArrowLeft, Heart, MessageCircle,
   Zap, Ruler, TrendingUp, Shield, Sun, Car, Camera,
   Droplets, Eye, Wrench, Calendar, Building2, Tag, PlugZap,
-  ChevronDown, ChevronUp, Edit2, Star,
+  ChevronDown, ChevronUp, Edit2, Star, Calculator, Minus, Plus,
 } from 'lucide-react'
 import { getHoldingDetail } from '@/api/holdings.api'
 import { submitOffer, updateOffer, addToWishlist, removeFromWishlist, checkWishlist } from '@/api/customer.api'
@@ -27,14 +27,15 @@ const MONTH_NAMES = ['January','February','March','April','May','June',
 
 // ── Collapsible section wrapper ───────────────────────────────────────────────
 function Section({
-  icon, title, accent = 'brand', children,
+  icon, title, accent = 'brand', defaultOpen = true, children,
 }: {
   icon: React.ReactNode
   title: string
   accent?: 'brand' | 'green' | 'purple' | 'orange' | 'sky' | 'rose'
+  defaultOpen?: boolean
   children: React.ReactNode
 }) {
-  const [open, setOpen] = useState(true)
+  const [open, setOpen] = useState(defaultOpen)
   const colors: Record<string, string> = {
     brand:  'bg-brand-500/15 text-[#C9F31D]',
     green:  'bg-emerald-50 text-emerald-600',
@@ -147,6 +148,88 @@ const ADV_COLORS: Record<string, string> = {
   TOURIST_HERITAGE_AREA:   'bg-teal-50 text-teal-700',
 }
 function advColor(adv: string) { return ADV_COLORS[adv] ?? 'bg-gray-100 text-gray-500' }
+
+// ── Booking cost calculator ────────────────────────────────────────────────────
+function BookingCalculator({ pricing, rentalCost }: { pricing: NonNullable<HoldingDetail['pricing']>; rentalCost: number }) {
+  const step = pricing.minimumBookingMonths ?? 1
+  const [months, setMonths] = useState(step)
+
+  const discountPct =
+    months >= 12 ? (pricing.yearlyDiscountPct ?? 0) :
+    months >= 6  ? (pricing.halfYearlyDiscountPct ?? 0) :
+    months >= 3  ? (pricing.quarterlyDiscountPct ?? 0) : 0
+
+  const taxRate    = pricing.taxPct ?? 18
+  const base       = rentalCost * months
+  const discount   = base * (discountPct / 100)
+  const afterDisc  = base - discount
+  const tax        = afterDisc * (taxRate / 100)
+  const setup      = pricing.setupCost ?? 0
+  const total      = afterDisc + tax + setup
+
+  const calRow = (label: string, value: string, highlight = false) => (
+    <div className={cn(
+      'flex items-center justify-between py-2 border-b border-gray-100 last:border-0',
+      highlight && 'border-0 pt-3'
+    )}>
+      <span className={cn('text-xs text-gray-500', highlight && 'text-sm font-bold text-gray-900')}>{label}</span>
+      <span className={cn('text-sm font-semibold text-gray-900', highlight && 'text-base font-extrabold text-emerald-600')}>{value}</span>
+    </div>
+  )
+
+  return (
+    <Section icon={<Calculator className="w-4 h-4" />} title="Booking Cost Calculator" accent="green" defaultOpen={false}>
+      {/* Duration stepper */}
+      <div className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3 mb-4 mt-1">
+        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Booking Duration</span>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setMonths(m => Math.max(step, m - step))}
+            disabled={months <= step}
+            className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-100 disabled:opacity-40 transition-colors"
+          >
+            <Minus className="w-3.5 h-3.5 text-gray-600" />
+          </button>
+          <span className="text-sm font-bold text-gray-900 w-20 text-center">
+            {months} month{months !== 1 ? 's' : ''}
+          </span>
+          <button
+            onClick={() => setMonths(m => m + step)}
+            disabled={months >= 24}
+            className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-100 disabled:opacity-40 transition-colors"
+          >
+            <Plus className="w-3.5 h-3.5 text-gray-600" />
+          </button>
+        </div>
+      </div>
+
+      {/* Breakdown */}
+      <div className="space-y-0">
+        {calRow(`Base (${formatRupees(rentalCost)} × ${months} mo)`, formatRupees(base))}
+        {discountPct > 0 && calRow(`Discount (${discountPct}%)`, `− ${formatRupees(discount)}`)}
+        {calRow(`GST (${taxRate}%)`, formatRupees(tax))}
+        {setup > 0 && calRow('One-time Setup Cost', formatRupees(setup))}
+        {pricing.securityDepositRequired && pricing.securityDepositRange && (
+          <div className="flex items-center justify-between py-2 border-b border-gray-100">
+            <span className="text-xs text-gray-500">Security Deposit (est.)</span>
+            <span className="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+              {pricing.securityDepositRange}
+            </span>
+          </div>
+        )}
+        <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 mt-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-bold text-gray-900">Total Payable</span>
+            <span className="text-xl font-extrabold text-emerald-600">{formatRupees(total)}</span>
+          </div>
+          {pricing.securityDepositRequired && (
+            <p className="text-[10px] text-gray-400 mt-1">Excludes security deposit</p>
+          )}
+        </div>
+      </div>
+    </Section>
+  )
+}
 
 // ── Pricing discount pills ─────────────────────────────────────────────────────
 function DiscountPill({ label, pct }: { label: string; pct: number | null | undefined }) {
@@ -349,6 +432,8 @@ function HoldingSections({ holding }: { holding: HoldingDetail }) {
           <InfoRow label="Security Deposit"  value={<BoolPill value={pricing.securityDepositRequired} />} />
           <InfoRow label="Deposit Range"     value={pricing.securityDepositRange?.replace(/_/g, ' – ')} />
           <InfoRow label="Installation Cost" value={pricing.installationCostRange?.replace(/_/g, ' – ')} />
+          <InfoRow label="One-time Setup"    value={pricing.setupCost ? formatRupees(pricing.setupCost) : null} />
+          <InfoRow label="GST"               value={pricing.taxPct != null ? `${pricing.taxPct}%` : '18%'} />
         </Section>
       )}
 
@@ -681,6 +766,11 @@ export default function HoldingDetailPage() {
               )}
             </div>
           </div>
+
+          {/* ── Booking Cost Calculator ──────────────────────────────────── */}
+          {holding.pricing?.monthlyRate != null && (
+            <BookingCalculator pricing={holding.pricing} rentalCost={holding.rentalCost} />
+          )}
 
           {/* ── Detail sections ──────────────────────────────────────────── */}
           <HoldingSections holding={holding} />
