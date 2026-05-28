@@ -85,6 +85,8 @@ export interface PricingData {
   securityDepositRequired: boolean | null
   securityDepositRange: string | null
   installationCostRange: string | null
+  setupCost: number | null
+  taxPct: number | null
 }
 
 export interface LegalData {
@@ -253,13 +255,20 @@ export interface WishlistItem {
   holdingId: string
   title: string
   location: string
-  locationType: HoldingLocationType
-  width: number
-  height: number
-  rentalCost: number
+  locationType: HoldingLocationType | null
+  width: number | null
+  height: number | null
+  rentalCost: number | null
   status: HoldingStatus
   ownerVerified: boolean
   thumbnail: string | null
+  latitude: number | null
+  longitude: number | null
+  minimumBookingMonths: number | null
+  setupCost: number | null
+  taxPct: number | null
+  securityDepositRequired: boolean | null
+  securityDepositRange: string | null
 }
 
 // ── Dashboards ─────────────────────────────────────────────────────────────

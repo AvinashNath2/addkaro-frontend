@@ -54,6 +54,8 @@ const pricingSchema = z.object({
   securityDepositRequired : z.boolean().optional(),
   securityDepositRange    : z.string().optional(),
   installationCostRange   : z.string().optional(),
+  setupCost               : z.coerce.number().min(0).optional(),
+  taxPct                  : z.coerce.number().min(0).max(100).optional(),
 }).optional()
 
 // ── Legal section ──────────────────────────────────────────────────────────

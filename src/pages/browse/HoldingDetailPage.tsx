@@ -7,7 +7,8 @@ import {
   MapPin, CheckCircle2, Loader2, ArrowLeft, Heart, MessageCircle,
   Zap, Ruler, TrendingUp, Shield, Sun, Car, Camera,
   Droplets, Eye, Wrench, Calendar, Building2, Tag, PlugZap,
-  ChevronDown, ChevronUp, Edit2, Star,
+  ChevronDown, ChevronUp, Edit2, Star, Calculator, Minus, Plus,
+  Info, Receipt,
 } from 'lucide-react'
 import { getHoldingDetail } from '@/api/holdings.api'
 import { submitOffer, updateOffer, addToWishlist, removeFromWishlist, checkWishlist } from '@/api/customer.api'
@@ -27,14 +28,15 @@ const MONTH_NAMES = ['January','February','March','April','May','June',
 
 // ── Collapsible section wrapper ───────────────────────────────────────────────
 function Section({
-  icon, title, accent = 'brand', children,
+  icon, title, accent = 'brand', defaultOpen = true, children,
 }: {
   icon: React.ReactNode
   title: string
   accent?: 'brand' | 'green' | 'purple' | 'orange' | 'sky' | 'rose'
+  defaultOpen?: boolean
   children: React.ReactNode
 }) {
-  const [open, setOpen] = useState(true)
+  const [open, setOpen] = useState(defaultOpen)
   const colors: Record<string, string> = {
     brand:  'bg-brand-500/15 text-[#C9F31D]',
     green:  'bg-emerald-50 text-emerald-600',
@@ -147,6 +149,282 @@ const ADV_COLORS: Record<string, string> = {
   TOURIST_HERITAGE_AREA:   'bg-teal-50 text-teal-700',
 }
 function advColor(adv: string) { return ADV_COLORS[adv] ?? 'bg-gray-100 text-gray-500' }
+
+// ── Info tooltip ───────────────────────────────────────────────────────────────
+function InfoTooltip({ text }: { text: string }) {
+  const [show, setShow] = useState(false)
+  return (
+    <div className="relative inline-flex items-center">
+      <button
+        onMouseEnter={() => setShow(true)}
+        onMouseLeave={() => setShow(false)}
+        onClick={() => setShow(s => !s)}
+        className="w-4 h-4 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors ml-1 shrink-0"
+        aria-label="More info"
+      >
+        <Info className="w-2.5 h-2.5 text-gray-400" />
+      </button>
+      {show && (
+        <div className="absolute z-50 bottom-6 left-0 w-64 bg-gray-900 text-white text-[11px] leading-relaxed rounded-xl p-3 shadow-xl pointer-events-none">
+          {text}
+          <div className="absolute top-full left-3 border-4 border-transparent border-t-gray-900" />
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Colour-coded cost row ──────────────────────────────────────────────────────
+function CostRow({
+  label, value, color = 'default', tooltip, badge, negative = false, sub,
+}: {
+  label: string; value: string
+  color?: 'default' | 'green' | 'orange' | 'purple' | 'amber'
+  tooltip?: string; badge?: string; negative?: boolean; sub?: string
+}) {
+  const labelCls = { default: 'text-gray-500', green: 'text-emerald-600', orange: 'text-orange-600', purple: 'text-purple-600', amber: 'text-amber-700' }
+  const valueCls = { default: 'text-gray-900', green: 'text-emerald-600', orange: 'text-orange-600', purple: 'text-purple-600', amber: 'text-amber-700' }
+  return (
+    <div className="flex items-start justify-between py-2.5 border-b border-gray-100 last:border-0 gap-2">
+      <div className="flex flex-col">
+        <div className="flex items-center">
+          <span className={cn('text-xs', labelCls[color])}>{label}</span>
+          {tooltip && <InfoTooltip text={tooltip} />}
+          {badge && (
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-600 ml-1.5 border border-emerald-200">
+              {badge}
+            </span>
+          )}
+        </div>
+        {sub && <p className="text-[10px] text-gray-400 mt-0.5">{sub}</p>}
+      </div>
+      <span className={cn('text-sm font-semibold whitespace-nowrap', valueCls[color])}>
+        {negative ? '−' : ''}{value}
+      </span>
+    </div>
+  )
+}
+
+// ── Booking cost calculator ────────────────────────────────────────────────────
+function BookingCalculator({ pricing, rentalCost }: { pricing: NonNullable<HoldingDetail['pricing']>; rentalCost: number }) {
+  const step = pricing.minimumBookingMonths ?? 1
+  const [months, setMonths] = useState(step)
+
+  const discountPct =
+    months >= 12 ? (pricing.yearlyDiscountPct ?? 0) :
+    months >= 6  ? (pricing.halfYearlyDiscountPct ?? 0) :
+    months >= 3  ? (pricing.quarterlyDiscountPct ?? 0) : 0
+
+  const taxRate   = pricing.taxPct ?? 18
+  const halfTax   = taxRate / 2
+  const base      = rentalCost * months
+  const discount  = base * (discountPct / 100)
+  const afterDisc = base - discount
+  const tax       = afterDisc * (taxRate / 100)
+  const setup     = pricing.setupCost ?? 0
+  const subtotal  = afterDisc + tax + setup
+
+  // Parse "85000_170000" → { min: 85000, max: 170000 }
+  const depositParsed = (() => {
+    if (!pricing.securityDepositRequired || !pricing.securityDepositRange) return null
+    const parts = pricing.securityDepositRange.split('_').map(Number)
+    if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) return { min: parts[0], max: parts[1] }
+    return null
+  })()
+  const depositMin   = depositParsed?.min ?? 0
+  const depositMax   = depositParsed?.max ?? 0
+  const totalWithDep = subtotal + depositMin
+
+  const discountLabel =
+    months >= 12 ? 'Yearly booking discount' :
+    months >= 6  ? 'Half-yearly booking discount' :
+    'Quarterly booking discount'
+
+  return (
+    <Section icon={<Calculator className="w-4 h-4" />} title="Booking Cost Estimate" accent="green" defaultOpen={false}>
+      {/* Duration stepper */}
+      <div className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3 mb-4 mt-1">
+        <div>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Booking Duration</p>
+          {step > 1 && <p className="text-[10px] text-gray-400 mt-0.5">Min {step} mo · steps of {step}</p>}
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setMonths(m => Math.max(step, m - step))}
+            disabled={months <= step}
+            className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-100 disabled:opacity-40 transition-colors"
+          >
+            <Minus className="w-3.5 h-3.5 text-gray-600" />
+          </button>
+          <span className="text-sm font-bold text-gray-900 w-24 text-center">
+            {months} month{months !== 1 ? 's' : ''}
+          </span>
+          <button
+            onClick={() => setMonths(m => m + step)}
+            disabled={months >= 24}
+            className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-100 disabled:opacity-40 transition-colors"
+          >
+            <Plus className="w-3.5 h-3.5 text-gray-600" />
+          </button>
+        </div>
+      </div>
+
+      {/* ── Cost breakdown rows ── */}
+      <div className="mb-3">
+        <CostRow
+          label={`Monthly Rent × ${months} months`}
+          value={formatRupees(base)}
+          sub={`${formatRupees(rentalCost)} per month`}
+          tooltip="Base rental rate charged by the space owner for displaying your advertisement, multiplied by your chosen duration."
+        />
+        {discountPct > 0 && (
+          <CostRow
+            label={discountLabel}
+            value={formatRupees(discount)}
+            color="green"
+            negative
+            badge={`${discountPct}% off`}
+            tooltip={`You save ${discountPct}% by committing to ${months} months. Longer bookings attract higher discounts as listed in the Pricing section.`}
+          />
+        )}
+        {setup > 0 && (
+          <CostRow
+            label="Setup & Installation (one-time)"
+            value={formatRupees(setup)}
+            color="orange"
+            tooltip="One-time cost covering creative printing (vinyl/flex banner), installation labour, rigging hardware, structural fasteners, and any electrical connections needed. Charged once for the entire booking period."
+          />
+        )}
+        <CostRow
+          label={`GST @ ${taxRate}%`}
+          value={formatRupees(tax)}
+          color="purple"
+          sub={`CGST ${halfTax}% + SGST ${halfTax}% (intra-state) · IGST ${taxRate}% (inter-state)`}
+          tooltip={`Goods & Services Tax on advertising services (SAC Code 998363) as mandated under Indian GST law. Applied on the rent amount after any discount. For intra-state transactions: CGST ${halfTax}% + SGST ${halfTax}%. For inter-state: IGST ${taxRate}%.`}
+        />
+      </div>
+
+      {/* ── Subtotal (excl. deposit) ── */}
+      <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <span className="text-sm font-bold text-gray-900">Payable Now</span>
+            <InfoTooltip text="Amount due at booking — base rent (minus any discount) + one-time setup + GST. Does not include the refundable security deposit." />
+          </div>
+          <span className="text-xl font-extrabold text-emerald-600">{formatRupees(subtotal)}</span>
+        </div>
+        {pricing.securityDepositRequired && (
+          <p className="text-[10px] text-emerald-600 mt-1">Excludes refundable security deposit shown below</p>
+        )}
+      </div>
+
+      {/* ── Security deposit ── */}
+      {pricing.securityDepositRequired && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mt-2">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <div className="flex items-center gap-1.5 mb-1">
+                <span className="text-xs font-bold text-amber-800">Security Deposit</span>
+                <span className="text-[9px] font-extrabold px-2 py-0.5 rounded-full bg-amber-200 text-amber-800 tracking-wide">REFUNDABLE</span>
+                <InfoTooltip text="A refundable caution money held by the owner for the duration of your booking. Returned to you at the end of the agreement provided the space is in original condition and there are no outstanding dues. Negotiate the exact amount before signing." />
+              </div>
+              {depositParsed ? (
+                <p className="text-[10px] text-amber-700">
+                  Estimated range: {formatRupees(depositMin)} – {formatRupees(depositMax)}
+                </p>
+              ) : (
+                pricing.securityDepositRange && (
+                  <p className="text-[10px] text-amber-700">{pricing.securityDepositRange.replace(/_/g, ' – ')}</p>
+                )
+              )}
+              <p className="text-[10px] text-amber-600 mt-0.5">Exact amount to be confirmed with owner</p>
+            </div>
+            <span className="text-sm font-bold text-amber-700 whitespace-nowrap">
+              {depositParsed ? `${formatRupees(depositMin)}+` : 'Negotiable'}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* ── Grand total incl. deposit ── */}
+      {pricing.securityDepositRequired && depositMin > 0 && (
+        <div className="bg-gray-900 rounded-xl px-4 py-3 mt-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <span className="text-sm font-bold text-white">Total Commitment</span>
+              <InfoTooltip text="Everything you pay at the start: rent + setup + GST + security deposit. The deposit is refunded at the end of the term; only the rental + GST + setup is the true cost." />
+            </div>
+            <span className="text-xl font-extrabold" style={{ color: '#C9F31D' }}>{formatRupees(totalWithDep)}</span>
+          </div>
+          <p className="text-[10px] text-gray-400 mt-1">
+            Incl. {formatRupees(depositMin)} refundable deposit · true cost {formatRupees(subtotal)}
+          </p>
+        </div>
+      )}
+    </Section>
+  )
+}
+
+// ── Tax & levy information panel ───────────────────────────────────────────────
+function TaxInfoSection({ taxPct }: { taxPct: number }) {
+  const half = taxPct / 2
+  return (
+    <Section icon={<Receipt className="w-4 h-4" />} title="Applicable Taxes & Levies" accent="purple" defaultOpen={false}>
+      <div className="space-y-3 pt-1">
+
+        {/* GST */}
+        <div className="bg-purple-50 border border-purple-100 rounded-xl p-4">
+          <div className="flex items-start justify-between mb-2 gap-2">
+            <p className="text-sm font-bold text-purple-900">GST — Goods & Services Tax</p>
+            <span className="text-sm font-extrabold text-purple-700 bg-purple-100 px-2.5 py-0.5 rounded-full shrink-0">{taxPct}%</span>
+          </div>
+          <p className="text-xs text-purple-700 mb-3 leading-relaxed">
+            Mandatory on all advertising services in India under <strong>SAC Code 998363</strong>. Applied on the rent amount (after any discount). Charged to the advertiser on top of the rental rate.
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="bg-white border border-purple-100 rounded-lg p-2.5 text-center">
+              <p className="text-[9px] text-purple-500 uppercase tracking-widest font-bold mb-1">Intra-State</p>
+              <p className="text-xs font-extrabold text-purple-800">CGST {half}%</p>
+              <p className="text-[10px] text-purple-500">+ SGST {half}%</p>
+            </div>
+            <div className="bg-white border border-purple-100 rounded-lg p-2.5 text-center">
+              <p className="text-[9px] text-purple-500 uppercase tracking-widest font-bold mb-1">Inter-State</p>
+              <p className="text-xs font-extrabold text-purple-800">IGST {taxPct}%</p>
+              <p className="text-[10px] text-purple-500">(single levy)</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Municipal Advertisement Tax */}
+        <div className="bg-orange-50 border border-orange-100 rounded-xl p-4">
+          <div className="flex items-start justify-between mb-2 gap-2">
+            <p className="text-sm font-bold text-orange-900">Municipal Advertisement Tax</p>
+            <span className="text-[11px] font-bold text-orange-600 bg-orange-100 px-2 py-0.5 rounded-full shrink-0">Owner's liability</span>
+          </div>
+          <p className="text-xs text-orange-800 leading-relaxed">
+            Municipal corporations (BBMP, MCGM, NDMC, etc.) levy an annual hoarding/advertisement tax on the space owner for the permit to display hoardings. <strong>This is typically already included in the owner's quoted monthly rent.</strong> Confirm with the owner before signing the agreement.
+          </p>
+        </div>
+
+        {/* TDS */}
+        <div className="bg-sky-50 border border-sky-100 rounded-xl p-4">
+          <div className="flex items-start justify-between mb-2 gap-2">
+            <p className="text-sm font-bold text-sky-900">TDS — Tax Deducted at Source</p>
+            <span className="text-[11px] font-bold text-sky-600 bg-sky-100 px-2 py-0.5 rounded-full shrink-0">2% · Sec 194I</span>
+          </div>
+          <p className="text-xs text-sky-800 leading-relaxed">
+            If you are a <strong>registered business entity</strong> and your total rent payments to a single owner exceed <strong>₹2,40,000 per financial year</strong>, you must deduct 2% TDS before remitting payment, under Section 194I of the Income Tax Act. The owner must provide their PAN. Consult your CA for compliance.
+          </p>
+        </div>
+
+        {/* Disclaimer */}
+        <p className="text-[10px] text-gray-400 text-center leading-relaxed pt-1">
+          Tax rates are as per Indian law for FY 2024-25. GST rate shown reflects the rate set by this space owner. Consult a tax professional for specific advice before booking.
+        </p>
+      </div>
+    </Section>
+  )
+}
 
 // ── Pricing discount pills ─────────────────────────────────────────────────────
 function DiscountPill({ label, pct }: { label: string; pct: number | null | undefined }) {
@@ -349,6 +627,8 @@ function HoldingSections({ holding }: { holding: HoldingDetail }) {
           <InfoRow label="Security Deposit"  value={<BoolPill value={pricing.securityDepositRequired} />} />
           <InfoRow label="Deposit Range"     value={pricing.securityDepositRange?.replace(/_/g, ' – ')} />
           <InfoRow label="Installation Cost" value={pricing.installationCostRange?.replace(/_/g, ' – ')} />
+          <InfoRow label="One-time Setup"    value={pricing.setupCost ? formatRupees(pricing.setupCost) : null} />
+          <InfoRow label="GST"               value={pricing.taxPct != null ? `${pricing.taxPct}%` : '18%'} />
         </Section>
       )}
 
@@ -681,6 +961,14 @@ export default function HoldingDetailPage() {
               )}
             </div>
           </div>
+
+          {/* ── Booking Cost Calculator ──────────────────────────────────── */}
+          {holding.pricing != null && (
+            <BookingCalculator pricing={holding.pricing} rentalCost={holding.rentalCost} />
+          )}
+
+          {/* ── Taxes & Levies info ──────────────────────────────────────── */}
+          <TaxInfoSection taxPct={holding.pricing?.taxPct ?? 18} />
 
           {/* ── Detail sections ──────────────────────────────────────────── */}
           <HoldingSections holding={holding} />
