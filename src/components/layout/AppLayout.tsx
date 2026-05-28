@@ -27,7 +27,7 @@ export default function AppLayout() {
           'transition-all duration-300 ease-in-out overflow-hidden shrink-0',
           sidebarOpen
             ? 'w-64 translate-x-0'
-            : 'w-64 -translate-x-full md:w-0 md:translate-x-0',
+            : 'w-64 -translate-x-full md:w-64 md:translate-x-0',
         )}
       >
         <Sidebar onClose={() => setSidebarOpen(false)} />
@@ -43,9 +43,10 @@ export default function AppLayout() {
         >
           {/* Left */}
           <div className="flex items-center gap-3">
-            <button
+            {/* Hamburger — mobile only; desktop sidebar is always visible */}
+          <button
               onClick={() => setSidebarOpen((s) => !s)}
-              className="p-2 rounded-xl hover:bg-gray-100 transition-colors text-gray-500 hover:text-gray-800"
+              className="p-2 rounded-xl hover:bg-gray-100 transition-colors text-gray-500 hover:text-gray-800 md:hidden"
             >
               <Menu className="w-5 h-5" />
             </button>
