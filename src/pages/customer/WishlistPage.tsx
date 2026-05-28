@@ -24,8 +24,7 @@ function formatSavedDate(dateStr: string): string {
 // ── Per-item calculator ────────────────────────────────────────────────────────
 function calcRow(item: WishlistItem, months: number): BudgetRow {
   const rate         = item.rentalCost ?? 0
-  const discountPct  = months >= 12 ? 0 : months >= 6 ? 0 : months >= 3 ? 0 : 0 // will be overridden below
-  // We don't have per-item discount tiers on WishlistItem, so use minimumBookingMonths as baseline
+  const discountPct  = 0 // wishlist items don't carry discount tiers
   const taxPct       = item.taxPct ?? 18
   const base         = rate * months
   const discount     = 0 // wishlist items don't carry discount tiers — shown in full calculator on detail page

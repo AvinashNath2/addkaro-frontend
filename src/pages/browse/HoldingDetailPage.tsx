@@ -768,7 +768,7 @@ export default function HoldingDetailPage() {
           </div>
 
           {/* ── Booking Cost Calculator ──────────────────────────────────── */}
-          {holding.pricing?.monthlyRate != null && (
+          {holding.pricing != null && (
             <BookingCalculator pricing={holding.pricing} rentalCost={holding.rentalCost} />
           )}
 
