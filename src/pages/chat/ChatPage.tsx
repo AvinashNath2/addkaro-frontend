@@ -133,12 +133,13 @@ export default function ChatPage() {
                 className={cn(
                   'max-w-[72%] rounded-2xl px-4 py-2.5',
                   isMe
-                    ? 'bg-brand-600 text-white rounded-br-sm'
+                    ? 'rounded-br-sm'
                     : 'bg-gray-100 text-gray-900 rounded-bl-sm',
                 )}
+                style={isMe ? { background: '#C9F31D', color: '#111111' } : undefined}
               >
                 <p className="text-sm leading-relaxed">{msg.message}</p>
-                <p className={cn('text-xs mt-1', isMe ? 'text-brand-200' : 'text-gray-400')}>
+                <p className={cn('text-xs mt-1', isMe ? 'opacity-60' : 'text-gray-400')}>
                   {new Date(msg.sentAt).toLocaleTimeString('en-IN', {
                     hour: '2-digit',
                     minute: '2-digit',
@@ -155,7 +156,7 @@ export default function ChatPage() {
         {/* Optimistic "sending" bubble */}
         {sendMutation.isPending && (
           <div className="flex justify-end">
-            <div className="max-w-[72%] rounded-2xl rounded-br-sm px-4 py-2.5 bg-brand-400 text-white opacity-70">
+            <div className="max-w-[72%] rounded-2xl rounded-br-sm px-4 py-2.5 opacity-70" style={{ background: '#C9F31D', color: '#111111' }}>
               <p className="text-sm">{messageText || AUTO_MESSAGE}</p>
             </div>
           </div>
@@ -182,7 +183,8 @@ export default function ChatPage() {
         <button
           type="submit"
           disabled={!messageText.trim() || sendMutation.isPending}
-          className="w-11 h-11 rounded-xl bg-brand-600 text-white flex items-center justify-center hover:bg-brand-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+          className="w-11 h-11 rounded-xl flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+          style={{ background: '#C9F31D', color: '#111111' }}
         >
           {sendMutation.isPending
             ? <Loader2 className="w-4 h-4 animate-spin" />

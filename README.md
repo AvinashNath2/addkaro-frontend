@@ -1,60 +1,81 @@
 # AddKaro — Frontend
 
-React web application for the AddKaro hoarding connection platform.
-
----
-
-## Prerequisites
-
-| Tool | Version |
-|------|---------|
-| Node.js | 18+ (tested on v25) |
-| npm | 9+ |
-| Backend | Running on `localhost:8082` (see `../backend/README.md`) |
+React web app for the AddKaro hoarding marketplace. Connects directly to the Spring Boot backend — no broker, no middleman.
 
 ---
 
 ## Quick Start
 
 ```bash
-cd frontend
-
-# 1. Install dependencies (first time only)
 npm install
-
-# 2. Start dev server
 npm run dev
 ```
 
-App runs at **http://localhost:3000**.  
-The Vite dev server automatically proxies `/api/*` → `http://localhost:8082` — no CORS issues.
+App runs at **http://localhost:3000**. The Vite dev server proxies `/api/*` → `http://localhost:8080` automatically.
 
----
-
-## Available Scripts
-
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start dev server with HMR |
-| `npm run build` | Type-check + production build → `dist/` |
-| `npm run preview` | Preview the production build locally |
+Backend must be running — see `../backend/README.md`.
 
 ---
 
 ## Tech Stack
 
-| Layer | Technology | Why |
-|-------|-----------|-----|
-| Language | TypeScript 5 | Type safety end-to-end |
-| Framework | React 18 | |
-| Build | Vite 5 | Fast HMR, native ESM |
-| Routing | React Router v6 | |
-| Server State | TanStack Query v5 | Caching, loading/error states out of the box |
-| HTTP Client | Axios | Interceptors for token + error unwrapping |
-| Forms | React Hook Form + Zod | Type-safe validation |
-| Global State | Zustand | Minimal setup for auth/user state |
-| Styling | Tailwind CSS v3 | Utility-first |
-| Icons | Lucide React | |
+| Layer | Technology |
+|---|---|
+| Language | TypeScript 5 |
+| Framework | React 18 |
+| Build | Vite 5 |
+| Routing | React Router v6 |
+| Server state | TanStack Query v5 |
+| HTTP | Axios (with interceptors) |
+| Forms | React Hook Form + Zod |
+| Global state | Zustand (auth only) |
+| Styling | Tailwind CSS v3 |
+| Icons | Lucide React |
+
+---
+
+## Pages & Routes
+
+### Public
+
+| Route | Page | Description |
+|---|---|---|
+| `/` | `LandingPage` | Marketing page — hero, how it works, CTA |
+| `/login` | `LoginPage` | Email + password login |
+| `/register` | `RegisterPage` | Account creation (Customer or Owner) |
+| `/browse` | `BrowsePage` | Search hoardings with filters, map view |
+| `/browse/:id` | `HoldingDetailPage` | Full hoarding detail, offer form, chat |
+
+### Customer (must be logged in as CUSTOMER)
+
+| Route | Page | Description |
+|---|---|---|
+| `/my-offers` | `MyOffersPage` | All submitted offers with status badges; edit/view detail |
+| `/wishlist` | `WishlistPage` | Saved hoardings |
+
+### Owner (must be logged in as OWNER)
+
+| Route | Page | Description |
+|---|---|---|
+| `/owner/dashboard` | `OwnerDashboardPage` | Stats, recent offers, quick actions |
+| `/owner/holdings` | `OwnerHoldingsPage` | All listings with status filter tabs |
+| `/owner/holdings/new` | `CreateHoldingPage` | Create a listing (draft or full submit) |
+| `/owner/holdings/:id/edit` | `EditHoldingPage` | Edit a DRAFT / PENDING / REJECTED listing |
+
+### Admin (must be logged in as ADMIN)
+
+| Route | Page | Description |
+|---|---|---|
+| `/admin` | `AdminDashboardPage` | Platform-wide stats |
+| `/admin/holdings` | `AdminHoldingsPage` | Review queue + all listings; approve / reject / suspend |
+| `/admin/users` | `AdminUsersPage` | All users |
+
+### Auth
+
+| Route | Page |
+|---|---|
+| `/settings` | `UserSettingsPage` — update name/phone |
+| `/chat/:offerId` | `ChatPage` — standalone chat view |
 
 ---
 
@@ -62,96 +83,92 @@ The Vite dev server automatically proxies `/api/*` → `http://localhost:8082` �
 
 ```
 src/
-├── api/                   # All API call functions
-│   ├── axios.ts           # Axios instance (base URL, token interceptor, error unwrapping)
-│   └── auth.api.ts        # Auth endpoints (register, login)
+├── api/                   # API call functions (one file per domain)
+│   ├── axios.ts           # Axios instance: base URL, X-User-Id interceptor, error unwrapping
+│   ├── auth.api.ts
+│   ├── holdings.api.ts
+│   ├── owner.api.ts
+│   ├── customer.api.ts
+│   └── admin.api.ts
+│
+├── store/
+│   └── auth.store.ts      # Zustand: logged-in user, login/logout actions
+│
+├── types/
+│   └── index.ts           # All TypeScript interfaces (HoldingDetail, OwnerHolding, CustomerOffer, etc.)
 │
 ├── lib/
-│   ├── utils.ts           # cn() helper (clsx + tailwind-merge)
+│   ├── utils.ts           # cn() helper
 │   └── schemas/           # Zod validation schemas
-│       └── auth.schema.ts
+│       ├── holding.schema.ts
+│       └── offer.schema.ts
 │
-├── pages/                 # Route-level components
-│   └── auth/
-│       ├── RegisterPage.tsx
-│       └── LoginPage.tsx
+├── components/
+│   ├── layout/            # AppLayout, Sidebar, Header
+│   ├── ui/                # StatusBadge, StatCard, StatusChangeModal
+│   ├── browse/            # HoldingMap (leaflet)
+│   └── chat/              # ChatBox
 │
-├── types/                 # TypeScript interfaces
-│   └── auth.types.ts      # AuthUser, RegisterPayload, CoreResponse<T>
+├── pages/
+│   ├── landing/           # LandingPage
+│   ├── auth/              # LoginPage, RegisterPage
+│   ├── browse/            # BrowsePage, HoldingDetailPage
+│   ├── customer/          # MyOffersPage, WishlistPage
+│   ├── owner/             # OwnerDashboardPage, OwnerHoldingsPage, CreateHoldingPage, EditHoldingPage
+│   ├── admin/             # AdminDashboardPage, AdminHoldingsPage, AdminUsersPage
+│   ├── chat/              # ChatPage
+│   └── settings/          # UserSettingsPage
 │
-├── App.tsx                # Route definitions
-├── main.tsx               # App entry — QueryClient + BrowserRouter
-└── index.css              # Tailwind directives + shared component classes
+├── App.tsx                # Route definitions + protected route wrappers
+├── main.tsx               # Entry: QueryClient + BrowserRouter + Zustand hydration
+└── index.css              # Tailwind directives + shared component classes (.btn-primary, .input-field, etc.)
 ```
 
 ---
 
-## Adding a New Page
+## Auth Flow
 
-1. Create `src/pages/<domain>/<PageName>.tsx`
-2. Add a `<Route>` in `src/App.tsx`
-3. Add an API function in `src/api/<domain>.api.ts`
-4. Define the Zod schema in `src/lib/schemas/<domain>.schema.ts`
+1. User logs in → backend returns `userId`, `name`, `role`, `token`
+2. Stored in Zustand (`auth.store.ts`) and persisted to `localStorage`
+3. The Axios interceptor reads `userId` from the store and adds `X-User-Id: <userId>` to every request
+4. Protected routes check the Zustand store for the correct role and redirect to `/login` if missing
 
 ---
 
-## API Integration Pattern
+## API Pattern
 
-All API calls use **TanStack Query**. The axios instance (`src/api/axios.ts`) automatically:
-- Attaches the Bearer token from `localStorage`
-- Unwraps the `CoreResponse<T>` envelope and surfaces the `message` on errors
+All data fetching uses TanStack Query. The Axios instance automatically:
+- Adds `X-User-Id` header from the auth store
+- Unwraps the `CoreResponse<T>` envelope — `res.data.data` is returned directly
+- Surfaces `res.data.message` as the error message string, so `mutation.error.message` just works
 
 **Query (GET):**
 ```ts
-const { data, isLoading, error } = useQuery({
-  queryKey: ['holdings'],
-  queryFn: () => fetchHoldings(),
+const { data, isLoading } = useQuery({
+  queryKey: ['holdings', filters],
+  queryFn: () => searchHoldings(filters),
 })
 ```
 
 **Mutation (POST/PUT/DELETE):**
 ```ts
 const mutation = useMutation({
-  mutationFn: registerUser,
-  onSuccess: (user) => { /* navigate, store token, etc. */ },
+  mutationFn: (data) => createHolding(data),
+  onSuccess: () => queryClient.invalidateQueries({ queryKey: ['owner-holdings'] }),
 })
 ```
 
 ---
 
-## Response Envelope
+## Available Scripts
 
-The backend wraps every response in:
-```json
-{
-  "code": "USER_REGISTERED",
-  "message": "User registered successfully",
-  "data": { ... }
-}
+| Command | Description |
+|---|---|
+| `npm run dev` | Start dev server with HMR |
+| `npm run build` | Type-check + production build → `dist/` |
+| `npm run preview` | Preview the production build locally |
+
+Type-check only (uses `tsconfig.app.json`, not the root tsconfig):
+```bash
+node_modules/.bin/tsc --noEmit -p tsconfig.app.json
 ```
-
-The axios interceptor surfaces `data.message` as the error message string so you only need to read `mutation.error.message`.
-
----
-
-## Environment
-
-The dev proxy is hardcoded in `vite.config.ts` to `http://localhost:8082`.  
-If your backend runs on a different port, update the `proxy.target` there.
-
----
-
-## Pages Status
-
-| Page | Path | Status |
-|------|------|--------|
-| Register | `/register` | ✅ Done |
-| Login | `/login` | 🚧 Stub |
-| Browse Holdings | `/browse` | ⬜ Planned |
-| Holding Detail | `/holdings/:id` | ⬜ Planned |
-| Customer — My Offers | `/my-offers` | ⬜ Planned |
-| Customer — Wishlist | `/wishlist` | ⬜ Planned |
-| Owner — Dashboard | `/owner/dashboard` | ⬜ Planned |
-| Owner — My Holdings | `/owner/holdings` | ⬜ Planned |
-| Owner — Create Holding | `/owner/holdings/new` | ⬜ Planned |
-| Admin — Dashboard | `/admin` | ⬜ Planned |

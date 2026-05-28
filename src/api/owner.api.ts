@@ -56,6 +56,15 @@ export async function deleteHolding(id: string): Promise<void> {
   await api.delete(`/owner/holdings/${id}`)
 }
 
+export async function submitHolding(id: string): Promise<OwnerHolding> {
+  if (IS_MOCK) {
+    const data = await mockFetch<PageResponse<OwnerHolding>>('owner-holdings.json')
+    return { ...(data.items.find((h) => h.id === id) ?? data.items[0]), status: 'PENDING' }
+  }
+  const res = await api.post<OwnerHolding>(`/owner/holdings/${id}/submit`)
+  return res.data
+}
+
 // ── Offers received ────────────────────────────────────────────────────────
 
 export async function getOwnerOffers(status?: string, page = 0, limit = 10): Promise<PageResponse<OwnerOffer>> {

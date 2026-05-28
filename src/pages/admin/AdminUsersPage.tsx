@@ -22,9 +22,9 @@ const ROLE_TABS = [
 ]
 
 const ROLE_BADGE_STYLES: Record<string, string> = {
-  CUSTOMER: 'bg-blue-100 text-blue-800',
-  OWNER: 'bg-purple-100 text-purple-800',
-  ADMIN: 'bg-red-100 text-red-800',
+  CUSTOMER: 'bg-blue-50 text-blue-700 border border-blue-200',
+  OWNER: 'bg-purple-50 text-purple-700 border border-purple-200',
+  ADMIN: 'bg-red-50 text-red-700 border border-red-200',
 }
 
 function formatDate(dateString: string): string {
@@ -69,14 +69,14 @@ export default function AdminUsersPage() {
       </div>
 
       {/* Role filter tabs */}
-      <div className="flex gap-1 mb-4 bg-gray-100 p-1 rounded-xl w-fit">
+      <div className="flex gap-1 mb-4 border-b border-gray-200">
         {ROLE_TABS.map((tab) => (
           <button
             key={tab.value}
             onClick={() => handleRoleChange(tab.value)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap ${
               activeRole === tab.value
-                ? 'bg-white text-brand-600 shadow-sm'
+                ? 'border-b-2 border-brand-500 text-brand-500'
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -138,11 +138,11 @@ export default function AdminUsersPage() {
       )}
 
       {filteredItems.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
+                <tr className="bg-gray-50 border-b border-gray-100">
                   <th className="text-left px-6 py-3 font-medium text-gray-500">Name</th>
                   <th className="text-left px-6 py-3 font-medium text-gray-500">Email</th>
                   <th className="text-left px-6 py-3 font-medium text-gray-500">Phone</th>
@@ -155,25 +155,25 @@ export default function AdminUsersPage() {
                   <tr
                     key={user.id}
                     onClick={() => setSelectedUser(user)}
-                    className="hover:bg-brand-50 cursor-pointer transition-colors"
+                    className="bg-white hover:bg-gray-50 cursor-pointer transition-colors"
                     title="Click to view user details"
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         {/* Avatar circle with first letter */}
-                        <div className="w-7 h-7 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-xs font-bold shrink-0">
+                        <div className="w-7 h-7 rounded-full bg-brand-500/20 text-gray-900 flex items-center justify-center text-xs font-bold shrink-0">
                           {user.name.charAt(0).toUpperCase()}
                         </div>
                         <p className="font-medium text-gray-900">{user.name}</p>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-gray-600">{user.email}</td>
-                    <td className="px-6 py-4 text-gray-600">{user.phone}</td>
+                    <td className="px-6 py-4 text-gray-500">{user.email}</td>
+                    <td className="px-6 py-4 text-gray-500">{user.phone}</td>
                     <td className="px-6 py-4">
                       <span
                         className={cn(
                           'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
-                          ROLE_BADGE_STYLES[user.role.toUpperCase()] ?? 'bg-gray-100 text-gray-700',
+                          ROLE_BADGE_STYLES[user.role.toUpperCase()] ?? 'bg-gray-100 text-gray-600',
                         )}
                       >
                         {user.role}
@@ -194,7 +194,7 @@ export default function AdminUsersPage() {
           <button
             onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
             disabled={!data.hasPrevious}
-            className="px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             Previous
           </button>
@@ -204,7 +204,7 @@ export default function AdminUsersPage() {
           <button
             onClick={() => setCurrentPage((p) => p + 1)}
             disabled={!data.hasNext}
-            className="px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             Next
           </button>
@@ -218,7 +218,7 @@ export default function AdminUsersPage() {
           onClick={() => setSelectedUser(null)}
         >
           <div
-            className="bg-white rounded-2xl shadow-xl w-full max-w-md"
+            className="bg-white rounded-2xl shadow-xl w-full max-w-md border border-gray-200"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal header */}
@@ -235,7 +235,7 @@ export default function AdminUsersPage() {
             <div className="p-6">
               {/* Avatar + name + role */}
               <div className="flex items-center gap-4 mb-6 pb-5 border-b border-gray-100">
-                <div className="w-14 h-14 rounded-full bg-brand-600 flex items-center justify-center text-2xl font-bold text-white shrink-0">
+                <div className="w-14 h-14 rounded-full bg-brand-500/20 flex items-center justify-center text-2xl font-bold text-gray-900 shrink-0">
                   {selectedUser.name.charAt(0).toUpperCase()}
                 </div>
                 <div>
@@ -243,7 +243,7 @@ export default function AdminUsersPage() {
                   <span
                     className={cn(
                       'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-1',
-                      ROLE_BADGE_STYLES[selectedUser.role.toUpperCase()] ?? 'bg-gray-100 text-gray-700',
+                      ROLE_BADGE_STYLES[selectedUser.role.toUpperCase()] ?? 'bg-gray-100 text-gray-600',
                     )}
                   >
                     {selectedUser.role}
@@ -253,20 +253,20 @@ export default function AdminUsersPage() {
 
               {/* Detail rows */}
               <div className="space-y-4 text-sm">
-                <div className="flex items-center gap-3 text-gray-700">
+                <div className="flex items-center gap-3 text-gray-500">
                   <Mail className="w-4 h-4 shrink-0 text-gray-400" />
                   <span>{selectedUser.email}</span>
                 </div>
-                <div className="flex items-center gap-3 text-gray-700">
+                <div className="flex items-center gap-3 text-gray-500">
                   <Phone className="w-4 h-4 shrink-0 text-gray-400" />
                   <span>{selectedUser.phone}</span>
                 </div>
-                <div className="flex items-center gap-3 text-gray-700">
+                <div className="flex items-center gap-3 text-gray-500">
                   <Calendar className="w-4 h-4 shrink-0 text-gray-400" />
                   <span>Joined {formatDate(selectedUser.createdAt)}</span>
                 </div>
-                <div className="flex items-center gap-3 text-gray-400">
-                  <Shield className="w-4 h-4 shrink-0" />
+                <div className="flex items-center gap-3 text-gray-500">
+                  <Shield className="w-4 h-4 shrink-0 text-gray-400" />
                   <span className="font-mono text-xs">{selectedUser.id}</span>
                 </div>
               </div>

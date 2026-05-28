@@ -68,15 +68,21 @@ export default function RegisterPage() {
   // mutation.mutate() fires the API call.
   const onSubmit = (data: RegisterFormData) => mutation.mutate(data)
 
+  // Role label map — Customer and Hoarding Owner
+  const roleLabels: Record<string, string> = {
+    customer: 'Customer',
+    owner: 'Hoarding Owner',
+  }
+
   // ── Success screen ────────────────────────────────────────────────────────
   // Show this instead of the form once the account is created.
   if (registered) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <div className="w-full max-w-md text-center">
           {/* Green circle with a checkmark icon */}
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4">
-            <CheckCircle2 className="w-8 h-8 text-green-600" />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-50 mb-4">
+            <CheckCircle2 className="w-8 h-8 text-emerald-500" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Account Created!</h2>
           <p className="text-gray-500 mb-6">Your account is ready. You can now log in.</p>
@@ -91,7 +97,7 @@ export default function RegisterPage() {
 
   // ── Registration form ─────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
 
         {/* Page header */}
@@ -100,31 +106,30 @@ export default function RegisterPage() {
           <p className="mt-2 text-gray-500">Create your account to get started</p>
         </div>
 
-        {/* White card wrapping the form */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+        {/* Card wrapping the form */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
 
-          {/* ── Role toggle (Customer / Owner) ── */}
+          {/* ── Role toggle (Customer / Hoarding Owner) ── */}
           {/* This is NOT a standard radio input — it's two styled buttons.
               Clicking one calls setValue('role', r) which updates the hidden
-              form field that Zod validates. The active button gets a white
+              form field that Zod validates. The active button gets a yellow
               background + bold text; the inactive one stays grey. */}
           <div className="mb-6">
             <label className="label">I am a</label>
-            <div className="flex rounded-xl border border-gray-200 bg-gray-50 p-1 gap-1">
+            <div className="flex rounded-xl border border-gray-200 bg-gray-100 p-1 gap-1">
               {(['customer', 'owner'] as const).map((r) => (
                 <button
                   key={r}
                   type="button"   // prevents accidental form submission on click
                   onClick={() => setValue('role', r, { shouldValidate: true })}
                   className={cn(
-                    'flex-1 py-2 px-4 rounded-lg text-sm font-medium capitalize transition-all duration-150',
-                    // cn() applies the active styles only when this button's role matches the watched value
+                    'flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all duration-150',
                     role === r
-                      ? 'bg-white text-brand-600 shadow-sm font-semibold'  // active tab
+                      ? 'bg-white shadow-sm font-semibold text-gray-900'   // active tab
                       : 'text-gray-500 hover:text-gray-700',               // inactive tab
                   )}
                 >
-                  {r}
+                  {roleLabels[r]}
                 </button>
               ))}
             </div>
@@ -224,7 +229,7 @@ export default function RegisterPage() {
         <p className="mt-6 text-center text-sm text-gray-500">
           Already have an account?{' '}
           {/* <Link> is React Router's <a> tag — navigates without a page reload */}
-          <Link to="/login" className="font-medium text-brand-600 hover:text-brand-700">
+          <Link to="/login" className="font-medium text-gray-900 hover:opacity-80">
             Sign in
           </Link>
         </p>

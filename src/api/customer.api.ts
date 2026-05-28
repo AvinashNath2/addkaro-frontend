@@ -36,6 +36,27 @@ export async function getMyOffers(status?: string, page = 0, limit = 10): Promis
   return res.data as PageResponse<CustomerOffer>
 }
 
+export async function updateOffer(offerId: string, payload: OfferRequest): Promise<CustomerOffer> {
+  if (IS_MOCK) {
+    console.log('MOCK: updateOffer', offerId, payload)
+    return {
+      offerId,
+      holdingId: 'mock',
+      holdingTitle: 'Mock Holding',
+      holdingLocation: 'Mock Location',
+      offeredPrice: payload.offeredPrice,
+      desiredStartDate: payload.desiredStartDate ?? null,
+      desiredDuration: payload.desiredDuration ?? null,
+      message: payload.message ?? null,
+      contactNumber: payload.contactNumber,
+      status: 'NEW',
+      createdAt: new Date().toISOString(),
+    }
+  }
+  const res = await api.put<CustomerOffer>(`/customer/offers/${offerId}`, payload)
+  return res.data
+}
+
 export async function withdrawOffer(offerId: string): Promise<void> {
   if (IS_MOCK) { console.log('MOCK: withdrawOffer', offerId); return }
   await api.delete(`/customer/offers/${offerId}`)

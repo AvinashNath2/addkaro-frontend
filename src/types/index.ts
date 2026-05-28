@@ -13,7 +13,7 @@ export interface PageResponse<T> {
 }
 
 // ── Holding enums ──────────────────────────────────────────────────────────
-export type HoldingStatus = 'PENDING' | 'ACTIVE' | 'REJECTED' | 'SUSPENDED' | 'DELETED'
+export type HoldingStatus = 'DRAFT' | 'PENDING' | 'ACTIVE' | 'REJECTED' | 'SUSPENDED' | 'DELETED'
 export type HoldingLocationType = 'URBAN' | 'LOCAL'
 export type HoldingAvailability = 'AVAILABLE' | 'BOOKED' | 'PARTIAL'
 
@@ -139,19 +139,28 @@ export interface HoldingDetail {
   pricing: PricingData | null
   legal: LegalData | null
   locationAdvantages: string[]
+  previousAdvertisers: PreviousAdvertiser[]
+}
+
+// ── PreviousAdvertiser ────────────────────────────────────────────────────
+export interface PreviousAdvertiser {
+  id: string
+  brandName: string
+  description: string | null
+  displayOrder: number
 }
 
 // ── OwnerHolding — owner's own listing view ───────────────────────────────
 export interface OwnerHolding {
   id: string
   title: string
-  location: string
-  locationType: HoldingLocationType
-  latitude: number
-  longitude: number
-  width: number
-  height: number
-  rentalCost: number
+  location: string | null
+  locationType: HoldingLocationType | null
+  latitude: number | null
+  longitude: number | null
+  width: number | null
+  height: number | null
+  rentalCost: number | null
   availability: HoldingAvailability
   status: HoldingStatus
   ownerVerified: boolean
@@ -170,6 +179,7 @@ export interface OwnerHolding {
   pricing: PricingData | null
   legal: LegalData | null
   locationAdvantages: string[]
+  previousAdvertisers: PreviousAdvertiser[]
 }
 
 // ── AdminHolding ───────────────────────────────────────────────────────────
@@ -258,9 +268,13 @@ export interface OwnerDashboard {
   activeHoldings: number
   pendingHoldings: number
   rejectedHoldings: number
+  suspendedHoldings: number
   totalOffersReceived: number
   newOffers: number
+  contactedOffers: number
   activeNegotiations: number
+  closedOffers: number
+  declinedOffers: number
 }
 
 export interface AdminDashboard {

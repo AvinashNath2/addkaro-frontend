@@ -1,29 +1,44 @@
-// offer.schema.ts — Zod validation rules for the "Submit Offer" form
-//
-// The offer form has a mix of required and optional fields.
-// Zod's .optional() marks a field as not required, but if provided it still
-// must pass the other rules (like .min(1) for numbers).
-
 import { z } from 'zod'
 
-export const offerSchema = z.object({
-  // How much the customer is offering per month — must be at least ₹1
-  offeredPrice: z.coerce.number().min(1, 'Offered price must be > 0'),
+const getTomorrow = () => {
+  const d = new Date()
+  d.setDate(d.getDate() + 1)
+  d.setHours(0, 0, 0, 0)
+  return d
+}
 
-  // When they want to start — a date string like "2025-08-01" (ISO format from <input type="date">)
-  // Optional because the customer may not have a specific start date in mind
-  desiredStartDate: z.string().optional(),
+export function makeOfferSchema(minBookingDays = 1) {
+  const minDays = Math.max(1, minBookingDays)
+  return z.object({
+    offeredPrice: z.coerce.number().min(1, 'Offered price must be > 0'),
 
-  // How many days they want to rent for — optional, and can be empty string from the input
-  // z.literal('') handles the case where the user clears the field (HTML inputs return '' not undefined)
-  desiredDuration: z.coerce.number().min(1).optional().or(z.literal('')),
+    desiredStartDate: z.string()
+      .refine(
+        (v) => !v || new Date(v) >= getTomorrow(),
+        'Start date must be after today'
+      )
+      .optional(),
 
-  // Free-text message to the owner — optional
-  message: z.string().optional(),
+    desiredDuration: z.coerce
+      .number({ required_error: 'Duration is required', invalid_type_error: 'Duration is required' })
+      .min(minDays, `Minimum ${minDays} days required`)
+      .refine(
+        (v) => minDays <= 1 || v % minDays === 0,
+        `Must be a multiple of ${minDays} days`
+      ),
 
-  // 10-digit Indian mobile number — required so the owner can contact them
-  // .regex() lets us define a custom pattern; ^ and $ anchor it to the full string
-  contactNumber: z.string().regex(/^[0-9]{10}$/, 'Must be a 10-digit number'),
-})
+    message: z.string().optional(),
 
-export type OfferFormData = z.infer<typeof offerSchema>
+    contactNumber: z.string().regex(/^[0-9]{10}$/, 'Must be a 10-digit number'),
+  })
+}
+
+export const offerSchema = makeOfferSchema()
+
+export type OfferFormData = {
+  offeredPrice: number
+  desiredStartDate?: string
+  desiredDuration: number
+  message?: string
+  contactNumber: string
+}

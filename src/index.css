@@ -21,7 +21,7 @@
   .input-field {
     @apply w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400
            transition-all duration-150
-           focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/15
+           focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20
            disabled:cursor-not-allowed disabled:bg-gray-50 disabled:opacity-60;
   }
 
@@ -39,11 +39,14 @@
 
   .btn-primary {
     @apply inline-flex w-full items-center justify-center gap-2 rounded-xl
-           bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white
-           hover:bg-brand-700 active:scale-[0.98]
-           focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
+           px-5 py-2.5 text-sm font-bold
+           active:scale-[0.98]
+           focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:ring-offset-2
            disabled:cursor-not-allowed disabled:opacity-60 transition-all duration-150;
+    background: #C9F31D;
+    color: #111111;
   }
+  .btn-primary:hover { background: #d4f530; }
 
   .card {
     @apply bg-white rounded-2xl border border-gray-100 shadow-card;
@@ -71,6 +74,9 @@
 ::-webkit-scrollbar-track    { background: transparent; }
 ::-webkit-scrollbar-thumb    { background: #d1d5db; border-radius: 99px; }
 ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+
+/* Hide scrollbar on sidebar */
+aside::-webkit-scrollbar { display: none; }
 
 /* ── Animations ────────────────────────────────────────────────────────────── */
 @keyframes lp-modal-in {

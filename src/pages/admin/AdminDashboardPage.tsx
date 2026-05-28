@@ -122,7 +122,7 @@ export default function AdminDashboardPage() {
       )}
 
       {/* ── Pending Approvals table ────────────────────────────────────────── */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-card overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-card overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100">
           <h3 className="font-semibold text-gray-900">Pending Approvals</h3>
           <p className="text-xs text-gray-500 mt-0.5">
@@ -144,7 +144,7 @@ export default function AdminDashboardPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
+                <tr className="bg-gray-50 border-b border-gray-100">
                   <th className="text-left px-6 py-3 font-medium text-gray-500">Title</th>
                   <th className="text-left px-6 py-3 font-medium text-gray-500">Owner</th>
                   <th className="text-left px-6 py-3 font-medium text-gray-500">Location</th>
@@ -156,7 +156,7 @@ export default function AdminDashboardPage() {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {pendingData.items.map((holding) => (
-                  <tr key={holding.id} className="hover:bg-gray-50 transition-colors">
+                  <tr key={holding.id} className="bg-white hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4">
                       <p className="font-medium text-gray-900">{holding.title}</p>
                     </td>
@@ -164,11 +164,11 @@ export default function AdminDashboardPage() {
                       <p className="text-gray-900">{holding.ownerName}</p>
                       <p className="text-xs text-gray-500">{holding.ownerEmail}</p>
                     </td>
-                    <td className="px-6 py-4 text-gray-600">
+                    <td className="px-6 py-4 text-gray-500">
                       <p className="truncate max-w-xs">{holding.location}</p>
-                      <span className="text-xs text-gray-400">{holding.locationType}</span>
+                      <span className="text-xs text-gray-500">{holding.locationType}</span>
                     </td>
-                    <td className="px-6 py-4 text-gray-600 whitespace-nowrap">
+                    <td className="px-6 py-4 text-gray-500 whitespace-nowrap">
                       {holding.width}×{holding.height} ft
                     </td>
                     <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
@@ -184,7 +184,7 @@ export default function AdminDashboardPage() {
                           <button
                             onClick={() => approveMutation.mutate(holding.id)}
                             disabled={approveMutation.isPending}
-                            className="flex items-center gap-1 text-xs font-medium text-green-700 border border-green-200 px-3 py-1.5 rounded-lg hover:bg-green-50 transition-colors disabled:opacity-50"
+                            className="flex items-center gap-1 text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors disabled:opacity-50"
                           >
                             <CheckCircle className="w-3 h-3" />
                             Approve
@@ -193,7 +193,7 @@ export default function AdminDashboardPage() {
                           {/* Reject toggle button */}
                           <button
                             onClick={() => handleRejectClick(holding.id)}
-                            className="flex items-center gap-1 text-xs font-medium text-red-600 border border-red-200 px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors"
+                            className="flex items-center gap-1 text-xs font-medium bg-red-50 text-red-700 border border-red-200 px-3 py-1.5 rounded-lg hover:bg-red-100 transition-colors"
                           >
                             <XCircle className="w-3 h-3" />
                             Reject
@@ -220,7 +220,7 @@ export default function AdminDashboardPage() {
                               disabled={
                                 !rejectInputs[holding.id]?.trim() || rejectMutation.isPending
                               }
-                              className="shrink-0 px-3 py-1.5 rounded-lg bg-red-600 text-white text-xs font-medium hover:bg-red-700 disabled:opacity-50 transition-colors"
+                              className="shrink-0 px-3 py-1.5 rounded-lg bg-red-50 text-red-700 border border-red-200 text-xs font-medium hover:bg-red-100 disabled:opacity-50 transition-colors"
                             >
                               {rejectMutation.isPending ? (
                                 <Loader2 className="w-3 h-3 animate-spin" />
