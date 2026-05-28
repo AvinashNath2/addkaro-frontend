@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/store/auth.store'
 
 export default function AppLayout() {
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const user = useAuthStore((s) => s.user)
 
   return (
@@ -27,7 +27,7 @@ export default function AppLayout() {
           'transition-all duration-300 ease-in-out overflow-hidden shrink-0',
           sidebarOpen
             ? 'w-64 translate-x-0'
-            : 'w-64 -translate-x-full md:w-64 md:translate-x-0',
+            : 'w-0 -translate-x-full',
         )}
       >
         <Sidebar onClose={() => setSidebarOpen(false)} />
@@ -46,7 +46,7 @@ export default function AppLayout() {
             {/* Hamburger — mobile only; desktop sidebar is always visible */}
           <button
               onClick={() => setSidebarOpen((s) => !s)}
-              className="p-2 rounded-xl hover:bg-gray-100 transition-colors text-gray-500 hover:text-gray-800 md:hidden"
+              className="p-2 rounded-xl hover:bg-gray-100 transition-colors text-gray-500 hover:text-gray-800"
             >
               <Menu className="w-5 h-5" />
             </button>

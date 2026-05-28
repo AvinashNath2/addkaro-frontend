@@ -17,6 +17,127 @@ function formatRupees(amount: number): string {
   return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount)
 }
 
+// ── Custom hoarding type SVG icons ────────────────────────────────────────────
+function HoardingTypeIcon({ type, size = 38 }: { type: string; size?: number }) {
+  const s = size
+  switch (type) {
+    case 'BILLBOARD': return (
+      <svg width={s} height={s} viewBox="0 0 40 40" fill="none">
+        <rect x="3" y="6" width="34" height="20" rx="2.5" fill="currentColor" fillOpacity=".15" stroke="currentColor" strokeWidth="2"/>
+        <line x1="8" y1="13" x2="32" y2="13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeOpacity=".5"/>
+        <line x1="8" y1="18" x2="22" y2="18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeOpacity=".4"/>
+        <line x1="14" y1="26" x2="12" y2="37" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+        <line x1="26" y1="26" x2="28" y2="37" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+        <line x1="9" y1="37" x2="31" y2="37" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeOpacity=".3"/>
+      </svg>
+    )
+    case 'UNIPOLE': return (
+      <svg width={s} height={s} viewBox="0 0 40 40" fill="none">
+        <rect x="4" y="3" width="32" height="18" rx="2.5" fill="currentColor" fillOpacity=".15" stroke="currentColor" strokeWidth="2"/>
+        <line x1="9" y1="10" x2="31" y2="10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeOpacity=".5"/>
+        <line x1="9" y1="15" x2="22" y2="15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeOpacity=".4"/>
+        <line x1="20" y1="21" x2="20" y2="38" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
+        <line x1="15" y1="38" x2="25" y2="38" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeOpacity=".5"/>
+      </svg>
+    )
+    case 'GANTRY': return (
+      <svg width={s} height={s} viewBox="0 0 40 40" fill="none">
+        <line x1="5" y1="38" x2="5" y2="8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+        <line x1="35" y1="38" x2="35" y2="8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+        <line x1="5" y1="8" x2="35" y2="8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+        <rect x="7" y="11" width="26" height="14" rx="1.5" fill="currentColor" fillOpacity=".15" stroke="currentColor" strokeWidth="1.5"/>
+        <line x1="11" y1="16" x2="29" y2="16" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeOpacity=".5"/>
+        <line x1="11" y1="20" x2="22" y2="20" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeOpacity=".4"/>
+        <line x1="3" y1="35" x2="37" y2="35" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeOpacity=".2" strokeDasharray="3 3"/>
+      </svg>
+    )
+    case 'SKYWALK': return (
+      <svg width={s} height={s} viewBox="0 0 40 40" fill="none">
+        <line x1="7" y1="38" x2="7" y2="14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+        <line x1="33" y1="38" x2="33" y2="14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+        <rect x="3" y="18" width="34" height="10" rx="2" fill="currentColor" fillOpacity=".1" stroke="currentColor" strokeWidth="2"/>
+        <line x1="3" y1="18" x2="37" y2="18" stroke="currentColor" strokeWidth="1.5" strokeOpacity=".7"/>
+        <rect x="11" y="10" width="18" height="8" rx="1.5" fill="currentColor" fillOpacity=".2" stroke="currentColor" strokeWidth="1.5"/>
+        <line x1="15" y1="13.5" x2="25" y2="13.5" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeOpacity=".5"/>
+      </svg>
+    )
+    case 'BUS_SHELTER': return (
+      <svg width={s} height={s} viewBox="0 0 40 40" fill="none">
+        <rect x="4" y="6" width="26" height="4" rx="1.5" fill="currentColor" fillOpacity=".25" stroke="currentColor" strokeWidth="1.5"/>
+        <line x1="5" y1="10" x2="5" y2="36" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+        <rect x="5" y="10" width="5" height="20" rx="1" fill="currentColor" fillOpacity=".1" stroke="currentColor" strokeWidth="1.5"/>
+        <rect x="12" y="12" width="14" height="14" rx="1.5" fill="currentColor" fillOpacity=".12" stroke="currentColor" strokeWidth="1.5"/>
+        <line x1="15" y1="17" x2="23" y2="17" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeOpacity=".5"/>
+        <line x1="15" y1="21" x2="21" y2="21" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeOpacity=".4"/>
+        <line x1="9" y1="32" x2="30" y2="32" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeOpacity=".4"/>
+        <line x1="4" y1="36" x2="36" y2="36" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeOpacity=".25"/>
+      </svg>
+    )
+    case 'WALL_PAINTING': return (
+      <svg width={s} height={s} viewBox="0 0 40 40" fill="none">
+        <rect x="3" y="5" width="34" height="30" rx="2" fill="currentColor" fillOpacity=".07" stroke="currentColor" strokeWidth="2"/>
+        <rect x="7" y="9" width="12" height="10" rx="1" fill="currentColor" fillOpacity=".25"/>
+        <rect x="21" y="9" width="12" height="10" rx="1" fill="currentColor" fillOpacity=".15"/>
+        <rect x="7" y="21" width="7" height="9" rx="1" fill="currentColor" fillOpacity=".2"/>
+        <rect x="16" y="21" width="17" height="9" rx="1" fill="currentColor" fillOpacity=".12"/>
+        <circle cx="34" cy="7" r="3.5" fill="currentColor" fillOpacity=".5"/>
+        <line x1="34" y1="10.5" x2="34" y2="17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      </svg>
+    )
+    case 'LED_SCREEN': return (
+      <svg width={s} height={s} viewBox="0 0 40 40" fill="none">
+        <rect x="2" y="5" width="36" height="24" rx="3" fill="currentColor" fillOpacity=".1" stroke="currentColor" strokeWidth="2"/>
+        <rect x="5" y="8" width="30" height="18" rx="1.5" fill="currentColor" fillOpacity=".08"/>
+        {/* LED dot grid 3 rows × 5 cols */}
+        {[11,17,23].flatMap(y => [9,15,20,25,31].map(x =>
+          <circle key={`${x}-${y}`} cx={x} cy={y} r="2" fill="currentColor" fillOpacity=".45"/>
+        ))}
+        <line x1="20" y1="29" x2="20" y2="36" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+        <line x1="13" y1="36" x2="27" y2="36" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      </svg>
+    )
+    case 'SCROLLING': return (
+      <svg width={s} height={s} viewBox="0 0 40 40" fill="none">
+        <rect x="2" y="5" width="36" height="26" rx="2" fill="currentColor" fillOpacity=".07" stroke="currentColor" strokeWidth="2"/>
+        <rect x="2" y="5" width="36" height="5" rx="2" fill="currentColor" fillOpacity=".3"/>
+        <rect x="2" y="26" width="36" height="5" rx="2" fill="currentColor" fillOpacity=".3"/>
+        <line x1="8" y1="15" x2="32" y2="15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeOpacity=".55"/>
+        <line x1="8" y1="20" x2="26" y2="20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeOpacity=".38"/>
+        <line x1="8" y1="25" x2="29" y2="25" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeOpacity=".22"/>
+        <path d="M35 17 L38 20 L35 23" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" strokeOpacity=".6"/>
+        <line x1="10" y1="34" x2="30" y2="34" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeOpacity=".2"/>
+      </svg>
+    )
+    case 'POLE_KIOSK': return (
+      <svg width={s} height={s} viewBox="0 0 40 40" fill="none">
+        <ellipse cx="20" cy="9" rx="11" ry="3.5" fill="currentColor" fillOpacity=".25" stroke="currentColor" strokeWidth="1.5"/>
+        <rect x="9" y="9" width="22" height="17" fill="currentColor" fillOpacity=".08"/>
+        <line x1="9" y1="9" x2="9" y2="26" stroke="currentColor" strokeWidth="1.5"/>
+        <line x1="31" y1="9" x2="31" y2="26" stroke="currentColor" strokeWidth="1.5"/>
+        <ellipse cx="20" cy="26" rx="11" ry="3.5" fill="currentColor" fillOpacity=".18" stroke="currentColor" strokeWidth="1.5"/>
+        <rect x="13" y="11" width="14" height="12" rx="1" fill="currentColor" fillOpacity=".2" stroke="currentColor" strokeWidth="1"/>
+        <line x1="16" y1="15" x2="24" y2="15" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeOpacity=".5"/>
+        <line x1="16" y1="19" x2="22" y2="19" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeOpacity=".4"/>
+        <line x1="20" y1="29.5" x2="20" y2="38" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+      </svg>
+    )
+    case 'AIRPORT': return (
+      <svg width={s} height={s} viewBox="0 0 40 40" fill="none">
+        <path d="M6 24 L22 13 L30 15.5 L23 22 L26 30 L21 27.5 L19 22 L11 26 Z" fill="currentColor" fillOpacity=".2" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+        <path d="M13 21.5 L5 28 L9.5 28 L17 24" fill="currentColor" fillOpacity=".15" stroke="currentColor" strokeWidth="1" strokeLinejoin="round"/>
+        <line x1="3" y1="36" x2="37" y2="36" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeOpacity=".3"/>
+        <rect x="30" y="26" width="7" height="10" rx="1" fill="currentColor" fillOpacity=".15" stroke="currentColor" strokeWidth="1.5"/>
+        <line x1="32" y1="29" x2="35" y2="29" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeOpacity=".5"/>
+      </svg>
+    )
+    default: return (
+      <svg width={s} height={s} viewBox="0 0 40 40" fill="none">
+        <rect x="5" y="5" width="30" height="30" rx="4" fill="currentColor" fillOpacity=".1" stroke="currentColor" strokeWidth="1.5"/>
+      </svg>
+    )
+  }
+}
+
 const ADV_COLORS: Record<string, string> = {
   NATIONAL_HIGHWAY_FACING:   'bg-blue-50 text-blue-700',
   STATE_HIGHWAY_FACING:      'bg-blue-50 text-blue-700',
@@ -147,36 +268,54 @@ function HoldingCard({
   )
 }
 
-// ── Filter section wrapper ─────────────────────────────────────────────────────
-function FilterSection({ title, children }: { title: string; children: React.ReactNode }) {
-  const [open, setOpen] = useState(true)
+// ── Filter section wrapper ────────────────────────────────────────────────────
+function FilterSection({ title, children, defaultOpen = true }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen)
   return (
-    <div className="border-b border-gray-100 last:border-0 pb-5 last:pb-0">
+    <div>
       <button
         onClick={() => setOpen(o => !o)}
-        className="flex items-center justify-between w-full mb-3"
+        className="flex items-center justify-between w-full py-3 group"
       >
-        <span className="text-xs font-black uppercase tracking-widest text-gray-400">{title}</span>
-        <ChevronDown className={cn('w-3.5 h-3.5 text-gray-300 transition-transform', open && 'rotate-180')} />
+        <span className="text-[13px] font-bold text-gray-800 tracking-tight">{title}</span>
+        <ChevronDown className={cn(
+          'w-4 h-4 text-gray-400 transition-transform duration-200 group-hover:text-gray-600',
+          open && 'rotate-180'
+        )} />
       </button>
-      {open && children}
+      {open && <div className="pb-5">{children}</div>}
+      <div className="h-px bg-gray-100" />
     </div>
   )
 }
 
+const HOARDING_TYPES = [
+  { value: '',              label: 'All Types',   span: true },
+  { value: 'BILLBOARD',    label: 'Billboard' },
+  { value: 'UNIPOLE',      label: 'Unipole' },
+  { value: 'GANTRY',       label: 'Gantry' },
+  { value: 'LED_SCREEN',   label: 'LED Screen' },
+  { value: 'WALL_PAINTING',label: 'Wall Paint' },
+  { value: 'SKYWALK',      label: 'Skywalk' },
+  { value: 'BUS_SHELTER',  label: 'Bus Shelter' },
+  { value: 'SCROLLING',    label: 'Scrolling' },
+  { value: 'POLE_KIOSK',   label: 'Pole Kiosk' },
+  { value: 'AIRPORT',      label: 'Airport' },
+]
+
 const ADVANTAGES = [
-  { value: 'SIGNAL_JUNCTION',          label: 'Signal Junction' },
-  { value: 'PEDESTRIAN_FOOTPATH_ZONE', label: 'Pedestrian Zone' },
-  { value: 'NATIONAL_HIGHWAY_FACING',  label: 'National Highway' },
-  { value: 'NEAR_METRO_STATION',       label: 'Near Metro' },
-  { value: 'NEAR_AIRPORT',             label: 'Near Airport' },
-  { value: 'NEAR_IT_PARK',             label: 'Near IT Park' },
-  { value: 'NEAR_SHOPPING_MALL',       label: 'Shopping Mall' },
-  { value: 'HIGH_VEHICLE_TRAFFIC',     label: 'High Traffic' },
-  { value: 'TOURIST_HERITAGE_AREA',    label: 'Tourist Area' },
-  { value: 'UPSCALE_NEIGHBOURHOOD',    label: 'Upscale Area' },
-  { value: 'NEAR_RAILWAY_STATION',     label: 'Near Railway' },
-  { value: 'IN_MARKET_BAZAAR',         label: 'Market / Bazaar' },
+  { value: 'SIGNAL_JUNCTION',          label: 'Signal Junction',  emoji: '🚦' },
+  { value: 'PEDESTRIAN_FOOTPATH_ZONE', label: 'Pedestrian Zone',  emoji: '🚶' },
+  { value: 'NATIONAL_HIGHWAY_FACING',  label: 'National Highway', emoji: '🛣️' },
+  { value: 'NEAR_METRO_STATION',       label: 'Near Metro',       emoji: '🚇' },
+  { value: 'NEAR_AIRPORT',             label: 'Near Airport',     emoji: '✈️' },
+  { value: 'NEAR_IT_PARK',             label: 'Near IT Park',     emoji: '💻' },
+  { value: 'NEAR_SHOPPING_MALL',       label: 'Shopping Mall',    emoji: '🛍️' },
+  { value: 'HIGH_VEHICLE_TRAFFIC',     label: 'High Traffic',     emoji: '🚗' },
+  { value: 'TOURIST_HERITAGE_AREA',    label: 'Tourist Area',     emoji: '🏛️' },
+  { value: 'UPSCALE_NEIGHBOURHOOD',    label: 'Upscale Area',     emoji: '💎' },
+  { value: 'NEAR_RAILWAY_STATION',     label: 'Near Railway',     emoji: '🚂' },
+  { value: 'IN_MARKET_BAZAAR',         label: 'Market / Bazaar',  emoji: '🏪' },
 ]
 
 export default function BrowsePage() {
@@ -249,12 +388,12 @@ export default function BrowsePage() {
 
   const handleApply = () => {
     const cleaned: HoldingSearchParams = {}
-    if (draftFilters.location)   cleaned.location    = draftFilters.location
-    if (draftFilters.type)       cleaned.type        = draftFilters.type
-    if (draftFilters.minPrice)   cleaned.minPrice    = draftFilters.minPrice
-    if (draftFilters.maxPrice)   cleaned.maxPrice    = draftFilters.maxPrice
-    if (draftFilters.sortBy)     cleaned.sortBy      = draftFilters.sortBy
-    if (draftFilters.city)       cleaned.city        = draftFilters.city
+    if (draftFilters.location)    cleaned.location    = draftFilters.location
+    if (draftFilters.type)        cleaned.type        = draftFilters.type
+    if (draftFilters.minPrice)    cleaned.minPrice    = draftFilters.minPrice
+    if (draftFilters.maxPrice)    cleaned.maxPrice    = draftFilters.maxPrice
+    if (draftFilters.sortBy)      cleaned.sortBy      = draftFilters.sortBy
+    if (draftFilters.city)        cleaned.city        = draftFilters.city
     if (draftFilters.holdingType) cleaned.holdingType = draftFilters.holdingType
     if (draftFilters.isIlluminated !== undefined) cleaned.isIlluminated = draftFilters.isIlluminated
     if (draftFilters.locationAdvantages?.length)  cleaned.locationAdvantages = draftFilters.locationAdvantages
@@ -275,7 +414,6 @@ export default function BrowsePage() {
     setFilterOpen(false)
   }
 
-  // Count applied (non-default) filters for badge
   const activeFilterCount = [
     appliedFilters.city,
     appliedFilters.holdingType,
@@ -287,6 +425,18 @@ export default function BrowsePage() {
     ...(appliedFilters.locationAdvantages ?? []),
   ].filter(Boolean).length
 
+  const sortOptions = [
+    { value: '',           label: 'Newest' },
+    { value: 'price_asc',  label: 'Price ↑' },
+    { value: 'price_desc', label: 'Price ↓' },
+  ]
+
+  const illumOptions = [
+    { value: '',      label: 'Any',       icon: '◐' },
+    { value: 'true',  label: 'Lit',       icon: '☀️' },
+    { value: 'false', label: 'Non-Lit',   icon: '🌙' },
+  ]
+
   return (
     <div className="pb-28">
       <div className="page-header">
@@ -294,7 +444,6 @@ export default function BrowsePage() {
         <p className="page-subtitle">Find the perfect outdoor advertising space</p>
       </div>
 
-      {/* Result count */}
       {browseData && !isLoading && (
         <p className="text-sm text-gray-500 mb-4">
           {browseData.totalElements} listing{browseData.totalElements !== 1 ? 's' : ''} found
@@ -367,16 +516,23 @@ export default function BrowsePage() {
       )}
 
       {/* ── Floating filter button ───────────────────────────────────────────── */}
-      <div className="fixed bottom-7 left-1/2 -translate-x-1/2 z-20">
+      <div className="fixed bottom-7 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
         <button
           onClick={() => setFilterOpen(true)}
-          className="flex items-center gap-2 px-6 py-3 rounded-full shadow-2xl font-bold text-sm transition-all active:scale-95 hover:scale-105"
-          style={{ background: '#C9F31D', color: '#111111', boxShadow: '0 8px 32px rgba(201,243,29,0.4)' }}
+          className="pointer-events-auto flex items-center gap-2.5 px-7 py-3.5 rounded-full font-bold text-[13px] tracking-tight transition-all active:scale-95 hover:scale-105"
+          style={{
+            background: '#C9F31D',
+            color: '#111111',
+            boxShadow: '0 8px 40px rgba(201,243,29,0.55), 0 2px 12px rgba(0,0,0,0.12)',
+          }}
         >
           <SlidersHorizontal className="w-4 h-4" />
           Filters
           {activeFilterCount > 0 && (
-            <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-extrabold" style={{ background: '#111', color: '#C9F31D' }}>
+            <span
+              className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-extrabold"
+              style={{ background: '#111', color: '#C9F31D' }}
+            >
               {activeFilterCount}
             </span>
           )}
@@ -386,7 +542,7 @@ export default function BrowsePage() {
       {/* ── Filter drawer backdrop ───────────────────────────────────────────── */}
       {filterOpen && (
         <div
-          className="fixed inset-0 z-30 bg-black/50 backdrop-blur-sm"
+          className="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm"
           onClick={() => setFilterOpen(false)}
         />
       )}
@@ -397,181 +553,53 @@ export default function BrowsePage() {
           'fixed bottom-0 left-0 right-0 z-40 bg-white rounded-t-3xl shadow-2xl transition-transform duration-300 ease-out flex flex-col',
           filterOpen ? 'translate-y-0' : 'translate-y-full',
         )}
-        style={{ maxHeight: '88vh' }}
+        style={{ maxHeight: '90vh' }}
       >
-        {/* Handle */}
-        <div className="flex justify-center pt-3 pb-1 shrink-0">
-          <div className="w-10 h-1 rounded-full bg-gray-200" />
+        {/* Drag handle */}
+        <div className="flex justify-center pt-3 pb-1 shrink-0 cursor-grab">
+          <div className="w-12 h-1.5 rounded-full bg-gray-200" />
         </div>
 
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-3.5 border-b border-gray-100 shrink-0">
-          <div>
-            <h3 className="font-extrabold text-gray-900 text-base">Filter Hoardings</h3>
-            <p className="text-[11px] text-gray-400 mt-0.5">Narrow down to the perfect space</p>
+        {/* Drawer header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
+          <div className="flex items-center gap-3">
+            <div
+              className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+              style={{ background: '#C9F31D' }}
+            >
+              <SlidersHorizontal className="w-4.5 h-4.5 text-gray-900" />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-gray-900 text-[15px] leading-none">Filter Hoardings</h3>
+              <p className="text-[11px] text-gray-400 mt-0.5">Narrow down to the perfect space</p>
+            </div>
           </div>
           <button
             onClick={() => setFilterOpen(false)}
-            className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
+            className="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors text-gray-500"
           >
-            <X className="w-4 h-4 text-gray-500" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Scrollable filter content */}
-        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+        {/* Scrollable body */}
+        <div className="flex-1 overflow-y-auto px-6 pt-2 pb-2">
 
-          {/* Sort */}
+          {/* Sort By */}
           <FilterSection title="Sort By">
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { value: '',           label: 'Newest' },
-                { value: 'price_asc',  label: 'Price ↑' },
-                { value: 'price_desc', label: 'Price ↓' },
-              ].map(opt => (
-                <button
-                  key={opt.value}
-                  onClick={() => setDraftFilters(f => ({ ...f, sortBy: opt.value }))}
-                  className={cn(
-                    'py-2.5 rounded-xl border text-xs font-semibold transition-colors',
-                    draftFilters.sortBy === opt.value
-                      ? 'border-transparent text-[#111]'
-                      : 'bg-gray-50 text-gray-500 border-gray-200 hover:border-gray-400',
-                  )}
-                  style={draftFilters.sortBy === opt.value ? { background: '#C9F31D' } : {}}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </FilterSection>
-
-          {/* Price range */}
-          <FilterSection title="Price Range">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-[10px] text-gray-400 font-semibold uppercase tracking-wide mb-1.5 block">Min (₹/mo)</label>
-                <input
-                  type="number"
-                  placeholder="e.g. 10000"
-                  className="input-field w-full"
-                  value={draftFilters.minPrice ?? ''}
-                  onChange={e => setDraftFilters(f => ({ ...f, minPrice: e.target.value ? Number(e.target.value) : undefined }))}
-                />
-              </div>
-              <div>
-                <label className="text-[10px] text-gray-400 font-semibold uppercase tracking-wide mb-1.5 block">Max (₹/mo)</label>
-                <input
-                  type="number"
-                  placeholder="e.g. 200000"
-                  className="input-field w-full"
-                  value={draftFilters.maxPrice ?? ''}
-                  onChange={e => setDraftFilters(f => ({ ...f, maxPrice: e.target.value ? Number(e.target.value) : undefined }))}
-                />
-              </div>
-            </div>
-          </FilterSection>
-
-          {/* City & Location type */}
-          <FilterSection title="Location">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-[10px] text-gray-400 font-semibold uppercase tracking-wide mb-1.5 block">City</label>
-                <select
-                  className="input-field w-full"
-                  value={draftFilters.city ?? ''}
-                  onChange={e => setDraftFilters(f => ({ ...f, city: e.target.value }))}
-                >
-                  <option value="">All Cities</option>
-                  <option value="Bangalore">Bangalore</option>
-                  <option value="Delhi">Delhi</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-[10px] text-gray-400 font-semibold uppercase tracking-wide mb-1.5 block">Area Type</label>
-                <div className="grid grid-cols-2 gap-1.5">
-                  {[
-                    { value: '',       label: 'All' },
-                    { value: 'URBAN',  label: 'Urban' },
-                    { value: 'LOCAL',  label: 'Local' },
-                  ].map(opt => (
-                    <button
-                      key={opt.value}
-                      onClick={() => setDraftFilters(f => ({ ...f, type: opt.value }))}
-                      className={cn(
-                        'py-2 rounded-lg border text-xs font-semibold transition-colors col-span-1',
-                        opt.value === '' && 'col-span-2',
-                        draftFilters.type === opt.value
-                          ? 'border-transparent text-[#111]'
-                          : 'bg-gray-50 text-gray-500 border-gray-200 hover:border-gray-400',
-                      )}
-                      style={draftFilters.type === opt.value ? { background: '#C9F31D' } : {}}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </FilterSection>
-
-          {/* Hoarding type */}
-          <FilterSection title="Hoarding Type">
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { value: '',              label: 'All' },
-                { value: 'BILLBOARD',     label: 'Billboard' },
-                { value: 'UNIPOLE',       label: 'Unipole' },
-                { value: 'GANTRY',        label: 'Gantry' },
-                { value: 'LED_SCREEN',    label: 'LED Screen' },
-                { value: 'WALL_PAINTING', label: 'Wall Paint' },
-                { value: 'SKYWALK',       label: 'Skywalk' },
-                { value: 'BUS_SHELTER',   label: 'Bus Shelter' },
-                { value: 'SCROLLING',     label: 'Scrolling' },
-                { value: 'POLE_KIOSK',    label: 'Pole Kiosk' },
-                { value: 'AIRPORT',       label: 'Airport' },
-              ].map(opt => (
-                <button
-                  key={opt.value}
-                  onClick={() => setDraftFilters(f => ({ ...f, holdingType: opt.value }))}
-                  className={cn(
-                    'py-2 rounded-xl border text-xs font-semibold transition-colors',
-                    opt.value === '' && 'col-span-3',
-                    draftFilters.holdingType === opt.value
-                      ? 'border-transparent text-[#111]'
-                      : 'bg-gray-50 text-gray-500 border-gray-200 hover:border-gray-400',
-                  )}
-                  style={draftFilters.holdingType === opt.value ? { background: '#C9F31D' } : {}}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </FilterSection>
-
-          {/* Illumination */}
-          <FilterSection title="Illumination">
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { value: '',      label: 'Any' },
-                { value: 'true',  label: '💡 Illuminated' },
-                { value: 'false', label: 'Non-Lit' },
-              ].map(opt => {
-                const current = draftFilters.isIlluminated === undefined ? '' : String(draftFilters.isIlluminated)
+            <div className="flex rounded-xl overflow-hidden border border-gray-200">
+              {sortOptions.map((opt, i) => {
+                const active = draftFilters.sortBy === opt.value
                 return (
                   <button
                     key={opt.value}
-                    onClick={() => setDraftFilters(f => ({
-                      ...f,
-                      isIlluminated: opt.value === '' ? undefined : opt.value === 'true',
-                    }))}
+                    onClick={() => setDraftFilters(f => ({ ...f, sortBy: opt.value }))}
                     className={cn(
-                      'py-2.5 rounded-xl border text-xs font-semibold transition-colors',
-                      current === opt.value
-                        ? 'border-transparent text-[#111]'
-                        : 'bg-gray-50 text-gray-500 border-gray-200 hover:border-gray-400',
+                      'flex-1 py-2.5 text-xs font-bold transition-colors',
+                      i > 0 && 'border-l border-gray-200',
+                      active ? 'text-gray-900' : 'bg-gray-50 text-gray-500 hover:bg-gray-100',
                     )}
-                    style={current === opt.value ? { background: '#C9F31D' } : {}}
+                    style={active ? { background: '#C9F31D' } : {}}
                   >
                     {opt.label}
                   </button>
@@ -580,10 +608,183 @@ export default function BrowsePage() {
             </div>
           </FilterSection>
 
-          {/* Location advantages */}
-          <FilterSection title="Location Advantages">
+          {/* Price Range */}
+          <FilterSection title="Price Range (₹/month)">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-semibold pointer-events-none">₹</span>
+                <input
+                  type="number"
+                  placeholder="Min price"
+                  className="input-field w-full pl-7"
+                  value={draftFilters.minPrice ?? ''}
+                  onChange={e => setDraftFilters(f => ({ ...f, minPrice: e.target.value ? Number(e.target.value) : undefined }))}
+                />
+              </div>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-semibold pointer-events-none">₹</span>
+                <input
+                  type="number"
+                  placeholder="Max price"
+                  className="input-field w-full pl-7"
+                  value={draftFilters.maxPrice ?? ''}
+                  onChange={e => setDraftFilters(f => ({ ...f, maxPrice: e.target.value ? Number(e.target.value) : undefined }))}
+                />
+              </div>
+            </div>
+            {/* Quick price chips */}
+            <div className="flex flex-wrap gap-2 mt-2.5">
+              {[
+                { label: 'Under ₹25K',   min: undefined,  max: 25000 },
+                { label: '₹25K–₹75K',   min: 25000,      max: 75000 },
+                { label: '₹75K–₹2L',    min: 75000,      max: 200000 },
+                { label: '₹2L+',         min: 200000,     max: undefined },
+              ].map(p => {
+                const active = draftFilters.minPrice === p.min && draftFilters.maxPrice === p.max
+                return (
+                  <button
+                    key={p.label}
+                    onClick={() => setDraftFilters(f => ({ ...f, minPrice: p.min, maxPrice: p.max }))}
+                    className={cn(
+                      'text-[11px] font-semibold px-3 py-1.5 rounded-lg border transition-colors',
+                      active ? 'border-transparent text-gray-900' : 'bg-gray-50 text-gray-500 border-gray-200 hover:border-gray-400',
+                    )}
+                    style={active ? { background: '#C9F31D' } : {}}
+                  >
+                    {p.label}
+                  </button>
+                )
+              })}
+            </div>
+          </FilterSection>
+
+          {/* Location */}
+          <FilterSection title="Location">
+            <div className="space-y-3">
+              <div>
+                <label className="text-[11px] text-gray-400 font-semibold uppercase tracking-wide mb-1.5 block">City</label>
+                <select
+                  className="input-field w-full"
+                  value={draftFilters.city ?? ''}
+                  onChange={e => setDraftFilters(f => ({ ...f, city: e.target.value }))}
+                >
+                  <option value="">All Cities</option>
+                  <option value="Bangalore">Bangalore</option>
+                  <option value="Delhi">Delhi</option>
+                  <option value="Mumbai">Mumbai</option>
+                  <option value="Hyderabad">Hyderabad</option>
+                  <option value="Chennai">Chennai</option>
+                  <option value="Pune">Pune</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-[11px] text-gray-400 font-semibold uppercase tracking-wide mb-1.5 block">Area Type</label>
+                <div className="flex rounded-xl overflow-hidden border border-gray-200">
+                  {[
+                    { value: '',       label: 'All Areas' },
+                    { value: 'URBAN',  label: '🏙️ Urban' },
+                    { value: 'LOCAL',  label: '🌿 Local' },
+                  ].map((opt, i) => {
+                    const active = draftFilters.type === opt.value
+                    return (
+                      <button
+                        key={opt.value}
+                        onClick={() => setDraftFilters(f => ({ ...f, type: opt.value }))}
+                        className={cn(
+                          'flex-1 py-2.5 text-xs font-bold transition-colors',
+                          i > 0 && 'border-l border-gray-200',
+                          active ? 'text-gray-900' : 'bg-gray-50 text-gray-500 hover:bg-gray-100',
+                        )}
+                        style={active ? { background: '#C9F31D' } : {}}
+                      >
+                        {opt.label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+          </FilterSection>
+
+          {/* Hoarding Type */}
+          <FilterSection title="Hoarding Type">
+            <div className="grid grid-cols-2 gap-2.5">
+              {HOARDING_TYPES.map(opt => {
+                const active = draftFilters.holdingType === opt.value
+                return (
+                  <button
+                    key={opt.value}
+                    onClick={() => setDraftFilters(f => ({ ...f, holdingType: opt.value }))}
+                    className={cn(
+                      'flex flex-col items-center justify-center gap-2 px-3 py-4 rounded-2xl border-2 transition-all duration-150 relative',
+                      opt.span && 'col-span-2 flex-row gap-3 py-3',
+                      active
+                        ? 'border-transparent shadow-sm'
+                        : 'bg-white border-gray-150 hover:border-gray-300 hover:shadow-sm',
+                    )}
+                    style={active
+                      ? { background: '#C9F31D', borderColor: '#b8df0e' }
+                      : { borderColor: '#e8ecf0' }
+                    }
+                  >
+                    {!opt.span && (
+                      <span className={cn('transition-colors', active ? 'text-gray-800' : 'text-gray-400')}>
+                        <HoardingTypeIcon type={opt.value} size={36} />
+                      </span>
+                    )}
+                    {opt.span && (
+                      <span className={cn('transition-colors', active ? 'text-gray-800' : 'text-gray-400')}>
+                        <svg width="22" height="22" viewBox="0 0 40 40" fill="none">
+                          <rect x="4" y="8" width="32" height="6" rx="1.5" fill="currentColor" fillOpacity=".3"/>
+                          <rect x="4" y="18" width="32" height="6" rx="1.5" fill="currentColor" fillOpacity=".2"/>
+                          <rect x="4" y="28" width="32" height="6" rx="1.5" fill="currentColor" fillOpacity=".15"/>
+                        </svg>
+                      </span>
+                    )}
+                    <span className={cn(
+                      'text-[12px] font-bold leading-tight',
+                      active ? 'text-gray-900' : 'text-gray-600',
+                    )}>
+                      {opt.label}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          </FilterSection>
+
+          {/* Illumination */}
+          <FilterSection title="Illumination">
+            <div className="flex rounded-xl overflow-hidden border border-gray-200">
+              {illumOptions.map((opt, i) => {
+                const current = draftFilters.isIlluminated === undefined ? '' : String(draftFilters.isIlluminated)
+                const active = current === opt.value
+                return (
+                  <button
+                    key={opt.value}
+                    onClick={() => setDraftFilters(f => ({
+                      ...f,
+                      isIlluminated: opt.value === '' ? undefined : opt.value === 'true',
+                    }))}
+                    className={cn(
+                      'flex-1 flex flex-col items-center gap-1 py-3 text-xs font-bold transition-colors',
+                      i > 0 && 'border-l border-gray-200',
+                      active ? 'text-gray-900' : 'bg-gray-50 text-gray-500 hover:bg-gray-100',
+                    )}
+                    style={active ? { background: '#C9F31D' } : {}}
+                  >
+                    <span className="text-lg leading-none">{opt.icon}</span>
+                    {opt.label}
+                  </button>
+                )
+              })}
+            </div>
+          </FilterSection>
+
+          {/* Location Advantages */}
+          <FilterSection title="Location Advantages" defaultOpen={false}>
             <div className="flex flex-wrap gap-2">
-              {ADVANTAGES.map(({ value, label }) => {
+              {ADVANTAGES.map(({ value, label, emoji }) => {
                 const selected = draftFilters.locationAdvantages?.includes(value)
                 return (
                   <button
@@ -595,35 +796,44 @@ export default function BrowsePage() {
                         : [...(f.locationAdvantages ?? []), value],
                     }))}
                     className={cn(
-                      'text-xs px-3 py-1.5 rounded-full border font-semibold transition-colors',
+                      'flex items-center gap-1.5 text-[12px] font-semibold px-3.5 py-2 rounded-xl border-2 transition-all',
                       selected
-                        ? 'border-transparent text-[#111]'
-                        : 'bg-gray-50 text-gray-500 border-gray-200 hover:border-gray-400',
+                        ? 'border-transparent text-gray-900'
+                        : 'bg-white text-gray-500 hover:border-gray-300',
                     )}
-                    style={selected ? { background: '#C9F31D' } : {}}
+                    style={selected
+                      ? { background: '#C9F31D', borderColor: '#b8df0e' }
+                      : { borderColor: '#e8ecf0' }
+                    }
                   >
+                    <span className="text-sm leading-none">{emoji}</span>
                     {label}
                   </button>
                 )
               })}
             </div>
           </FilterSection>
+
+          <div className="h-4" />
         </div>
 
-        {/* ── Sticky footer: Clear + Apply ── */}
+        {/* Sticky footer */}
         <div className="shrink-0 border-t border-gray-100 px-6 py-4 flex gap-3 bg-white">
           <button
             onClick={handleClear}
-            className="flex-1 py-3 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+            className="flex-1 py-3.5 rounded-2xl border-2 border-gray-200 text-sm font-bold text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-colors"
           >
             Clear All
           </button>
           <button
             onClick={handleApply}
-            className="flex-[2] py-3 rounded-xl text-sm font-extrabold transition-all active:scale-[0.98]"
+            className="flex-[2] py-3.5 rounded-2xl text-sm font-extrabold transition-all active:scale-[0.98] hover:opacity-90"
             style={{ background: '#C9F31D', color: '#111111' }}
           >
             Apply Filters
+            {activeFilterCount > 0 && (
+              <span className="ml-2 text-xs bg-black/15 px-2 py-0.5 rounded-full">{activeFilterCount} active</span>
+            )}
           </button>
         </div>
       </div>
