@@ -267,6 +267,8 @@ export interface WishlistItem {
   minimumBookingMonths: number | null
   setupCost: number | null
   taxPct: number | null
+  securityDepositRequired: boolean | null
+  securityDepositRange: string | null
 }
 
 // ── Dashboards ─────────────────────────────────────────────────────────────

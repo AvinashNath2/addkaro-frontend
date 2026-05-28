@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   MapPin, Loader2, Building2, Ruler, CheckCircle2, ArrowRight, Heart,
-  List, Map, Calculator, FileDown, X, ChevronDown, ChevronUp, Minus, Plus,
+  List, Map, Calculator, FileDown, X, ChevronDown, ChevronUp, Minus, Plus, Info,
 } from 'lucide-react'
 import { getWishlist, removeFromWishlist } from '@/api/customer.api'
 import StatusBadge from '@/components/ui/StatusBadge'
@@ -21,17 +21,48 @@ function formatSavedDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
+// ── Column-header tooltip ─────────────────────────────────────────────────────
+function ColTip({ text }: { text: string }) {
+  const [show, setShow] = useState(false)
+  return (
+    <span className="relative inline-flex items-center ml-0.5 align-middle">
+      <button
+        onMouseEnter={() => setShow(true)}
+        onMouseLeave={() => setShow(false)}
+        onClick={() => setShow(s => !s)}
+        className="w-3.5 h-3.5 rounded-full bg-gray-300/60 flex items-center justify-center hover:bg-gray-400/60 transition-colors"
+      >
+        <Info className="w-2 h-2 text-gray-500" />
+      </button>
+      {show && (
+        <span className="absolute z-50 top-5 left-0 w-56 bg-gray-900 text-white text-[10px] leading-relaxed rounded-xl p-2.5 shadow-xl pointer-events-none font-normal normal-case tracking-normal">
+          {text}
+          <span className="absolute bottom-full left-2 border-4 border-transparent border-b-gray-900" />
+        </span>
+      )}
+    </span>
+  )
+}
+
 // ── Per-item calculator ────────────────────────────────────────────────────────
+function parseDepositMin(item: WishlistItem): number {
+  if (!item.securityDepositRequired || !item.securityDepositRange) return 0
+  const parts = item.securityDepositRange.split('_').map(Number)
+  return parts.length >= 1 && !isNaN(parts[0]) ? parts[0] : 0
+}
+
 function calcRow(item: WishlistItem, months: number): BudgetRow {
-  const rate         = item.rentalCost ?? 0
-  const discountPct  = 0 // wishlist items don't carry discount tiers
-  const taxPct       = item.taxPct ?? 18
-  const base         = rate * months
-  const discount     = 0 // wishlist items don't carry discount tiers — shown in full calculator on detail page
-  const tax          = (base - discount) * (taxPct / 100)
-  const setup        = item.setupCost ?? 0
-  const total        = base - discount + tax + setup
-  return { item, months, base, discount, tax, setup, total, discountPct, taxPct }
+  const rate        = item.rentalCost ?? 0
+  const discountPct = 0
+  const taxPct      = item.taxPct ?? 18
+  const base        = rate * months
+  const discount    = 0
+  const tax         = base * (taxPct / 100)
+  const setup       = item.setupCost ?? 0
+  const deposit     = parseDepositMin(item)
+  const subtotal    = base + tax + setup
+  const total       = subtotal + deposit
+  return { item, months, base, discount, tax, setup, deposit, subtotal, total, discountPct, taxPct }
 }
 
 // ── Budget estimator panel ────────────────────────────────────────────────────
@@ -50,16 +81,19 @@ function BudgetEstimatorPanel({
   })
 
   const rows: BudgetRow[] = items.map(i => calcRow(i, monthsMap[i.holdingId] ?? (i.minimumBookingMonths ?? 1)))
-  const grandTotal  = rows.reduce((s, r) => s + r.total, 0)
-  const grandTax    = rows.reduce((s, r) => s + r.tax, 0)
-  const grandSetup  = rows.reduce((s, r) => s + r.setup, 0)
-  const grandBase   = rows.reduce((s, r) => s + r.base, 0)
+  const grandBase    = rows.reduce((s, r) => s + r.base, 0)
+  const grandTax     = rows.reduce((s, r) => s + r.tax, 0)
+  const grandSetup   = rows.reduce((s, r) => s + r.setup, 0)
+  const grandDeposit = rows.reduce((s, r) => s + r.deposit, 0)
+  const grandNow     = rows.reduce((s, r) => s + r.subtotal, 0)
+  const grandTotal   = rows.reduce((s, r) => s + r.total, 0)
+  const hasDeposit   = grandDeposit > 0
 
-  function step(holdingId: string) { return items.find(i => i.holdingId === holdingId)?.minimumBookingMonths ?? 1 }
+  function stepFor(holdingId: string) { return items.find(i => i.holdingId === holdingId)?.minimumBookingMonths ?? 1 }
 
   return (
     <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden mb-5">
-      {/* Header */}
+      {/* ── Collapsible header ── */}
       <div
         className="flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-gray-50 transition-colors"
         onClick={() => setOpen(o => !o)}
@@ -69,12 +103,15 @@ function BudgetEstimatorPanel({
             <Calculator className="w-4 h-4 text-emerald-600" />
           </span>
           <div>
-            <p className="font-semibold text-gray-900 text-sm">Budget Estimate</p>
-            <p className="text-xs text-gray-400">{items.length} hoarding{items.length !== 1 ? 's' : ''} selected</p>
+            <p className="font-semibold text-gray-900 text-sm">Campaign Budget Estimate</p>
+            <p className="text-xs text-gray-400">{items.length} hoarding{items.length !== 1 ? 's' : ''} · incl. GST & deposit</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-lg font-extrabold text-emerald-600">{formatRupees(grandTotal)}</span>
+          <div className="text-right">
+            <p className="text-[10px] text-gray-400 leading-none mb-0.5">Total commitment</p>
+            <p className="text-lg font-extrabold text-gray-900">{formatRupees(grandTotal)}</p>
+          </div>
           <button
             onClick={e => { e.stopPropagation(); onClose() }}
             className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
@@ -89,32 +126,59 @@ function BudgetEstimatorPanel({
 
       {open && (
         <div className="px-5 pb-5 space-y-4">
-          {/* Per-hoarding breakdown */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs">
+
+          {/* ── Per-hoarding table ── */}
+          <div className="overflow-x-auto -mx-1 px-1">
+            <table className="w-full text-xs min-w-[680px]">
               <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="text-left pb-2 text-gray-500 font-semibold pr-3">Hoarding</th>
-                  <th className="text-right pb-2 text-gray-500 font-semibold px-2">Rate/mo</th>
-                  <th className="text-center pb-2 text-gray-500 font-semibold px-2">Duration</th>
-                  <th className="text-right pb-2 text-gray-500 font-semibold px-2">Base</th>
-                  <th className="text-right pb-2 text-gray-500 font-semibold px-2">Tax</th>
-                  <th className="text-right pb-2 text-gray-500 font-semibold px-2">Setup</th>
-                  <th className="text-right pb-2 text-gray-900 font-bold">Total</th>
+                <tr className="border-b-2 border-gray-100">
+                  <th className="text-left pb-2.5 text-gray-500 font-semibold pr-3 w-[26%]">Hoarding</th>
+                  <th className="text-right pb-2.5 text-gray-500 font-semibold px-2">
+                    Rate/mo
+                    <ColTip text="Monthly rental rate quoted by the space owner." />
+                  </th>
+                  <th className="text-center pb-2.5 text-gray-500 font-semibold px-2">
+                    Duration
+                    <ColTip text="Your chosen booking duration. Adjust using +/– buttons. Steps are based on owner's minimum booking period." />
+                  </th>
+                  <th className="text-right pb-2.5 text-gray-500 font-semibold px-2">
+                    Base Rent
+                    <ColTip text="Rate/mo × Duration. The raw rental cost before any taxes or fees." />
+                  </th>
+                  <th className="text-right pb-2.5 text-purple-500 font-semibold px-2">
+                    GST
+                    <ColTip text="Goods & Services Tax on advertising services (SAC Code 998363) as per Indian tax law. Rate set by the owner — typically 18%. Applied on base rent." />
+                  </th>
+                  <th className="text-right pb-2.5 text-orange-500 font-semibold px-2">
+                    Setup
+                    <ColTip text="One-time installation cost for the entire booking period — covers printing, rigging, labour, and electrical connections." />
+                  </th>
+                  <th className="text-right pb-2.5 text-amber-600 font-semibold px-2">
+                    Deposit
+                    <ColTip text="Refundable security deposit (minimum estimate). Held by the owner during the booking period and returned at the end, subject to space condition. Exact amount to be confirmed with the owner." />
+                  </th>
+                  <th className="text-right pb-2.5 text-emerald-600 font-bold px-2">
+                    Payable Now
+                    <ColTip text="Amount due at booking: Base Rent + GST + Setup. Does NOT include the refundable deposit." />
+                  </th>
+                  <th className="text-right pb-2.5 text-gray-900 font-bold pl-2">
+                    Total
+                    <ColTip text="Full financial commitment: Payable Now + Security Deposit. The deposit portion is returned to you at the end of the term." />
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map(r => {
-                  const s = step(r.item.holdingId)
+                  const s = stepFor(r.item.holdingId)
                   const m = monthsMap[r.item.holdingId] ?? s
                   return (
                     <tr key={r.item.holdingId} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                      <td className="py-2.5 pr-3">
+                      <td className="py-3 pr-3">
                         <p className="font-semibold text-gray-900 line-clamp-1">{r.item.title}</p>
                         <p className="text-gray-400 text-[10px] truncate">{r.item.location}</p>
                       </td>
-                      <td className="py-2.5 px-2 text-right text-gray-700 whitespace-nowrap">{formatRupees(r.item.rentalCost ?? 0)}</td>
-                      <td className="py-2.5 px-2">
+                      <td className="py-3 px-2 text-right text-gray-700 whitespace-nowrap">{formatRupees(r.item.rentalCost ?? 0)}</td>
+                      <td className="py-3 px-2">
                         <div className="flex items-center gap-1 justify-center">
                           <button
                             onClick={() => setMonthsMap(prev => ({ ...prev, [r.item.holdingId]: Math.max(s, (prev[r.item.holdingId] ?? s) - s) }))}
@@ -133,10 +197,19 @@ function BudgetEstimatorPanel({
                           </button>
                         </div>
                       </td>
-                      <td className="py-2.5 px-2 text-right text-gray-700 whitespace-nowrap">{formatRupees(r.base)}</td>
-                      <td className="py-2.5 px-2 text-right text-gray-500 whitespace-nowrap">{formatRupees(r.tax)}</td>
-                      <td className="py-2.5 px-2 text-right text-gray-500 whitespace-nowrap">{r.setup > 0 ? formatRupees(r.setup) : '—'}</td>
-                      <td className="py-2.5 text-right font-bold text-gray-900 whitespace-nowrap">{formatRupees(r.total)}</td>
+                      <td className="py-3 px-2 text-right text-gray-700 whitespace-nowrap">{formatRupees(r.base)}</td>
+                      <td className="py-3 px-2 text-right whitespace-nowrap">
+                        <span className="text-purple-600 font-semibold">{formatRupees(r.tax)}</span>
+                        <span className="text-purple-400 text-[10px] ml-0.5">({r.taxPct}%)</span>
+                      </td>
+                      <td className="py-3 px-2 text-right text-orange-600 whitespace-nowrap">{r.setup > 0 ? formatRupees(r.setup) : <span className="text-gray-300">—</span>}</td>
+                      <td className="py-3 px-2 text-right whitespace-nowrap">
+                        {r.deposit > 0
+                          ? <><span className="text-amber-600 font-semibold">{formatRupees(r.deposit)}</span><span className="text-amber-400 text-[10px]">+</span></>
+                          : <span className="text-gray-300">—</span>}
+                      </td>
+                      <td className="py-3 px-2 text-right text-emerald-600 font-bold whitespace-nowrap">{formatRupees(r.subtotal)}</td>
+                      <td className="py-3 pl-2 text-right font-extrabold text-gray-900 whitespace-nowrap">{formatRupees(r.total)}</td>
                     </tr>
                   )
                 })}
@@ -144,27 +217,64 @@ function BudgetEstimatorPanel({
             </table>
           </div>
 
-          {/* Grand total */}
-          <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 flex flex-wrap items-center justify-between gap-3">
-            <div className="space-y-0.5 text-xs text-emerald-700">
-              <p>Base: <strong>{formatRupees(grandBase)}</strong></p>
-              <p>Tax: <strong>{formatRupees(grandTax)}</strong></p>
-              {grandSetup > 0 && <p>Setup: <strong>{formatRupees(grandSetup)}</strong></p>}
-              <p className="text-[10px] text-emerald-500 mt-1">Security deposits not included</p>
+          {/* ── Grand total breakdown ── */}
+          <div className="grid grid-cols-2 gap-3">
+            {/* Left: component breakdown */}
+            <div className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 space-y-1.5 text-xs">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Breakdown</p>
+              <div className="flex justify-between text-gray-600">
+                <span>Base Rent</span>
+                <span className="font-semibold text-gray-900">{formatRupees(grandBase)}</span>
+              </div>
+              <div className="flex justify-between text-purple-600">
+                <span>GST (tax on advertising)</span>
+                <span className="font-semibold">{formatRupees(grandTax)}</span>
+              </div>
+              {grandSetup > 0 && (
+                <div className="flex justify-between text-orange-600">
+                  <span>Setup & Installation</span>
+                  <span className="font-semibold">{formatRupees(grandSetup)}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-emerald-600 pt-1 border-t border-gray-200 font-semibold">
+                <span>Payable Now (excl. deposit)</span>
+                <span>{formatRupees(grandNow)}</span>
+              </div>
+              {hasDeposit && (
+                <div className="flex justify-between text-amber-600">
+                  <span className="flex items-center gap-1">
+                    Security Deposit
+                    <span className="text-[9px] bg-amber-100 text-amber-700 px-1 rounded font-bold">REFUNDABLE</span>
+                  </span>
+                  <span className="font-semibold">{formatRupees(grandDeposit)}+</span>
+                </div>
+              )}
             </div>
-            <div className="text-right">
-              <p className="text-xs text-emerald-600 font-medium">Combined Total</p>
-              <p className="text-2xl font-extrabold text-emerald-700">{formatRupees(grandTotal)}</p>
+
+            {/* Right: totals */}
+            <div className="space-y-2">
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
+                <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest mb-1">Payable at Booking</p>
+                <p className="text-2xl font-extrabold text-emerald-700">{formatRupees(grandNow)}</p>
+                {hasDeposit && <p className="text-[10px] text-emerald-500 mt-0.5">Excludes refundable deposit</p>}
+              </div>
+              {hasDeposit && (
+                <div className="bg-gray-900 rounded-xl px-4 py-3">
+                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Total Commitment</p>
+                  <p className="text-2xl font-extrabold" style={{ color: '#C9F31D' }}>{formatRupees(grandTotal)}</p>
+                  <p className="text-[10px] text-gray-400 mt-0.5">Incl. {formatRupees(grandDeposit)}+ refundable deposit</p>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* PDF download */}
+          {/* ── PDF download ── */}
           <button
             onClick={() => generateBudgetPdf(rows)}
             className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
           >
             <FileDown className="w-4 h-4" />
-            Download PDF Report
+            Download Full PDF Report
           </button>
         </div>
       )}
