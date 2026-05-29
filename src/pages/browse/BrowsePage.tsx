@@ -138,26 +138,6 @@ function HoardingTypeIcon({ type, size = 38 }: { type: string; size?: number }) 
   }
 }
 
-const ADV_COLORS: Record<string, string> = {
-  NATIONAL_HIGHWAY_FACING:   'bg-blue-50 text-blue-700',
-  STATE_HIGHWAY_FACING:      'bg-blue-50 text-blue-700',
-  MAIN_CITY_ROAD:            'bg-blue-50 text-blue-700',
-  SIGNAL_JUNCTION:           'bg-amber-50 text-amber-700',
-  FLYOVER_APPROACH:          'bg-amber-50 text-amber-700',
-  NEAR_METRO_STATION:        'bg-purple-50 text-purple-700',
-  NEAR_RAILWAY_STATION:      'bg-purple-50 text-purple-700',
-  NEAR_BUS_STAND:            'bg-purple-50 text-purple-700',
-  NEAR_AIRPORT:              'bg-purple-50 text-purple-700',
-  HIGH_VEHICLE_TRAFFIC:      'bg-orange-50 text-orange-700',
-  PEDESTRIAN_FOOTPATH_ZONE:  'bg-orange-50 text-orange-700',
-  NEAR_SHOPPING_MALL:        'bg-pink-50 text-pink-700',
-  IN_MARKET_BAZAAR:          'bg-pink-50 text-pink-700',
-  NEAR_IT_PARK:              'bg-sky-50 text-sky-700',
-  NEAR_INDUSTRIAL_AREA:      'bg-sky-50 text-sky-700',
-  UPSCALE_NEIGHBOURHOOD:     'bg-emerald-50 text-emerald-700',
-  TOURIST_HERITAGE_AREA:     'bg-teal-50 text-teal-700',
-}
-function advColor(adv: string) { return ADV_COLORS[adv] ?? 'bg-gray-100 text-gray-500' }
 
 function HoldingCard({
   id, title, location, locationType, holdingType, city, area,
@@ -168,101 +148,142 @@ function HoldingCard({
   const navigate = useNavigate()
   const imageUrl = photos?.[0] ?? null
   const displayLocation = city ? (area ? `${area}, ${city}` : city) : location
-  const sqft = width * height
+  const typeLabel = holdingType ? holdingType.replace(/_/g, ' ') : locationType
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-card group hover-lift" style={{ transition: 'transform 0.28s cubic-bezier(0.16,1,0.3,1), box-shadow 0.28s cubic-bezier(0.16,1,0.3,1)' }}>
-      <div className="relative h-48 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
+    <div
+      className="group bg-white overflow-hidden cursor-pointer"
+      style={{
+        border: '1px solid rgba(0,0,0,0.07)',
+        transition: 'transform 0.35s cubic-bezier(0.25,0.46,0.45,0.94), box-shadow 0.35s cubic-bezier(0.25,0.46,0.45,0.94), border-color 0.25s',
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.transform = 'translateY(-5px)'
+        e.currentTarget.style.boxShadow = '0 20px 56px rgba(0,0,0,0.10)'
+        e.currentTarget.style.borderColor = 'rgba(0,0,0,0.12)'
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.transform = 'translateY(0)'
+        e.currentTarget.style.boxShadow = 'none'
+        e.currentTarget.style.borderColor = 'rgba(0,0,0,0.07)'
+      }}
+      onClick={() => navigate(`/holdings/${id}`)}
+    >
+      {/* ── Image ──────────────────────────────────────────────────────────── */}
+      <div className="relative overflow-hidden bg-gray-100" style={{ aspectRatio: '4/3' }}>
         {imageUrl ? (
-          <img src={imageUrl} alt={title} className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" />
+          <img
+            src={imageUrl} alt={title}
+            className="w-full h-full object-cover"
+            style={{ transition: 'transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94)' }}
+            onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.06)')}
+            onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+          />
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center gap-2">
-            <Building2 className="w-10 h-10 text-gray-400" />
-            <span className="text-xs text-gray-400 font-medium">No photo</span>
+          <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-gray-50">
+            <Building2 className="w-8 h-8 text-gray-300" />
+            <span className="text-[11px] text-gray-400 tracking-wide uppercase">No photo</span>
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-        <span
-          className="absolute top-3 left-3 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full text-white"
-          style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)' }}
-        >
-          {holdingType ? holdingType.replace(/_/g, ' ') : locationType}
-        </span>
+
+        {/* Type tag — top left */}
+        <div className="absolute top-0 left-0 px-3 py-2" style={{ background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(8px)' }}>
+          <span className="text-[9px] font-bold tracking-[0.18em] uppercase text-white">{typeLabel}</span>
+        </div>
+
+        {/* Wishlist — top right */}
         {isCustomer && (
           <button
-            onClick={(e) => { e.stopPropagation(); onWishlistToggle(id) }}
-            className="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center transition-all"
-            style={{ background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(8px)' }}
-            title={saved ? 'Remove from wishlist' : 'Save to wishlist'}
+            onClick={e => { e.stopPropagation(); onWishlistToggle(id) }}
+            className="absolute top-2.5 right-2.5 w-8 h-8 flex items-center justify-center"
+            style={{ background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(8px)', transition: 'transform 0.2s' }}
+            onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.12)')}
+            onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+            title={saved ? 'Remove from wishlist' : 'Save'}
           >
-            <Heart className={`w-4 h-4 transition-colors ${saved ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} />
+            <Heart className={`w-4 h-4 ${saved ? 'fill-red-500 text-red-500' : 'text-gray-500'}`} style={{ transition: 'color 0.2s, fill 0.2s' }} />
           </button>
         )}
-        <div className="absolute bottom-0 left-0 right-0 px-3 pb-3 flex items-end justify-between">
+
+        {/* Price — bottom overlay */}
+        <div
+          className="absolute bottom-0 left-0 right-0 px-4 py-3 flex items-end justify-between"
+          style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 100%)' }}
+        >
           <div>
-            <p className="text-white font-extrabold text-lg leading-none drop-shadow-sm">{formatRupees(rentalCost)}</p>
-            <p className="text-white/70 text-[11px] font-medium">per month</p>
+            <p className="text-white font-extrabold text-base leading-none" style={{ letterSpacing: '-0.02em' }}>
+              {formatRupees(rentalCost)}
+            </p>
+            <p className="text-white/60 text-[10px] font-medium tracking-wide mt-0.5">per month</p>
           </div>
-          <div className="flex gap-1.5">
+          <div className="flex items-center gap-1.5">
             {isIlluminated && (
-              <span className="text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1" style={{ background: 'rgba(251,191,36,0.85)', backdropFilter: 'blur(6px)' }}>
-                <Zap className="w-3 h-3" /> Lit
+              <span className="flex items-center gap-1 px-2 py-0.5 text-[9px] font-bold tracking-wide uppercase text-amber-900"
+                style={{ background: 'rgba(251,191,36,0.9)', backdropFilter: 'blur(4px)' }}>
+                <Zap className="w-2.5 h-2.5" />Lit
               </span>
             )}
             {ownerVerified && (
-              <span className="text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1" style={{ background: 'rgba(16,185,129,0.85)', backdropFilter: 'blur(6px)' }}>
-                <CheckCircle2 className="w-3 h-3" /> Verified
+              <span className="flex items-center gap-1 px-2 py-0.5 text-[9px] font-bold tracking-wide uppercase text-emerald-900"
+                style={{ background: 'rgba(52,211,153,0.9)', backdropFilter: 'blur(4px)' }}>
+                <CheckCircle2 className="w-2.5 h-2.5" />Verified
               </span>
             )}
           </div>
         </div>
       </div>
 
-      <div className="px-4 pt-3.5 pb-4 space-y-3">
-        <div>
-          <h3 className="font-bold text-gray-900 text-[14px] leading-snug line-clamp-1">{title}</h3>
-          <div className="flex items-center gap-1 text-[12px] text-gray-500 mt-0.5">
-            <MapPin className="w-3 h-3 shrink-0" />
-            <span className="truncate">{displayLocation}</span>
-          </div>
-        </div>
-        <div className="flex flex-wrap gap-1.5">
-          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-500 bg-gray-100 border border-gray-200 px-2.5 py-1 rounded-lg">
-            <Ruler className="w-3 h-3 text-gray-400" />{width} × {height} ft
+      {/* ── Content ────────────────────────────────────────────────────────── */}
+      <div className="p-5">
+        {/* Location label */}
+        <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.15em] text-gray-400 mb-2">
+          <MapPin className="w-3 h-3 shrink-0" />
+          <span className="truncate">{displayLocation}</span>
+        </p>
+
+        {/* Title */}
+        <h3 className="font-bold text-gray-900 text-[15px] leading-snug line-clamp-2 mb-4" style={{ letterSpacing: '-0.01em' }}>
+          {title}
+        </h3>
+
+        {/* Specs row */}
+        <div className="flex items-center gap-4 text-[11px] text-gray-400 pb-4" style={{ borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
+          <span className="flex items-center gap-1">
+            <Ruler className="w-3 h-3" />
+            {width} × {height} ft
           </span>
-          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-500 bg-gray-100 border border-gray-200 px-2.5 py-1 rounded-lg">
-            {sqft.toLocaleString('en-IN')} sqft
-          </span>
+          <span>{(width * height).toLocaleString('en-IN')} sqft</span>
           {minimumBookingMonths && (
-            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#C9F31D] bg-brand-500/10 border border-brand-500/20 px-2.5 py-1 rounded-lg">
-              <Calendar className="w-3 h-3" />Min {minimumBookingMonths} mo
+            <span className="flex items-center gap-1">
+              <Calendar className="w-3 h-3" />
+              Min {minimumBookingMonths}mo
             </span>
           )}
-          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-500 bg-gray-100 border border-gray-200 px-2.5 py-1 rounded-lg">
-            {locationType}
-          </span>
         </div>
-        {topAdvantages && topAdvantages.length > 0 && (
-          <div className="flex flex-wrap gap-1">
-            {topAdvantages.slice(0, 3).map((adv) => (
-              <span key={adv} className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${advColor(adv)}`}>
+
+        {/* Advantages + CTA row */}
+        <div className="flex items-center justify-between gap-3 pt-4">
+          <div className="flex flex-wrap gap-1 min-w-0">
+            {topAdvantages?.slice(0, 2).map(adv => (
+              <span key={adv} className="text-[9px] font-semibold uppercase tracking-wide px-2 py-0.5 text-gray-500"
+                style={{ background: 'rgba(0,0,0,0.05)' }}>
                 {adv.replace(/_/g, ' ')}
               </span>
             ))}
-            {topAdvantages.length > 3 && (
-              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
-                +{topAdvantages.length - 3} more
-              </span>
-            )}
           </div>
-        )}
-        <button
-          onClick={() => navigate(`/holdings/${id}`)}
-          className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[13px] font-bold transition-all active:scale-[0.98]"
-          style={{ background: 'linear-gradient(135deg, #C9F31D 0%, #a8cc0f 100%)', color: '#111111' }}
-        >
-          View Details <ArrowRight className="w-3.5 h-3.5" />
-        </button>
+          <button
+            onClick={e => { e.stopPropagation(); navigate(`/holdings/${id}`) }}
+            className="shrink-0 flex items-center gap-1.5 px-4 py-2 text-[12px] font-bold tracking-wide"
+            style={{
+              background: '#C9F31D', color: '#111',
+              transition: 'background 0.2s, transform 0.2s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#d5f530'; e.currentTarget.style.transform = 'translateX(2px)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#C9F31D'; e.currentTarget.style.transform = 'translateX(0)' }}
+          >
+            View <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -440,8 +461,9 @@ export default function BrowsePage() {
   return (
     <div className="pb-28">
       <div className="page-header">
+        <p className="section-label">Outdoor Advertising</p>
         <h2 className="page-title">Browse Hoardings</h2>
-        <p className="page-subtitle">Find the perfect outdoor advertising space</p>
+        <p className="page-subtitle">Find the perfect outdoor advertising space across India</p>
       </div>
 
       {browseData && !isLoading && (
@@ -457,12 +479,17 @@ export default function BrowsePage() {
 
       {isLoading && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-white rounded-xl border border-gray-100 overflow-hidden animate-pulse">
-              <div className="h-44 bg-gray-100" />
-              <div className="p-4 space-y-3">
-                <div className="h-4 bg-gray-200 rounded w-3/4" />
-                <div className="h-3 bg-gray-200 rounded w-1/2" />
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="bg-white overflow-hidden" style={{ border: '1px solid rgba(0,0,0,0.07)' }}>
+              <div className="skeleton" style={{ aspectRatio: '4/3' }} />
+              <div className="p-5 space-y-3">
+                <div className="skeleton h-2.5 w-1/3" />
+                <div className="skeleton h-4 w-4/5" />
+                <div className="skeleton h-3 w-2/3" />
+                <div className="flex gap-3 pt-2">
+                  <div className="skeleton h-2 w-16" />
+                  <div className="skeleton h-2 w-16" />
+                </div>
               </div>
             </div>
           ))}
