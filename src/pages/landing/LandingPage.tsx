@@ -457,30 +457,32 @@ export default function LandingPage() {
         .yk-btn {
           display: inline-flex; align-items: center; gap: 8px;
           background: ${Y}; color: ${D}; font-weight: 800;
-          padding: 14px 32px; border-radius: 4px; font-size: 14px;
+          padding: 14px 32px; border-radius: 14px; font-size: 14px;
           letter-spacing: 0.03em; text-transform: uppercase;
-          transition: transform 0.18s ease, box-shadow 0.18s ease;
+          transition: transform 0.22s cubic-bezier(0.16,1,0.3,1), box-shadow 0.22s cubic-bezier(0.16,1,0.3,1);
         }
-        .yk-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(201,243,29,0.4); }
+        .yk-btn:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(201,243,29,0.45); }
+        .yk-btn:active { transform: translateY(0); }
 
         .yk-btn-outline {
           display: inline-flex; align-items: center; gap: 8px;
           background: transparent; color: white; font-weight: 700;
-          padding: 13px 28px; border-radius: 4px; font-size: 14px;
+          padding: 13px 28px; border-radius: 14px; font-size: 14px;
           letter-spacing: 0.03em; text-transform: uppercase;
           border: 2px solid rgba(255,255,255,0.25);
-          transition: border-color 0.18s, background 0.18s;
+          transition: border-color 0.22s cubic-bezier(0.16,1,0.3,1), color 0.22s, background 0.22s;
         }
-        .yk-btn-outline:hover { border-color: ${Y}; color: ${Y}; }
+        .yk-btn-outline:hover { border-color: ${Y}; color: ${Y}; background: rgba(201,243,29,0.06); }
 
         .feat-card {
-          background: #f9f9f9; border: 1px solid #ebebeb; border-radius: 4px;
-          padding: 32px 28px; transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s;
+          background: #f9f9f9; border: 1.5px solid #ebebeb; border-radius: 20px;
+          padding: 32px 28px;
+          transition: transform 0.28s cubic-bezier(0.16,1,0.3,1), box-shadow 0.28s cubic-bezier(0.16,1,0.3,1), border-color 0.22s;
         }
-        .feat-card:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(0,0,0,0.09); border-color: ${Y}; }
+        .feat-card:hover { transform: translateY(-8px); box-shadow: 0 20px 48px rgba(0,0,0,0.1); border-color: ${Y}; }
 
         .step-num {
-          width: 52px; height: 52px; border-radius: 2px;
+          width: 52px; height: 52px; border-radius: 14px;
           display: flex; align-items: center; justify-content: center;
           font-size: 22px; font-weight: 900; flex-shrink: 0;
           background: ${Y}; color: ${D};
@@ -494,7 +496,7 @@ export default function LandingPage() {
           className="fixed top-0 inset-x-0 z-40">
           <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 flex items-center justify-center" style={{ background: Y, borderRadius: 2 }}>
+              <div className="w-8 h-8 flex items-center justify-center" style={{ background: Y, borderRadius: 12 }}>
                 <Building2 className="w-4 h-4" style={{ color: D }} />
               </div>
               <span className="text-lg font-black text-white tracking-tighter">AddKaro</span>
@@ -633,7 +635,7 @@ export default function LandingPage() {
                 { icon: TrendingUp,    title: 'Transparent Pricing',  body: 'Published rates make the market fair. Submit counter-offers and negotiate with confidence.',       delay: 400 },
               ].map(({ icon: Icon, title, body, delay }) => (
                 <div key={title} data-reveal data-delay={delay} className="feat-card">
-                  <div className="w-12 h-12 flex items-center justify-center mb-6" style={{ background: Y, borderRadius: 2 }}>
+                  <div className="w-12 h-12 flex items-center justify-center mb-6" style={{ background: Y, borderRadius: 12 }}>
                     <Icon className="w-5 h-5" style={{ color: D }} />
                   </div>
                   <h3 className="font-black text-lg mb-3" style={{ color: D }}>{title}</h3>
@@ -705,7 +707,7 @@ export default function LandingPage() {
                 ].map(({ title, body, n }, i) => (
                   <div key={n} data-reveal data-delay={i * 100}
                     className="flex gap-5 p-6"
-                    style={{ background: '#f9f9f9', border: '1px solid #ebebeb', borderRadius: 4 }}>
+                    style={{ background: '#f9f9f9', border: '1.5px solid #ebebeb', borderRadius: 16 }}>
                     <span className="font-black text-2xl shrink-0" style={{ color: Y }}>{n}</span>
                     <div>
                       <h3 className="font-black mb-1" style={{ color: D }}>{title}</h3>
@@ -796,12 +798,12 @@ export default function LandingPage() {
             <div data-reveal="right" className="flex flex-col sm:flex-row gap-4 shrink-0">
               <button onClick={() => openModal('register')}
                 className="inline-flex items-center gap-2 font-black uppercase tracking-wide text-sm px-8 py-4 transition-all hover:scale-105"
-                style={{ background: D, color: Y, borderRadius: 4 }}>
+                style={{ background: D, color: Y, borderRadius: 14 }}>
                 Create Free Account <ArrowRight className="w-4 h-4" />
               </button>
               <button onClick={() => openModal('login')}
                 className="inline-flex items-center gap-2 font-black uppercase tracking-wide text-sm px-8 py-4 transition-all hover:opacity-70"
-                style={{ background: 'transparent', color: D, borderRadius: 4, border: `2px solid ${D}` }}>
+                style={{ background: 'transparent', color: D, borderRadius: 14, border: `2px solid ${D}` }}>
                 Sign In
               </button>
             </div>
@@ -814,7 +816,7 @@ export default function LandingPage() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
               <div className="md:col-span-2">
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="w-8 h-8 flex items-center justify-center" style={{ background: Y, borderRadius: 2 }}>
+                  <div className="w-8 h-8 flex items-center justify-center" style={{ background: Y, borderRadius: 12 }}>
                     <Building2 className="w-4 h-4" style={{ color: D }} />
                   </div>
                   <span className="font-black text-white text-lg tracking-tighter">AddKaro</span>
@@ -857,10 +859,10 @@ export default function LandingPage() {
             style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)' }}
             onClick={(e) => { if (e.target === e.currentTarget) setModal(null) }}
           >
-            <div className="w-full max-w-md my-8 bg-white shadow-2xl overflow-hidden" style={{ borderRadius: 8 }}>
+            <div className="w-full max-w-md my-8 bg-white shadow-2xl overflow-hidden" style={{ borderRadius: 24 }}>
               <div className="flex items-start justify-between px-7 pt-7 pb-5 border-b border-gray-100">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 flex items-center justify-center" style={{ background: Y, borderRadius: 4 }}>
+                  <div className="w-9 h-9 flex items-center justify-center" style={{ background: Y, borderRadius: 12 }}>
                     <Building2 className="w-5 h-5" style={{ color: D }} />
                   </div>
                   <div>
@@ -902,7 +904,7 @@ export default function LandingPage() {
                     )}
                     <button type="submit" disabled={loginMutation.isPending}
                       className="w-full flex items-center justify-center gap-2 py-3 font-black uppercase tracking-wide text-sm transition-all hover:opacity-90"
-                      style={{ background: Y, color: D, borderRadius: 4 }}>
+                      style={{ background: Y, color: D, borderRadius: 14 }}>
                       {loginMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
                       {loginMutation.isPending ? 'Signing in…' : 'Sign In'}
                     </button>
@@ -925,7 +927,7 @@ export default function LandingPage() {
                         <p className="text-gray-500 text-sm mb-6">You can now sign in with your new credentials.</p>
                         <button onClick={() => { setRegisterSuccess(false); setModal('login') }}
                           className="w-full py-3 font-black uppercase tracking-wide text-sm"
-                          style={{ background: Y, color: D, borderRadius: 4 }}>
+                          style={{ background: Y, color: D, borderRadius: 14 }}>
                           Sign In Now
                         </button>
                       </div>
@@ -971,7 +973,7 @@ export default function LandingPage() {
                         )}
                         <button type="submit" disabled={registerMutation.isPending}
                           className="w-full flex items-center justify-center gap-2 py-3 font-black uppercase tracking-wide text-sm"
-                          style={{ background: Y, color: D, borderRadius: 4 }}>
+                          style={{ background: Y, color: D, borderRadius: 14 }}>
                           {registerMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
                           {registerMutation.isPending ? 'Creating account…' : 'Create Account'}
                         </button>
