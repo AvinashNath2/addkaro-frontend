@@ -88,10 +88,11 @@ export default function Sidebar({ onClose }: SidebarProps) {
             end={!!end}
             className={({ isActive }) =>
               cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-150 group',
+                'flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold group',
+                'transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]',
                 isActive
                   ? 'border border-transparent'
-                  : 'text-[#555] hover:text-white border border-transparent',
+                  : 'text-[#555] hover:text-white hover:translate-x-0.5 border border-transparent',
               )
             }
             style={({ isActive }) => isActive

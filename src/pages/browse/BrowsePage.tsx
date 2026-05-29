@@ -171,7 +171,7 @@ function HoldingCard({
   const sqft = width * height
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-card hover:shadow-card-md transition-all duration-200 hover:-translate-y-0.5 group">
+    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-card group hover-lift" style={{ transition: 'transform 0.28s cubic-bezier(0.16,1,0.3,1), box-shadow 0.28s cubic-bezier(0.16,1,0.3,1)' }}>
       <div className="relative h-48 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
         {imageUrl ? (
           <img src={imageUrl} alt={title} className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" />
@@ -480,7 +480,7 @@ export default function BrowsePage() {
       )}
 
       {browseData && browseData.items.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 stagger-children">
           {browseData.items.map((h) => (
             <HoldingCard
               key={h.id}
@@ -519,11 +519,12 @@ export default function BrowsePage() {
       <div className="fixed bottom-7 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
         <button
           onClick={() => setFilterOpen(true)}
-          className="pointer-events-auto flex items-center gap-2.5 px-7 py-3.5 rounded-full font-bold text-[13px] tracking-tight transition-all active:scale-95 hover:scale-105"
+          className="pointer-events-auto flex items-center gap-2.5 px-7 py-3.5 rounded-full font-bold text-[13px] tracking-tight active:scale-95 hover:scale-105 pulse-glow"
           style={{
             background: '#C9F31D',
             color: '#111111',
             boxShadow: '0 8px 40px rgba(201,243,29,0.55), 0 2px 12px rgba(0,0,0,0.12)',
+            transition: 'transform 0.22s cubic-bezier(0.16,1,0.3,1), box-shadow 0.22s cubic-bezier(0.16,1,0.3,1)',
           }}
         >
           <SlidersHorizontal className="w-4 h-4" />

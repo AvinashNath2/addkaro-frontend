@@ -13,6 +13,13 @@
     background-color: #f4f6fb;
     @apply text-gray-900 antialiased;
   }
+
+  /* Every button and link gets smooth transitions by default */
+  button, a, [role="button"], input, select, textarea {
+    transition-property: color, background-color, border-color, opacity, transform, box-shadow, filter;
+    transition-duration: 200ms;
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
 }
 
 /* ── Components ────────────────────────────────────────────────────────────── */
@@ -20,7 +27,6 @@
 
   .input-field {
     @apply w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400
-           transition-all duration-150
            focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20
            disabled:cursor-not-allowed disabled:bg-gray-50 disabled:opacity-60;
   }
@@ -40,16 +46,30 @@
   .btn-primary {
     @apply inline-flex w-full items-center justify-center gap-2 rounded-xl
            px-5 py-2.5 text-sm font-bold
-           active:scale-[0.98]
+           active:scale-[0.97]
            focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:ring-offset-2
-           disabled:cursor-not-allowed disabled:opacity-60 transition-all duration-150;
+           disabled:cursor-not-allowed disabled:opacity-60;
     background: #C9F31D;
     color: #111111;
+    transition: background 0.2s cubic-bezier(0.16,1,0.3,1),
+                transform 0.2s cubic-bezier(0.16,1,0.3,1),
+                box-shadow 0.2s cubic-bezier(0.16,1,0.3,1);
   }
-  .btn-primary:hover { background: #d4f530; }
+  .btn-primary:hover {
+    background: #d4f530;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(201,243,29,0.35);
+  }
 
   .card {
     @apply bg-white rounded-2xl border border-gray-100 shadow-card;
+    transition: transform 0.25s cubic-bezier(0.16,1,0.3,1),
+                box-shadow 0.25s cubic-bezier(0.16,1,0.3,1),
+                border-color 0.2s;
+  }
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 28px rgba(0,0,0,0.1);
   }
 
   .page-header {
@@ -78,19 +98,118 @@
 /* Hide scrollbar on sidebar */
 aside::-webkit-scrollbar { display: none; }
 
-/* ── Animations ────────────────────────────────────────────────────────────── */
-@keyframes lp-modal-in {
-  from { opacity: 0; transform: scale(0.94) translateY(14px); }
-  to   { opacity: 1; transform: scale(1)    translateY(0);    }
+/* ── Global animation keyframes ────────────────────────────────────────────── */
+
+/* Page entrance — plays when content area mounts */
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-.lp-modal {
-  animation: lp-modal-in 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+.page-enter {
+  animation: page-enter 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* Staggered child entrance — add .stagger-children and each direct child fades up */
+@keyframes stagger-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.stagger-children > * {
+  animation: stagger-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 60ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 120ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 180ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 240ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 300ms; }
+.stagger-children > *:nth-child(7) { animation-delay: 360ms; }
+.stagger-children > *:nth-child(8) { animation-delay: 420ms; }
+.stagger-children > *:nth-child(9) { animation-delay: 480ms; }
+.stagger-children > *:nth-child(n+10) { animation-delay: 540ms; }
+
+/* Smooth card hover lift */
+.hover-lift {
+  transition: transform 0.25s cubic-bezier(0.16,1,0.3,1),
+              box-shadow 0.25s cubic-bezier(0.16,1,0.3,1);
+}
+.hover-lift:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.12); }
+
+/* Fade in from nothing */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.animate-fade-in { animation: fade-in 0.35s ease both; }
+
+/* Fade up (existing, kept) */
 @keyframes fade-up {
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0);    }
 }
 .animate-fade-up {
   animation: fade-up 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Scale in — for modals, drawers, dropdowns */
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95) translateY(8px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0);   }
+}
+.animate-scale-in {
+  animation: scale-in 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Slide up — for bottom sheets */
+@keyframes slide-up {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+.animate-slide-up { animation: slide-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* Pulse glow — for CTAs / badges */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(201,243,29,0.5); }
+  50%       { box-shadow: 0 0 0 10px rgba(201,243,29,0); }
+}
+.pulse-glow { animation: pulse-glow 2.5s ease-in-out infinite; }
+
+/* Marquee — scrolling banner strip */
+@keyframes marquee {
+  from { transform: translate3d(0,0,0); }
+  to   { transform: translate3d(-50%,0,0); }
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 30s linear infinite;
+  will-change: transform;
+}
+.marquee-track:hover { animation-play-state: paused; }
+
+/* Number counter shimmer highlight */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+.shimmer {
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Skeleton loading */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+.skeleton { animation: skeleton-pulse 1.5s ease-in-out infinite; background: #e5e7eb; }
+
+/* Landing page modal */
+@keyframes lp-modal-in {
+  from { opacity: 0; transform: scale(0.94) translateY(14px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0);    }
+}
+.lp-modal {
+  animation: lp-modal-in 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
