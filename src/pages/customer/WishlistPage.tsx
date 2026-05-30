@@ -2,24 +2,17 @@ import { useState, lazy, Suspense } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
-  MapPin, Loader2, Building2, Ruler, CheckCircle2, ArrowRight, Heart,
+  MapPin, Loader2, Building2, Ruler, CheckCircle2, ArrowRight, Bookmark, BookmarkMinus,
   List, Map, Calculator, FileDown, X, ChevronDown, ChevronUp, Minus, Plus, Info,
 } from 'lucide-react'
 import { getWishlist, removeFromWishlist } from '@/api/customer.api'
 import StatusBadge from '@/components/ui/StatusBadge'
 import { cn } from '@/lib/utils'
 import { generateBudgetPdf, type BudgetRow } from '@/lib/budgetPdf'
+import { formatRupees, formatDate as formatSavedDate } from '@/lib/formatters'
 import type { WishlistItem } from '@/types/index'
 
 const WishlistMap = lazy(() => import('@/components/wishlist/WishlistMap'))
-
-function formatRupees(amount: number): string {
-  return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount)
-}
-
-function formatSavedDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
-}
 
 // ── Column-header tooltip ─────────────────────────────────────────────────────
 function ColTip({ text }: { text: string }) {
@@ -261,7 +254,7 @@ function BudgetEstimatorPanel({
               {hasDeposit && (
                 <div className="bg-gray-900 rounded-xl px-4 py-3">
                   <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Total Commitment</p>
-                  <p className="text-2xl font-extrabold" style={{ color: '#C9F31D' }}>{formatRupees(grandTotal)}</p>
+                  <p className="text-2xl font-extrabold" style={{ color: '#1a3560' }}>{formatRupees(grandTotal)}</p>
                   <p className="text-[10px] text-gray-400 mt-0.5">Incl. {formatRupees(grandDeposit)}+ refundable deposit</p>
                 </div>
               )}
@@ -345,7 +338,7 @@ function WishlistCard({
         >
           {removing
             ? <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
-            : <Heart className="w-4 h-4 fill-red-500 text-red-500" />
+            : <BookmarkMinus className="w-4 h-4" style={{ color: '#16a34a' }} />
           }
         </button>
 
@@ -481,7 +474,7 @@ export default function WishlistPage() {
             <button
               onClick={() => setShowEstimator(true)}
               className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-colors"
-              style={{ background: '#C9F31D', color: '#111' }}
+              style={{ background: '#1a3560', color: '#ffffff' }}
             >
               <Calculator className="w-3.5 h-3.5" />
               Estimate Budget ({selectedIds.size})
@@ -505,7 +498,7 @@ export default function WishlistPage() {
       {items && items.length === 0 && (
         <div className="text-center py-16">
           <div className="w-16 h-16 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center mx-auto mb-4">
-            <Heart className="w-8 h-8 text-gray-400" />
+            <Bookmark className="w-8 h-8 text-gray-400" />
           </div>
           <p className="text-gray-500 font-medium mb-1">Your wishlist is empty</p>
           <p className="text-sm text-gray-400 mb-5">Save hoardings while browsing to compare them here.</p>

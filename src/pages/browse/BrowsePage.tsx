@@ -1,8 +1,9 @@
 import { useState, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
-  Heart, MapPin, Zap, Ruler, Calendar, CheckCircle2, ArrowRight,
+  Bookmark, BookmarkCheck, MapPin, Zap, Ruler, Calendar, CheckCircle2, ArrowRight,
   Building2, SlidersHorizontal, X, ChevronDown,
 } from 'lucide-react'
 import { searchHoldings, type HoldingSearchParams } from '@/api/holdings.api'
@@ -11,11 +12,8 @@ import { useAuthStore } from '@/store/auth.store'
 import { loadPreferences } from '@/lib/preferences'
 import { cn } from '@/lib/utils'
 import EmptyState from '@/components/ui/EmptyState'
+import { formatRupees } from '@/lib/formatters'
 import type { HoldingCard as HoldingCardType } from '@/types/index'
-
-function formatRupees(amount: number): string {
-  return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount)
-}
 
 // ── Custom hoarding type SVG icons ────────────────────────────────────────────
 function HoardingTypeIcon({ type, size = 38 }: { type: string; size?: number }) {
@@ -152,20 +150,19 @@ function HoldingCard({
 
   return (
     <div
-      className="group bg-white overflow-hidden cursor-pointer"
+      className="group overflow-hidden cursor-pointer"
       style={{
-        border: '1px solid rgba(0,0,0,0.07)',
-        transition: 'transform 0.35s cubic-bezier(0.25,0.46,0.45,0.94), box-shadow 0.35s cubic-bezier(0.25,0.46,0.45,0.94), border-color 0.25s',
+        background: '#f0ece6',
+        border: '1px solid rgba(0,0,0,0.06)',
+        transition: 'transform 0.35s cubic-bezier(0.25,0.46,0.45,0.94), box-shadow 0.35s cubic-bezier(0.25,0.46,0.45,0.94)',
       }}
       onMouseEnter={e => {
         e.currentTarget.style.transform = 'translateY(-5px)'
         e.currentTarget.style.boxShadow = '0 20px 56px rgba(0,0,0,0.10)'
-        e.currentTarget.style.borderColor = 'rgba(0,0,0,0.12)'
       }}
       onMouseLeave={e => {
         e.currentTarget.style.transform = 'translateY(0)'
         e.currentTarget.style.boxShadow = 'none'
-        e.currentTarget.style.borderColor = 'rgba(0,0,0,0.07)'
       }}
       onClick={() => navigate(`/holdings/${id}`)}
     >
@@ -175,12 +172,12 @@ function HoldingCard({
           <img
             src={imageUrl} alt={title}
             className="w-full h-full object-cover"
-            style={{ transition: 'transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94)' }}
-            onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.06)')}
+            style={{ transition: 'transform 0.65s cubic-bezier(0.25,0.46,0.45,0.94)' }}
+            onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.07)')}
             onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
           />
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-gray-50">
+          <div className="w-full h-full flex flex-col items-center justify-center gap-2" style={{ background: '#e8e3db' }}>
             <Building2 className="w-8 h-8 text-gray-300" />
             <span className="text-[11px] text-gray-400 tracking-wide uppercase">No photo</span>
           </div>
@@ -201,7 +198,10 @@ function HoldingCard({
             onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
             title={saved ? 'Remove from wishlist' : 'Save'}
           >
-            <Heart className={`w-4 h-4 ${saved ? 'fill-red-500 text-red-500' : 'text-gray-500'}`} style={{ transition: 'color 0.2s, fill 0.2s' }} />
+            {saved
+              ? <BookmarkCheck className="w-4 h-4" style={{ color: '#16a34a', transition: 'color 0.2s' }} />
+              : <Bookmark className="w-4 h-4 text-gray-400" style={{ transition: 'color 0.2s' }} />
+            }
           </button>
         )}
 
@@ -275,11 +275,11 @@ function HoldingCard({
             onClick={e => { e.stopPropagation(); navigate(`/holdings/${id}`) }}
             className="shrink-0 flex items-center gap-1.5 px-4 py-2 text-[12px] font-bold tracking-wide"
             style={{
-              background: '#C9F31D', color: '#111',
+              background: '#1a3560', color: '#ffffff',
               transition: 'background 0.2s, transform 0.2s',
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = '#d5f530'; e.currentTarget.style.transform = 'translateX(2px)' }}
-            onMouseLeave={e => { e.currentTarget.style.background = '#C9F31D'; e.currentTarget.style.transform = 'translateX(0)' }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#1f4070'; e.currentTarget.style.transform = 'translateX(2px)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#1a3560'; e.currentTarget.style.transform = 'translateX(0)' }}
           >
             View <ArrowRight className="w-3.5 h-3.5" />
           </button>
@@ -458,6 +458,11 @@ export default function BrowsePage() {
     { value: 'false', label: 'Non-Lit',   icon: '🌙' },
   ]
 
+  const marqueeItems = [
+    'BILLBOARD', 'UNIPOLE', 'GANTRY', 'LED SCREEN', 'WALL PAINTING',
+    'SKYWALK', 'BUS SHELTER', 'SCROLLING', 'POLE KIOSK', 'AIRPORT',
+  ]
+
   return (
     <div className="pb-28">
       <div className="page-header">
@@ -466,11 +471,28 @@ export default function BrowsePage() {
         <p className="page-subtitle">Find the perfect outdoor advertising space across India</p>
       </div>
 
+      {/* ── Dark marquee strip (QUENX-style) ─────────────────────────────────── */}
+      <div className="overflow-hidden mb-8 -mx-6 md:-mx-10" style={{ background: '#0f0f13' }}>
+        <div className="marquee-track py-3">
+          {[...marqueeItems, ...marqueeItems].map((item, i) => (
+            <span key={i} className="flex items-center shrink-0">
+              <span
+                className="text-white font-black uppercase tracking-[0.18em] px-5"
+                style={{ fontFamily: '"Barlow Condensed", sans-serif', fontSize: '13px', letterSpacing: '0.2em' }}
+              >
+                {item}
+              </span>
+              <span className="text-white opacity-50 text-[10px]">✳</span>
+            </span>
+          ))}
+        </div>
+      </div>
+
       {browseData && !isLoading && (
         <p className="text-sm text-gray-500 mb-4">
           {browseData.totalElements} listing{browseData.totalElements !== 1 ? 's' : ''} found
           {activeFilterCount > 0 && (
-            <span className="ml-2 text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: '#C9F31D', color: '#111' }}>
+            <span className="ml-2 text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: '#1a3560', color: '#ffffff' }}>
               {activeFilterCount} filter{activeFilterCount !== 1 ? 's' : ''} active
             </span>
           )}
@@ -480,15 +502,15 @@ export default function BrowsePage() {
       {isLoading && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="bg-white overflow-hidden" style={{ border: '1px solid rgba(0,0,0,0.07)' }}>
-              <div className="skeleton" style={{ aspectRatio: '4/3' }} />
+            <div key={i} className="overflow-hidden" style={{ background: '#f0ece6', border: '1px solid rgba(0,0,0,0.06)' }}>
+              <div className="skeleton" style={{ aspectRatio: '4/3', background: '#e5e0d8' }} />
               <div className="p-5 space-y-3">
-                <div className="skeleton h-2.5 w-1/3" />
-                <div className="skeleton h-4 w-4/5" />
-                <div className="skeleton h-3 w-2/3" />
+                <div className="skeleton h-2.5 w-1/3" style={{ background: '#e5e0d8' }} />
+                <div className="skeleton h-4 w-4/5" style={{ background: '#e5e0d8' }} />
+                <div className="skeleton h-3 w-2/3" style={{ background: '#e5e0d8' }} />
                 <div className="flex gap-3 pt-2">
-                  <div className="skeleton h-2 w-16" />
-                  <div className="skeleton h-2 w-16" />
+                  <div className="skeleton h-2 w-16" style={{ background: '#e5e0d8' }} />
+                  <div className="skeleton h-2 w-16" style={{ background: '#e5e0d8' }} />
                 </div>
               </div>
             </div>
@@ -521,90 +543,95 @@ export default function BrowsePage() {
       )}
 
       {browseData && browseData.totalPages > 1 && (
-        <div className="flex items-center justify-between mt-8 pt-4 border-t border-gray-100">
+        <div className="flex items-center justify-between mt-8 pt-4" style={{ borderTop: '1px solid rgba(0,0,0,0.08)' }}>
           <button
             onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
             disabled={!browseData.hasPrevious}
-            className="px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-4 py-2 text-sm font-bold text-gray-600 hover:bg-black/5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            style={{ border: '1px solid rgba(0,0,0,0.12)' }}
           >
             Previous
           </button>
-          <span className="text-sm text-gray-500">
+          <span className="text-sm font-semibold text-gray-500">
             Page {browseData.page + 1} of {browseData.totalPages}
           </span>
           <button
             onClick={() => setCurrentPage((p) => p + 1)}
             disabled={!browseData.hasNext}
-            className="px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-4 py-2 text-sm font-bold text-gray-600 hover:bg-black/5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            style={{ border: '1px solid rgba(0,0,0,0.12)' }}
           >
             Next
           </button>
         </div>
       )}
 
-      {/* ── Floating filter button ───────────────────────────────────────────── */}
-      <div className="fixed bottom-7 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
-        <button
-          onClick={() => setFilterOpen(true)}
-          className="pointer-events-auto flex items-center gap-2.5 px-7 py-3.5 rounded-full font-bold text-[13px] tracking-tight active:scale-95 hover:scale-105 pulse-glow"
-          style={{
-            background: '#C9F31D',
-            color: '#111111',
-            boxShadow: '0 8px 40px rgba(201,243,29,0.55), 0 2px 12px rgba(0,0,0,0.12)',
-            transition: 'transform 0.22s cubic-bezier(0.16,1,0.3,1), box-shadow 0.22s cubic-bezier(0.16,1,0.3,1)',
-          }}
-        >
-          <SlidersHorizontal className="w-4 h-4" />
-          Filters
-          {activeFilterCount > 0 && (
-            <span
-              className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-extrabold"
-              style={{ background: '#111', color: '#C9F31D' }}
+      {createPortal(
+        <>
+          {/* ── Floating filter button ──────────────────────────────────────── */}
+          <div className="fixed bottom-7 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
+            <button
+              onClick={() => setFilterOpen(true)}
+              className="pointer-events-auto flex items-center gap-2.5 px-7 py-3.5 rounded-full font-bold text-[13px] tracking-tight active:scale-95 hover:scale-105 pulse-glow"
+              style={{
+                background: '#1a3560',
+                color: '#ffffff',
+                boxShadow: '0 8px 40px rgba(26,53,96,0.55), 0 2px 12px rgba(0,0,0,0.12)',
+                transition: 'transform 0.22s cubic-bezier(0.16,1,0.3,1), box-shadow 0.22s cubic-bezier(0.16,1,0.3,1)',
+              }}
             >
-              {activeFilterCount}
-            </span>
+              <SlidersHorizontal className="w-4 h-4" />
+              Filters
+              {activeFilterCount > 0 && (
+                <span
+                  className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-extrabold"
+                  style={{ background: 'rgba(255,255,255,0.18)', color: '#ffffff' }}
+                >
+                  {activeFilterCount}
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* ── Filter drawer backdrop ──────────────────────────────────────── */}
+          {filterOpen && (
+            <div
+              className="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm"
+              onClick={() => setFilterOpen(false)}
+            />
           )}
-        </button>
-      </div>
 
-      {/* ── Filter drawer backdrop ───────────────────────────────────────────── */}
-      {filterOpen && (
-        <div
-          className="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm"
-          onClick={() => setFilterOpen(false)}
-        />
-      )}
-
-      {/* ── Filter drawer (bottom sheet) ─────────────────────────────────────── */}
-      <div
-        className={cn(
-          'fixed bottom-0 left-0 right-0 z-40 bg-white rounded-t-3xl shadow-2xl transition-transform duration-300 ease-out flex flex-col',
-          filterOpen ? 'translate-y-0' : 'translate-y-full',
-        )}
-        style={{ maxHeight: '90vh' }}
-      >
+          {/* ── Filter drawer (bottom sheet) ───────────────────────────────── */}
+          <div
+            className={cn(
+              'fixed bottom-0 left-0 right-0 z-40 shadow-2xl transition-transform duration-300 ease-out flex flex-col',
+              filterOpen ? 'translate-y-0' : 'translate-y-full',
+            )}
+            style={{ maxHeight: '90vh', background: '#f5f1eb' }}
+          >
         {/* Drag handle */}
         <div className="flex justify-center pt-3 pb-1 shrink-0 cursor-grab">
-          <div className="w-12 h-1.5 rounded-full bg-gray-200" />
+          <div className="w-12 h-1" style={{ background: 'rgba(0,0,0,0.15)' }} />
         </div>
 
         {/* Drawer header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 shrink-0" style={{ borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
           <div className="flex items-center gap-3">
             <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-              style={{ background: '#C9F31D' }}
+              className="w-9 h-9 flex items-center justify-center shrink-0"
+              style={{ background: '#1a3560' }}
             >
               <SlidersHorizontal className="w-4.5 h-4.5 text-gray-900" />
             </div>
             <div>
-              <h3 className="font-extrabold text-gray-900 text-[15px] leading-none">Filter Hoardings</h3>
+              <h3 className="font-extrabold text-gray-900 text-[15px] leading-none" style={{ fontFamily: '"Barlow Condensed", sans-serif', fontSize: 18 }}>FILTER HOARDINGS</h3>
               <p className="text-[11px] text-gray-400 mt-0.5">Narrow down to the perfect space</p>
             </div>
           </div>
           <button
             onClick={() => setFilterOpen(false)}
-            className="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors text-gray-500"
+            className="w-8 h-8 flex items-center justify-center transition-colors text-gray-500 hover:text-gray-900"
+            style={{ background: 'rgba(0,0,0,0.06)' }}
           >
             <X className="w-4 h-4" />
           </button>
@@ -615,7 +642,7 @@ export default function BrowsePage() {
 
           {/* Sort By */}
           <FilterSection title="Sort By">
-            <div className="flex rounded-xl overflow-hidden border border-gray-200">
+            <div className="flex overflow-hidden" style={{ border: '1px solid rgba(0,0,0,0.1)' }}>
               {sortOptions.map((opt, i) => {
                 const active = draftFilters.sortBy === opt.value
                 return (
@@ -624,10 +651,13 @@ export default function BrowsePage() {
                     onClick={() => setDraftFilters(f => ({ ...f, sortBy: opt.value }))}
                     className={cn(
                       'flex-1 py-2.5 text-xs font-bold transition-colors',
-                      i > 0 && 'border-l border-gray-200',
-                      active ? 'text-gray-900' : 'bg-gray-50 text-gray-500 hover:bg-gray-100',
+                      i > 0 && 'border-l',
+                      active ? 'text-gray-900' : 'text-gray-500',
                     )}
-                    style={active ? { background: '#C9F31D' } : {}}
+                    style={active
+                      ? { background: '#1a3560', color: '#ffffff', borderColor: 'rgba(0,0,0,0.1)' }
+                      : { background: '#ebe7e0', borderColor: 'rgba(0,0,0,0.1)' }
+                    }
                   >
                     {opt.label}
                   </button>
@@ -673,11 +703,11 @@ export default function BrowsePage() {
                   <button
                     key={p.label}
                     onClick={() => setDraftFilters(f => ({ ...f, minPrice: p.min, maxPrice: p.max }))}
-                    className={cn(
-                      'text-[11px] font-semibold px-3 py-1.5 rounded-lg border transition-colors',
-                      active ? 'border-transparent text-gray-900' : 'bg-gray-50 text-gray-500 border-gray-200 hover:border-gray-400',
-                    )}
-                    style={active ? { background: '#C9F31D' } : {}}
+                    className="text-[11px] font-semibold px-3 py-1.5 transition-colors"
+                    style={active
+                      ? { background: '#1a3560', color: '#ffffff', border: '1px solid #b8df0e' }
+                      : { background: '#ebe7e0', color: '#666', border: '1px solid rgba(0,0,0,0.08)' }
+                    }
                   >
                     {p.label}
                   </button>
@@ -707,7 +737,7 @@ export default function BrowsePage() {
               </div>
               <div>
                 <label className="text-[11px] text-gray-400 font-semibold uppercase tracking-wide mb-1.5 block">Area Type</label>
-                <div className="flex rounded-xl overflow-hidden border border-gray-200">
+                <div className="flex overflow-hidden" style={{ border: '1px solid rgba(0,0,0,0.1)' }}>
                   {[
                     { value: '',       label: 'All Areas' },
                     { value: 'URBAN',  label: '🏙️ Urban' },
@@ -718,12 +748,11 @@ export default function BrowsePage() {
                       <button
                         key={opt.value}
                         onClick={() => setDraftFilters(f => ({ ...f, type: opt.value }))}
-                        className={cn(
-                          'flex-1 py-2.5 text-xs font-bold transition-colors',
-                          i > 0 && 'border-l border-gray-200',
-                          active ? 'text-gray-900' : 'bg-gray-50 text-gray-500 hover:bg-gray-100',
-                        )}
-                        style={active ? { background: '#C9F31D' } : {}}
+                        className={cn('flex-1 py-2.5 text-xs font-bold transition-colors', i > 0 && 'border-l')}
+                        style={active
+                          ? { background: '#1a3560', color: '#ffffff', borderColor: 'rgba(0,0,0,0.1)' }
+                          : { background: '#ebe7e0', color: '#666', borderColor: 'rgba(0,0,0,0.1)' }
+                        }
                       >
                         {opt.label}
                       </button>
@@ -744,15 +773,12 @@ export default function BrowsePage() {
                     key={opt.value}
                     onClick={() => setDraftFilters(f => ({ ...f, holdingType: opt.value }))}
                     className={cn(
-                      'flex flex-col items-center justify-center gap-2 px-3 py-4 rounded-2xl border-2 transition-all duration-150 relative',
+                      'flex flex-col items-center justify-center gap-2 px-3 py-4 border transition-all duration-150 relative',
                       opt.span && 'col-span-2 flex-row gap-3 py-3',
-                      active
-                        ? 'border-transparent shadow-sm'
-                        : 'bg-white border-gray-150 hover:border-gray-300 hover:shadow-sm',
                     )}
                     style={active
-                      ? { background: '#C9F31D', borderColor: '#b8df0e' }
-                      : { borderColor: '#e8ecf0' }
+                      ? { background: '#1a3560', borderColor: 'rgba(26,53,96,0.5)', color: '#111' }
+                      : { background: '#ebe7e0', borderColor: 'rgba(0,0,0,0.08)', color: '#666' }
                     }
                   >
                     {!opt.span && (
@@ -783,7 +809,7 @@ export default function BrowsePage() {
 
           {/* Illumination */}
           <FilterSection title="Illumination">
-            <div className="flex rounded-xl overflow-hidden border border-gray-200">
+            <div className="flex overflow-hidden" style={{ border: '1px solid rgba(0,0,0,0.1)' }}>
               {illumOptions.map((opt, i) => {
                 const current = draftFilters.isIlluminated === undefined ? '' : String(draftFilters.isIlluminated)
                 const active = current === opt.value
@@ -794,12 +820,11 @@ export default function BrowsePage() {
                       ...f,
                       isIlluminated: opt.value === '' ? undefined : opt.value === 'true',
                     }))}
-                    className={cn(
-                      'flex-1 flex flex-col items-center gap-1 py-3 text-xs font-bold transition-colors',
-                      i > 0 && 'border-l border-gray-200',
-                      active ? 'text-gray-900' : 'bg-gray-50 text-gray-500 hover:bg-gray-100',
-                    )}
-                    style={active ? { background: '#C9F31D' } : {}}
+                    className={cn('flex-1 flex flex-col items-center gap-1 py-3 text-xs font-bold transition-colors', i > 0 && 'border-l')}
+                    style={active
+                      ? { background: '#1a3560', color: '#ffffff', borderColor: 'rgba(0,0,0,0.1)' }
+                      : { background: '#ebe7e0', color: '#666', borderColor: 'rgba(0,0,0,0.1)' }
+                    }
                   >
                     <span className="text-lg leading-none">{opt.icon}</span>
                     {opt.label}
@@ -823,15 +848,10 @@ export default function BrowsePage() {
                         ? f.locationAdvantages?.filter(a => a !== value) ?? []
                         : [...(f.locationAdvantages ?? []), value],
                     }))}
-                    className={cn(
-                      'flex items-center gap-1.5 text-[12px] font-semibold px-3.5 py-2 rounded-xl border-2 transition-all',
-                      selected
-                        ? 'border-transparent text-gray-900'
-                        : 'bg-white text-gray-500 hover:border-gray-300',
-                    )}
+                    className="flex items-center gap-1.5 text-[12px] font-semibold px-3.5 py-2 border transition-all"
                     style={selected
-                      ? { background: '#C9F31D', borderColor: '#b8df0e' }
-                      : { borderColor: '#e8ecf0' }
+                      ? { background: '#1a3560', color: '#ffffff', borderColor: 'rgba(26,53,96,0.5)' }
+                      : { background: '#ebe7e0', color: '#666', borderColor: 'rgba(0,0,0,0.08)' }
                     }
                   >
                     <span className="text-sm leading-none">{emoji}</span>
@@ -846,25 +866,29 @@ export default function BrowsePage() {
         </div>
 
         {/* Sticky footer */}
-        <div className="shrink-0 border-t border-gray-100 px-6 py-4 flex gap-3 bg-white">
+        <div className="shrink-0 px-6 py-4 flex gap-3" style={{ background: '#f0ece6', borderTop: '1px solid rgba(0,0,0,0.08)' }}>
           <button
             onClick={handleClear}
-            className="flex-1 py-3.5 rounded-2xl border-2 border-gray-200 text-sm font-bold text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-colors"
+            className="flex-1 py-3.5 text-sm font-bold text-gray-600 transition-colors hover:bg-black/5"
+            style={{ border: '1px solid rgba(0,0,0,0.12)' }}
           >
             Clear All
           </button>
           <button
             onClick={handleApply}
-            className="flex-[2] py-3.5 rounded-2xl text-sm font-extrabold transition-all active:scale-[0.98] hover:opacity-90"
-            style={{ background: '#C9F31D', color: '#111111' }}
+            className="flex-[2] py-3.5 text-sm font-extrabold transition-all active:scale-[0.98]"
+            style={{ background: '#1a3560', color: '#ffffff' }}
           >
             Apply Filters
             {activeFilterCount > 0 && (
-              <span className="ml-2 text-xs bg-black/15 px-2 py-0.5 rounded-full">{activeFilterCount} active</span>
+              <span className="ml-2 text-xs bg-black/15 px-2 py-0.5">{activeFilterCount} active</span>
             )}
           </button>
         </div>
-      </div>
+          </div>
+        </>,
+        document.body
+      )}
     </div>
   )
 }

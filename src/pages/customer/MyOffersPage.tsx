@@ -6,6 +6,7 @@ import { getMyOffers, withdrawOffer } from '@/api/customer.api'
 import StatusBadge from '@/components/ui/StatusBadge'
 import EmptyState from '@/components/ui/EmptyState'
 import ChatBox from '@/components/chat/ChatBox'
+import { formatRupees, formatDate } from '@/lib/formatters'
 import type { OfferStatus, CustomerOffer } from '@/types/index'
 
 const STATUS_TABS: { label: string; value: string }[] = [
@@ -16,22 +17,6 @@ const STATUS_TABS: { label: string; value: string }[] = [
   { label: 'Closed', value: 'CLOSED' },
   { label: 'Declined', value: 'DECLINED' },
 ]
-
-function formatRupees(amount: number): string {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    maximumFractionDigits: 0,
-  }).format(amount)
-}
-
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  })
-}
 
 // ── Status descriptions shown in the detail panel ────────────────────────────
 const STATUS_INFO: Record<OfferStatus, string> = {
@@ -69,7 +54,7 @@ function OfferDetailPanel({
           <div className="space-y-2 text-sm text-gray-900">
             <div className="flex justify-between">
               <span className="text-gray-500">Your offer</span>
-              <span className="font-semibold" style={{ color: '#C9F31D', WebkitTextStroke: '0.5px #999' }}>{formatRupees(offer.offeredPrice)}/mo</span>
+              <span className="font-semibold" style={{ color: '#1a3560', WebkitTextStroke: '0.5px #999' }}>{formatRupees(offer.offeredPrice)}/mo</span>
             </div>
             {offer.desiredStartDate && (
               <div className="flex justify-between">

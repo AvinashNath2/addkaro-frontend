@@ -9,16 +9,16 @@ const config: Config = {
     extend: {
       colors: {
         brand: {
-          50:  '#f9ffe0',
-          100: '#f3fdb5',
-          200: '#ebfa80',
-          300: '#def645',
-          400: '#d4f530',
-          500: '#C9F31D',
-          600: '#a8cc0a',
-          700: '#82a000',
-          800: '#5e7500',
-          900: '#3d4e00',
+          50:  '#eef3f8',
+          100: '#d5e3f0',
+          200: '#a8c6e0',
+          300: '#70a0cc',
+          400: '#3f7ab4',
+          500: '#1a3560',
+          600: '#152d52',
+          700: '#102444',
+          800: '#0c1c36',
+          900: '#081428',
         },
         // Editorial neutral palette
         ink: {
@@ -32,9 +32,19 @@ const config: Config = {
           warm:    '#f7f7f5',
           subtle:  '#f2f2f0',
         },
+        cream: {
+          DEFAULT: '#f5f1eb',
+          card:    '#f0ece6',
+          dark:    '#e8e3db',
+        },
+        night: {
+          DEFAULT: '#0f0f13',
+          soft:    '#1a1a20',
+        },
       },
       fontFamily: {
-        sans: ['"Plus Jakarta Sans"', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        sans:    ['"Plus Jakarta Sans"', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        display: ['"Barlow Condensed"', '"Plus Jakarta Sans"', 'sans-serif'],
       },
       // Editorial shadow system — very soft, diffuse
       boxShadow: {
@@ -47,8 +57,8 @@ const config: Config = {
         'card':    '0 1px 4px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)',
         'card-md': '0 4px 20px rgba(0,0,0,0.08)',
         'card-lg': '0 12px 48px rgba(0,0,0,0.10)',
-        'glow':    '0 0 0 3px rgba(201,243,29,0.25)',
-        'glow-lg': '0 8px 32px rgba(201,243,29,0.4)',
+        'glow':    '0 0 0 3px rgba(26,53,96,0.2)',
+        'glow-lg': '0 8px 32px rgba(26,53,96,0.35)',
         'inner-sm':'inset 0 1px 2px rgba(0,0,0,0.05)',
         'none':    'none',
       },

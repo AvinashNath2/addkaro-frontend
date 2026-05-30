@@ -1,994 +1,668 @@
-import { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation } from '@tanstack/react-query'
-import {
-  MapPin, Building2, MessageCircle, CheckCircle2,
-  Shield, Users, BarChart3, X, Loader2,
-  ArrowRight, Search, TrendingUp, Map,
-} from 'lucide-react'
-import { loginUser, registerUser } from '@/api/auth.api'
-import { useAuthStore } from '@/store/auth.store'
-import { loginSchema, type LoginFormData } from '@/lib/schemas/login.schema'
-import { registerSchema, type RegisterFormData } from '@/lib/schemas/auth.schema'
-import { cn } from '@/lib/utils'
+import { Link } from 'react-router-dom'
+import { MapPin, Building2, Handshake, ArrowRight, Eye, MessageSquare, Printer, Wrench, Hammer, Megaphone } from 'lucide-react'
 
-// ── Design tokens ─────────────────────────────────────────────────────────────
-const Y = '#C9F31D'   // acid yellow — primary accent
-const D = '#111111'   // near-black
-const D2 = '#1a1a1a'  // card dark
+// ─────────────────────────────────────────────────────────────────────────────
+// Road geometry (narrower — fills gap between buildings and road):
+//   Bottom: (475,480) → (725,480)   width 250 px
+//   Top:    (584,222) → (616,222)   width  32 px  (ratio ≈ 0.128)
+//   Centre line: x = 600 (straight vertical)
+// ─────────────────────────────────────────────────────────────────────────────
+function CityscapeSVG() {
+  const stars: [number, number, number][] = [
+    [60,30,1.5],[120,55,1],[200,20,1.5],[280,45,1],[350,25,1.5],[80,80,1],[160,70,1],
+    [900,30,1.5],[980,50,1],[1050,20,1.5],[1120,45,1],[1150,70,1],[860,65,1],[1000,80,1],
+    [440,40,1],[500,22,1.2],[320,65,1],[740,35,1.2],[820,55,1],[1060,55,1.2],[400,70,1],
+  ]
 
-type ModalType = 'login' | 'register' | null
+  // Top-down car centered at (0,0) — orientation rotated so it aligns with
+  // the road (long axis = Y, car travels along Y).
+  // approaching  = headlights at cy=+26 (bottom = facing viewer)
+  // receding     = headlights at cy=-26 (top = facing vanishing point)
+  const ApproachCar = ({ fill }: { fill: string }) => (
+    <g>
+      <rect x="-11" y="-28" width="22" height="56" rx="7" fill={fill} />
+      <rect x="-7"  y="-18" width="14" height="10" rx="2" fill="#1a3a6a" opacity="0.45" />
+      {/* headlights — front = bottom for approaching car */}
+      <ellipse cx="-6" cy="27"  rx="4" ry="3" fill="#fffde0" opacity="0.95" />
+      <ellipse cx="6"  cy="27"  rx="4" ry="3" fill="#fffde0" opacity="0.95" />
+      {/* taillights — rear = top */}
+      <ellipse cx="-6" cy="-27" rx="4" ry="3" fill="#ff2200" opacity="0.8" />
+      <ellipse cx="6"  cy="-27" rx="4" ry="3" fill="#ff2200" opacity="0.8" />
+    </g>
+  )
 
-// ── Scroll-animation hook ─────────────────────────────────────────────────────
-function useScrollReveal() {
-  useEffect(() => {
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((e) => {
-        if (e.isIntersecting) {
-          const el = e.target as HTMLElement
-          const delay = Number(el.dataset.delay ?? '0')
-          setTimeout(() => el.classList.add('revealed'), delay)
-          io.unobserve(el)
-        }
-      })
-    }, { threshold: 0.08 })
+  const RecedeCar = ({ fill }: { fill: string }) => (
+    <g>
+      <rect x="-11" y="-28" width="22" height="56" rx="7" fill={fill} />
+      <rect x="-7"  y="8"   width="14" height="10" rx="2" fill="#1a3a6a" opacity="0.45" />
+      {/* headlights — front = top for receding car */}
+      <ellipse cx="-6" cy="-27" rx="4" ry="3" fill="#fffde0" opacity="0.95" />
+      <ellipse cx="6"  cy="-27" rx="4" ry="3" fill="#fffde0" opacity="0.95" />
+      {/* taillights — rear = bottom */}
+      <ellipse cx="-6" cy="27"  rx="4" ry="3" fill="#ff2200" opacity="0.8" />
+      <ellipse cx="6"  cy="27"  rx="4" ry="3" fill="#ff2200" opacity="0.8" />
+    </g>
+  )
 
-    // Reveal already-visible elements immediately, observe the rest
-    document.querySelectorAll('[data-reveal]').forEach((el) => {
-      const rect = el.getBoundingClientRect()
-      if (rect.top < window.innerHeight && rect.bottom > 0) {
-        // Already in viewport on mount — reveal with a tiny delay for paint
-        const delay = Number((el as HTMLElement).dataset.delay ?? '0')
-        setTimeout(() => (el as HTMLElement).classList.add('revealed'), delay + 80)
-      } else {
-        io.observe(el)
-      }
-    })
-
-    return () => io.disconnect()
-  }, [])
-}
-
-// ── City hoarding scene (SVG) ─────────────────────────────────────────────────
-function HoardingScene() {
   return (
-    <div className="hoarding-scene w-full h-full">
-      <svg viewBox="0 0 700 860" fill="none" xmlns="http://www.w3.org/2000/svg"
-        preserveAspectRatio="xMidYMax meet" style={{ width: '100%', height: '100%' }}>
-        <defs>
-          <radialGradient id="sg1" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#C9F31D" stopOpacity="0.42"/>
-            <stop offset="100%" stopColor="#C9F31D" stopOpacity="0"/>
-          </radialGradient>
-          <radialGradient id="sg2" cx="50%" cy="0%" r="80%">
-            <stop offset="0%" stopColor="#C9F31D" stopOpacity="0.18"/>
-            <stop offset="100%" stopColor="#C9F31D" stopOpacity="0"/>
-          </radialGradient>
-          <radialGradient id="sg3" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#fff6d6" stopOpacity="0.55"/>
-            <stop offset="100%" stopColor="#fff6d6" stopOpacity="0"/>
-          </radialGradient>
-          <linearGradient id="sg4" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#0d0d0d"/>
-            <stop offset="100%" stopColor="#0a0a0a"/>
-          </linearGradient>
-        </defs>
+    <svg viewBox="0 0 1200 500" xmlns="http://www.w3.org/2000/svg"
+      style={{ width: '100%', height: 'auto', display: 'block' }}>
+      <defs>
+        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor="#07091a" />
+          <stop offset="55%"  stopColor="#152240" />
+          <stop offset="100%" stopColor="#243355" />
+        </linearGradient>
+        <linearGradient id="road" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor="#181714" />
+          <stop offset="100%" stopColor="#2a2820" />
+        </linearGradient>
+        <linearGradient id="swalk" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor="#302e28" />
+          <stop offset="100%" stopColor="#3e3b34" />
+        </linearGradient>
+        <radialGradient id="bg" cx="50%" cy="50%" r="60%">
+          <stop offset="0%"   stopColor="#C9F31D" stopOpacity="0.16" />
+          <stop offset="100%" stopColor="#C9F31D" stopOpacity="0" />
+        </radialGradient>
+        <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+          <feGaussianBlur stdDeviation="5" result="b" />
+          <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
+        </filter>
+        {/* Clip cars to the road trapezoid */}
+        <clipPath id="rc">
+          <polygon points="475,480 725,480 616,222 584,222" />
+        </clipPath>
+      </defs>
 
-        {/* Sky */}
-        <rect width="700" height="860" fill="#0a0a0a"/>
+      {/* ── CSS animations ─────────────────────────────────────────────── */}
+      <style>{`
+        /* Left-lane cars APPROACH viewer: far (small) → near (large).
+           Centre of L-lane: y=222→x=592, y=480→x=537                   */
+        @keyframes app {
+          0%  { transform: translate(592px,222px) scale(.13); opacity:0  }
+          8%  { opacity:.9 }
+          88% { opacity:.9 }
+          100%{ transform: translate(537px,475px) scale(1);   opacity:0  }
+        }
+        /* Right-lane cars RECEDE from viewer: near (large) → far (small).
+           Centre of R-lane: y=480→x=663, y=222→x=608                   */
+        @keyframes rec {
+          0%  { transform: translate(663px,475px) scale(1);   opacity:0  }
+          8%  { opacity:.9 }
+          88% { opacity:.9 }
+          100%{ transform: translate(608px,222px) scale(.13); opacity:0  }
+        }
+        /* 3 cars approaching, negative delays spread them along the road */
+        .a1 { animation: app 4.6s linear 0s    infinite }
+        .a2 { animation: app 4.6s linear -1.53s infinite }
+        .a3 { animation: app 4.6s linear -3.07s infinite }
+        /* 2 cars receding */
+        .r1 { animation: rec 4.6s linear -0.77s infinite }
+        .r2 { animation: rec 4.6s linear -2.3s  infinite }
 
-        {/* Atmospheric glow from billboard screens */}
-        <ellipse cx="448" cy="210" rx="230" ry="175" fill="url(#sg1)"/>
+        /* Spotlight flicker */
+        .spl { animation: spl 3.2s ease-in-out infinite }
+        .spr { animation: spr 3.2s ease-in-out 1.3s infinite }
+        @keyframes spl { 0%,100%{opacity:.13} 50%{opacity:.04} }
+        @keyframes spr { 0%,100%{opacity:.07} 50%{opacity:.17} }
 
-        {/* Far background buildings */}
-        <rect x="0"   y="490" width="50"  height="370" fill="#111"/>
-        <rect x="55"  y="455" width="65"  height="405" fill="#0f0f0f"/>
-        <rect x="125" y="505" width="45"  height="355" fill="#111"/>
-        <rect x="560" y="465" width="60"  height="395" fill="#0f0f0f"/>
-        <rect x="628" y="492" width="72"  height="368" fill="#111"/>
+        /* Street-lamp pulse */
+        .lg { animation: lg 4s ease-in-out infinite }
+        @keyframes lg { 0%,100%{opacity:.9} 50%{opacity:.5} }
 
-        {/* Mid-ground left buildings */}
-        <rect x="0"   y="345" width="98"  height="515" fill="#0d0d0d"/>
-        <rect x="103" y="306" width="112" height="554" fill="#0e0e0e"/>
-        <rect x="0"   y="345" width="98"  height="8"   fill="#080808"/>
-        <rect x="103" y="306" width="112" height="8"   fill="#080808"/>
-        {/* Left building 1 windows */}
-        {[365, 388, 411, 434, 457, 480].flatMap(y =>
-          [8, 22, 36, 52, 66, 80].map(x => (
-            <rect key={`b1-${x}-${y}`} x={x} y={y} width={9} height={7}
-              fill={y === 388 && x === 36 ? '#2c2a16' : y === 457 && x === 66 ? '#2a2814' : '#161616'}/>
-          ))
-        )}
-        {/* Left building 2 windows */}
-        {[320, 343, 366, 389, 412, 435, 458].flatMap(y =>
-          [110, 128, 146, 164, 182, 198].map(x => (
-            <rect key={`b2-${x}-${y}`} x={x} y={y} width={12} height={8}
-              fill={y === 343 && x === 146 ? '#2e2c17' : y === 412 && x === 198 ? '#2a2814' : '#161616'}/>
-          ))
-        )}
+        /* Worker 1 bob */
+        .w1g { animation: w1b 1.3s ease-in-out infinite }
+        @keyframes w1b { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-2.5px)} }
+        /* Worker 2 bob */
+        .w2g { animation: w2b 1.7s ease-in-out .45s infinite }
+        @keyframes w2b { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)} }
+        /* Worker 1 arm swing */
+        .waa { transform-box:fill-box; transform-origin:100% 50%;
+               animation: waa .8s ease-in-out infinite }
+        @keyframes waa { 0%,100%{transform:rotate(0deg)} 50%{transform:rotate(-30deg)} }
+        /* Worker 2 arm swing */
+        .wba { transform-box:fill-box; transform-origin:50% 0%;
+               animation: wba .95s ease-in-out .25s infinite }
+        @keyframes wba { 0%,100%{transform:rotate(0deg)} 50%{transform:rotate(28deg)} }
 
-        {/* Mid-ground right building */}
-        <rect x="592" y="326" width="108" height="534" fill="#0d0d0d"/>
-        <rect x="592" y="326" width="108" height="8"   fill="#080808"/>
-        {[342, 365, 388, 411, 434, 457].flatMap(y =>
-          [598, 616, 634, 652, 670, 688].map(x => (
-            <rect key={`b3-${x}-${y}`} x={x} y={y} width={12} height={8}
-              fill={y === 365 && x === 634 ? '#2c2a16' : y === 434 && x === 688 ? '#282713' : '#161616'}/>
-          ))
-        )}
+        /* Traffic light */
+        .tl-r { animation: tlr 6s linear infinite }
+        .tl-y { animation: tly 6s linear infinite }
+        .tl-g { animation: tlg 6s linear infinite }
+        @keyframes tlr { 0%,33%{fill:#ff2211} 34%,100%{fill:#330500} }
+        @keyframes tly { 0%,33%{fill:#1a0800} 34%,66%{fill:#ffaa00} 67%,100%{fill:#1a0800} }
+        @keyframes tlg { 0%,66%{fill:#001800} 67%,100%{fill:#22cc44} }
 
-        {/* Buildings behind billboard */}
-        <rect x="292" y="440" width="118" height="320" fill="#0c0c0c"/>
-        <rect x="518" y="455" width="68"  height="305" fill="#0c0c0c"/>
+        /* Scaffold warning blink */
+        .wbl { animation: wblf 1.1s ease-in-out infinite }
+        @keyframes wblf { 0%,100%{opacity:.9} 50%{opacity:.1} }
+      `}</style>
 
-        {/* ─── BILLBOARD I-BEAM POLE ─── */}
-        {/* Left flange */}
-        <rect x="440" y="350" width="8" height="410" fill="#1d1d1d"/>
-        {/* Right flange */}
-        <rect x="456" y="350" width="8" height="410" fill="#1d1d1d"/>
-        {/* Web stiffener plates */}
-        {[415, 490, 565, 638, 712].map(y => (
-          <rect key={`web-${y}`} x="440" y={y} width="24" height="5" fill="#181818"/>
-        ))}
-        {/* Metallic highlight strip */}
-        <rect x="443" y="350" width="3" height="410" fill="#272727"/>
-        {/* Base plates / foundation */}
-        <rect x="428" y="754" width="48" height="12" fill="#171717"/>
-        <rect x="420" y="762" width="64" height="8"  fill="#131313"/>
-        <rect x="416" y="768" width="72" height="6"  fill="#101010"/>
+      {/* ── Sky ──────────────────────────────────────────────────────────── */}
+      <rect width="1200" height="500" fill="url(#sky)" />
 
-        {/* Horizontal outrigger arms (pole to screen frame edges) */}
-        <rect x="294" y="342" width="146" height="10" fill="#1b1b1b"/>
-        <rect x="294" y="342" width="146" height="3"  fill="#232323"/>
-        <rect x="464" y="342" width="146" height="10" fill="#1b1b1b"/>
-        <rect x="464" y="342" width="146" height="3"  fill="#232323"/>
-        {/* Diagonal truss braces */}
-        <polygon points="440,342 294,348 298,358 444,352" fill="#181818"/>
-        <polygon points="464,342 610,348 606,358 460,352" fill="#181818"/>
+      {stars.map(([x,y,r],i) => (
+        <circle key={i} cx={x} cy={y} r={r} fill="white" opacity={0.3+(i%5)*0.1} />
+      ))}
 
-        {/* ─── BILLBOARD FRAME + SCREEN ─── */}
-        {/* Structural outer frame */}
-        <rect x="284" y="104" width="336" height="248" rx="3" fill="#0e0e0e"/>
-        <rect x="284" y="104" width="336" height="248" rx="3" fill="none" stroke="#222" strokeWidth="8"/>
-        {/* Screen face */}
-        <rect x="296" y="116" width="312" height="224" rx="1" fill="#181818"/>
-        {/* Screen glow wash */}
-        <rect x="296" y="116" width="312" height="224" rx="1" fill="#C9F31D" opacity="0.042"/>
-        {/* Screen border glow */}
-        <rect x="296" y="116" width="312" height="224" rx="1" fill="none" stroke="#C9F31D" strokeWidth="2.2" opacity="0.62"/>
-        {/* Corner mounting hardware */}
-        <rect x="284" y="104" width="16" height="16" rx="1" fill="#181818" stroke="#232323" strokeWidth="1"/>
-        <rect x="604" y="104" width="16" height="16" rx="1" fill="#181818" stroke="#232323" strokeWidth="1"/>
-        <rect x="284" y="336" width="16" height="16" rx="1" fill="#181818" stroke="#232323" strokeWidth="1"/>
-        <rect x="604" y="336" width="16" height="16" rx="1" fill="#181818" stroke="#232323" strokeWidth="1"/>
-        <circle cx="292" cy="112" r="4" fill="#282828"/>
-        <circle cx="612" cy="112" r="4" fill="#282828"/>
-        <circle cx="292" cy="344" r="4" fill="#282828"/>
-        <circle cx="612" cy="344" r="4" fill="#282828"/>
+      {/* Moon */}
+      <circle cx="1080" cy="52" r="22" fill="#fffbe8" opacity="0.88" />
+      <circle cx="1093" cy="46" r="18" fill="#152240" opacity="0.85" />
 
-        {/* ─── AD CONTENT ON SCREEN ─── */}
-        {/* Brand strip */}
-        <rect x="312" y="130" width="145" height="30" rx="2" fill="#C9F31D" opacity="0.88"/>
-        <rect x="320" y="137" width="108" height="10" rx="1" fill="#111" opacity="0.50"/>
-        <rect x="320" y="149" width="76"  height="7"  rx="1" fill="#111" opacity="0.30"/>
-        {/* Body copy lines */}
-        <rect x="312" y="172" width="204" height="10" rx="1" fill="white" opacity="0.15"/>
-        <rect x="312" y="188" width="162" height="10" rx="1" fill="white" opacity="0.11"/>
-        <rect x="312" y="204" width="118" height="10" rx="1" fill="white" opacity="0.08"/>
-        {/* Main creative block */}
-        <rect x="312" y="224" width="192" height="92" rx="2" fill="#131313"/>
-        <rect x="316" y="228" width="184" height="84" rx="1" fill="#C9F31D" opacity="0.06"/>
-        <rect x="320" y="234" width="72"  height="70" rx="2" fill="#C9F31D" opacity="0.22"/>
-        <rect x="402" y="234" width="88"  height="32" rx="1" fill="white"   opacity="0.055"/>
-        <rect x="402" y="272" width="88"  height="32" rx="1" fill="white"   opacity="0.045"/>
-        <rect x="410" y="240" width="54"  height="8"  rx="1" fill="#C9F31D" opacity="0.44"/>
-        <rect x="410" y="254" width="40"  height="7"  rx="1" fill="white"   opacity="0.17"/>
-        <rect x="410" y="267" width="46"  height="7"  rx="1" fill="white"   opacity="0.11"/>
-        {/* Right info block */}
-        <rect x="514" y="224" width="82"  height="92" rx="2" fill="#131313"/>
-        <rect x="520" y="232" width="68"  height="8"  rx="1" fill="white"   opacity="0.10"/>
-        <rect x="520" y="246" width="56"  height="8"  rx="1" fill="#C9F31D" opacity="0.40"/>
-        <rect x="520" y="260" width="62"  height="8"  rx="1" fill="white"   opacity="0.08"/>
-        <rect x="520" y="274" width="44"  height="8"  rx="1" fill="white"   opacity="0.06"/>
-        <rect x="520" y="288" width="52"  height="20" rx="2" fill="#C9F31D" opacity="0.52"/>
-        {/* CTA row */}
-        <rect x="312" y="326" width="112" height="28" rx="2" fill="#C9F31D" opacity="0.82"/>
-        <rect x="434" y="326" width="82"  height="28" rx="2" fill="white"   opacity="0.05"/>
-        <rect x="526" y="326" width="68"  height="28" rx="2" fill="white"   opacity="0.04"/>
-        <rect x="322" y="336" width="76"  height="8"  rx="1" fill="#111"    opacity="0.45"/>
+      {/* Horizon glow */}
+      <ellipse cx="600" cy="222" rx="270" ry="26" fill="#ff9a3c" opacity="0.07" />
 
-        {/* ─── CATWALK / MAINTENANCE WALKWAY ─── */}
-        <rect x="284" y="352" width="336" height="9" fill="#191919"/>
-        <rect x="284" y="352" width="336" height="3" fill="#272727"/>
-        <rect x="284" y="342" width="336" height="4" fill="#202020"/>
-        {/* Railing posts */}
-        {[290, 330, 370, 410, 450, 490, 530, 570, 610].map(x => (
-          <rect key={`post-${x}`} x={x} y={342} width={4} height={19} fill="#1c1c1c"/>
-        ))}
+      {/* ── Far/horizon building silhouettes ────────────────────────────── */}
+      {([
+        [395,172,42,50],[432,155,28,67],[456,166,38,56],[490,148,34,74],
+        [521,160,46,62],[565,145,36,77],[600,154,52,68],[649,142,40,80],
+        [687,158,34,64],[718,148,40,74],[756,162,48,60],[802,147,37,75],
+        [836,160,43,62],[876,150,36,72],[912,144,54,78],
+      ] as [number,number,number,number][]).map(([x,y,w,h],i) => (
+        <rect key={i} x={x} y={y} width={w} height={h} fill="#182035" />
+      ))}
 
-        {/* ─── SPOTLIGHT FIXTURES ON CATWALK ─── */}
-        <rect x="308" y="351" width="26" height="12" rx="2" fill="#1c1c1c"/>
-        <rect x="352" y="353" width="24" height="10" rx="2" fill="#1c1c1c"/>
-        <rect x="506" y="351" width="26" height="12" rx="2" fill="#1c1c1c"/>
-        <rect x="550" y="353" width="24" height="10" rx="2" fill="#1c1c1c"/>
-        {/* Lens glows */}
-        <circle cx="321" cy="351" r="8" fill="#C9F31D" opacity="0.48"/>
-        <circle cx="364" cy="353" r="7" fill="#C9F31D" opacity="0.40"/>
-        <circle cx="519" cy="351" r="8" fill="#C9F31D" opacity="0.48"/>
-        <circle cx="562" cy="353" r="7" fill="#C9F31D" opacity="0.40"/>
-        {/* Faint upward light beams */}
-        <polygon points="315,351 327,351 323,116 319,116" fill="#C9F31D" opacity="0.022"/>
-        <polygon points="358,353 370,353 368,116 356,116" fill="#C9F31D" opacity="0.018"/>
-        <polygon points="513,351 525,351 521,116 517,116" fill="#C9F31D" opacity="0.022"/>
-        <polygon points="556,353 568,353 564,116 552,116" fill="#C9F31D" opacity="0.018"/>
+      {/* ── Left near buildings (right edge ≈ x 480, flush with road) ──── */}
+      <rect x="-10" y="20"  width="105" height="460" fill="#0d0c0b" />
+      <rect x="90"  y="55"  width="85"  height="425" fill="#111010" />
+      <rect x="170" y="15"  width="125" height="465" fill="#0b0a09" />
+      <rect x="290" y="50"  width="95"  height="430" fill="#100f0e" />
+      {/* Extended to x=480 — right edge sits at the sidewalk/road boundary */}
+      <rect x="380" y="88"  width="100" height="392" fill="#0e0d0c" />
 
-        {/* ─── STREET LAMPS ─── */}
-        {/* Left lamp */}
-        <rect x="242" y="544" width="8"  height="218" fill="#161616"/>
-        <rect x="242" y="544" width="64" height="7"   fill="#161616"/>
-        <rect x="300" y="544" width="8"  height="24"  fill="#161616"/>
-        <rect x="292" y="530" width="24" height="16" rx="4" fill="#191919"/>
-        <rect x="296" y="534" width="16" height="9"  rx="2" fill="#fff8e0" opacity="0.78"/>
-        <ellipse cx="304" cy="546" rx="34" ry="24" fill="url(#sg3)" opacity="0.65"/>
-        {/* Right lamp */}
-        <rect x="624" y="558" width="8"  height="204" fill="#161616"/>
-        <rect x="560" y="558" width="72" height="7"   fill="#161616"/>
-        <rect x="560" y="558" width="8"  height="24"  fill="#161616"/>
-        <rect x="550" y="544" width="24" height="16" rx="4" fill="#191919"/>
-        <rect x="554" y="548" width="16" height="9"  rx="2" fill="#fff8e0" opacity="0.78"/>
-        <ellipse cx="562" cy="560" rx="34" ry="24" fill="url(#sg3)" opacity="0.65"/>
+      {/* Windows — left block */}
+      {([
+        [12,50],[32,50],[52,50],[12,76],[52,76],[32,76],[12,102],[32,102],
+        [52,102],[12,128],[52,128],[12,154],[32,154],[12,180],[32,180],[52,180],
+      ] as [number,number][]).map(([x,y],i) => (
+        <rect key={i} x={x} y={y} width={9} height={13}
+          fill={i%3===0?'#C9F31D':i%3===1?'#fff':'#4a6fa5'} opacity={0.6+(i%4)*0.1} />
+      ))}
+      {([
+        [100,85],[118,85],[136,85],[154,85],[100,111],[136,111],
+        [100,137],[118,137],[154,137],[100,163],[118,163],[136,163],[100,189],[154,189],
+      ] as [number,number][]).map(([x,y],i) => (
+        <rect key={i} x={x} y={y} width={10} height={14}
+          fill={i%3===0?'#C9F31D':i%3===1?'#fff':'#4a7ab5'} opacity={0.55+(i%3)*0.12} />
+      ))}
+      {([
+        [180,45],[200,45],[222,45],[244,45],[266,45],
+        [180,73],[200,73],[244,73],[266,73],
+        [180,101],[222,101],[244,101],[266,101],
+        [180,129],[200,129],[222,129],[266,129],[180,157],[200,157],[244,157],
+      ] as [number,number][]).map(([x,y],i) => (
+        <rect key={i} x={x} y={y} width={12} height={16}
+          fill={i%4===0?'#C9F31D':i%4===1?'#fff':i%4===2?'#4a7ab5':'#fff'}
+          opacity={0.5+(i%5)*0.1} />
+      ))}
+      {([
+        [300,78],[320,78],[342,78],[362,78],[300,106],[342,106],[362,106],
+        [300,134],[320,134],[362,134],[300,162],[320,162],[342,162],
+      ] as [number,number][]).map(([x,y],i) => (
+        <rect key={i} x={x} y={y} width={10} height={14}
+          fill={i%3===0?'#C9F31D':'#fff'} opacity={0.5+(i%4)*0.1} />
+      ))}
+      {/* Windows on the extended building (x 380-480) */}
+      {([
+        [390,108],[410,108],[430,108],[450,108],
+        [390,136],[430,136],[450,136],
+        [390,164],[410,164],[450,164],
+        [390,192],[410,192],[430,192],
+        [390,220],[450,220],
+      ] as [number,number][]).map(([x,y],i) => (
+        <rect key={i} x={x} y={y} width={10} height={14}
+          fill={i%3===0?'#C9F31D':i%3===1?'#fff':'#4a7ab5'} opacity={0.5+(i%4)*0.1} />
+      ))}
 
-        {/* ─── FOREGROUND BUILDINGS ─── */}
-        {/* Left slab */}
-        <rect x="0"   y="568" width="232" height="292" fill="#080808"/>
-        <rect x="0"   y="568" width="232" height="12"  fill="#060606"/>
-        {/* Rooftop equipment */}
-        <rect x="8"   y="554" width="28" height="16" rx="1" fill="#0d0d0d"/>
-        <rect x="42"  y="556" width="22" height="14" rx="1" fill="#0c0c0c"/>
-        <rect x="70"  y="553" width="26" height="17" rx="1" fill="#0d0d0d"/>
-        <rect x="102" y="555" width="20" height="15" rx="1" fill="#0c0c0c"/>
-        {/* Water tank */}
-        <rect x="158" y="547" width="32" height="25" rx="2" fill="#0d0d0d"/>
-        <rect x="156" y="547" width="36" height="5"  rx="1" fill="#111"/>
-        <rect x="163" y="570" width="4"  height="7"  fill="#0d0d0d"/>
-        <rect x="183" y="570" width="4"  height="7"  fill="#0d0d0d"/>
-        {/* Window grid */}
-        {[588, 613, 638, 663].flatMap(y =>
-          [12, 38, 64, 90, 116, 142, 168, 196].map(x => (
-            <rect key={`fw-${x}-${y}`} x={x} y={y} width={18} height={13}
-              fill={y === 613 && x === 38 ? '#252215' : y === 638 && x === 116 ? '#232014' : '#0e0e0e'}/>
-          ))
-        )}
-        {/* Right slab */}
-        <rect x="628" y="586" width="72"  height="274" fill="#080808"/>
-        <rect x="628" y="586" width="72"  height="10"  fill="#060606"/>
-        <rect x="632" y="574" width="22"  height="14" rx="1" fill="#0d0d0d"/>
-        <rect x="660" y="576" width="18"  height="12" rx="1" fill="#0c0c0c"/>
-        {[606, 628, 650, 672].flatMap(y =>
-          [634, 652, 670, 688].map(x => (
-            <rect key={`rw-${x}-${y}`} x={x} y={y} width={14} height={12}
-              fill={y === 628 && x === 652 ? '#232114' : '#0e0e0e'}/>
-          ))
-        )}
+      {/* ── Right near buildings (left edge ≈ x 718, flush with road) ──── */}
+      {/* Two new buildings added to close the gap on the right */}
+      <rect x="718"  y="65"  width="58"  height="415" fill="#111010" />
+      <rect x="772"  y="45"  width="78"  height="435" fill="#0e0d0c" />
+      <rect x="845"  y="80"  width="80"  height="400" fill="#100f0e" />
+      <rect x="920"  y="40"  width="95"  height="440" fill="#0b0a09" />
+      <rect x="1010" y="60"  width="100" height="420" fill="#111010" />
+      <rect x="1105" y="25"  width="115" height="455" fill="#0d0c0b" />
 
-        {/* ─── ROAD ─── */}
-        <rect x="0" y="756" width="700" height="104" fill="url(#sg4)"/>
-        {/* Sidewalks */}
-        <rect x="0"   y="748" width="232" height="14" fill="#0f0f0f"/>
-        <rect x="622" y="748" width="78"  height="14" fill="#0f0f0f"/>
-        <rect x="0"   y="748" width="232" height="3"  fill="#1a1a1a"/>
-        <rect x="622" y="748" width="78"  height="3"  fill="#1a1a1a"/>
-        {/* Center double yellow lines */}
-        <rect x="0" y="798" width="700" height="3" fill="#C9F31D" opacity="0.38"/>
-        <rect x="0" y="805" width="700" height="3" fill="#C9F31D" opacity="0.38"/>
-        {/* White dashed lane dividers */}
-        {[0, 108, 216, 324, 432, 540, 648].map(x => (
-          <rect key={`ld-${x}`} x={x} y={780} width={82} height={2} fill="white" opacity="0.20"/>
-        ))}
-        {/* Edge lines */}
-        <rect x="0" y="760" width="700" height="2" fill="white" opacity="0.13"/>
-        <rect x="0" y="854" width="700" height="2" fill="white" opacity="0.09"/>
+      {/* Windows — right block (new buildings) */}
+      {([
+        [724,90],[738,90],[752,90],[724,118],[752,118],
+        [724,146],[738,146],[752,146],[724,174],[738,174],
+        [724,202],[752,202],
+      ] as [number,number][]).map(([x,y],i) => (
+        <rect key={i} x={x} y={y} width={10} height={14}
+          fill={i%3===0?'#C9F31D':i%3===1?'#fff':'#4a7ab5'} opacity={0.5+(i%4)*0.1} />
+      ))}
+      {([
+        [782,70],[800,70],[820,70],[840,70],
+        [782,98],[820,98],[840,98],
+        [782,126],[800,126],[840,126],
+        [782,154],[800,154],[820,154],[782,182],[840,182],
+      ] as [number,number][]).map(([x,y],i) => (
+        <rect key={i} x={x} y={y} width={11} height={15}
+          fill={i%3===0?'#C9F31D':'#fff'} opacity={0.5+(i%4)*0.1} />
+      ))}
+      {([
+        [855,100],[873,100],[891,100],[855,128],[891,128],
+        [855,156],[873,156],[855,184],[873,184],[891,184],
+      ] as [number,number][]).map(([x,y],i) => (
+        <rect key={i} x={x} y={y} width={10} height={14}
+          fill={i%2===0?'#C9F31D':'#fff'} opacity={0.5+(i%4)*0.12} />
+      ))}
+      {([
+        [930,65],[952,65],[974,65],[930,93],[974,93],
+        [930,121],[952,121],[974,121],[930,149],[952,149],[930,177],[974,177],
+      ] as [number,number][]).map(([x,y],i) => (
+        <rect key={i} x={x} y={y} width={11} height={15}
+          fill={i%3===0?'#C9F31D':i%3===1?'#fff':'#4a7ab5'} opacity={0.55+(i%3)*0.12} />
+      ))}
+      {([
+        [1020,85],[1042,85],[1064,85],[1086,85],
+        [1020,113],[1064,113],[1086,113],
+        [1020,141],[1042,141],[1086,141],
+        [1020,169],[1042,169],[1064,169],[1020,197],[1086,197],
+      ] as [number,number][]).map(([x,y],i) => (
+        <rect key={i} x={x} y={y} width={11} height={15}
+          fill={i%3===0?'#C9F31D':'#fff'} opacity={0.5+(i%4)*0.1} />
+      ))}
+      {([
+        [1115,55],[1137,55],[1159,55],[1115,83],[1159,83],[1137,83],
+        [1115,111],[1137,111],[1159,111],[1115,139],[1159,139],
+        [1115,167],[1137,167],[1115,195],[1137,195],[1159,195],
+      ] as [number,number][]).map(([x,y],i) => (
+        <rect key={i} x={x} y={y} width={10} height={14}
+          fill={i%3===0?'#C9F31D':i%3===1?'#fff':'#4a7ab5'} opacity={0.55+(i%4)*0.1} />
+      ))}
 
-        {/* ─── TRAFFIC LIGHT STREAKS ─── */}
-        {/* Headlights (coming toward viewer) */}
-        <ellipse cx="152" cy="828" rx="128" ry="7" fill="white" opacity="0.065"/>
-        <ellipse cx="152" cy="828" rx="76"  ry="4" fill="white" opacity="0.09"/>
-        <ellipse cx="84"  cy="828" rx="52"  ry="3" fill="white" opacity="0.055"/>
-        {/* Taillights (moving away) */}
-        <ellipse cx="568" cy="773" rx="108" ry="5" fill="#ff2222" opacity="0.09"/>
-        <ellipse cx="568" cy="773" rx="58"  ry="3" fill="#ff3636" opacity="0.14"/>
-        <ellipse cx="644" cy="773" rx="54"  ry="3" fill="#ff2222" opacity="0.08"/>
+      {/* ── Traffic light (left sidewalk) ────────────────────────────────── */}
+      <rect x="462" y="295" width="4" height="95" fill="#1e1d1b" />
+      <rect x="452" y="255" width="24" height="50" rx="4" fill="#181816" />
+      <circle cx="464" cy="267" r="7" className="tl-r" />
+      <circle cx="464" cy="280" r="7" className="tl-y" />
+      <circle cx="464" cy="293" r="7" className="tl-g" />
 
-        {/* ─── GROUND GLOW FROM BILLBOARD ─── */}
-        <ellipse cx="448" cy="760" rx="185" ry="26" fill="url(#sg2)" opacity="0.88"/>
-        <ellipse cx="448" cy="772" rx="130" ry="17" fill="#C9F31D" opacity="0.04"/>
-        <ellipse cx="450" cy="760" rx="38"  ry="9"  fill="#C9F31D" opacity="0.06"/>
+      {/* ── Ground / road ─────────────────────────────────────────────────── */}
+      {/* Left sidewalk */}
+      <polygon points="0,480 475,480 584,222 440,222"  fill="url(#swalk)" />
+      {/* Right sidewalk */}
+      <polygon points="725,480 1200,480 760,222 616,222" fill="url(#swalk)" />
+      {/* Road surface */}
+      <polygon points="475,480 725,480 616,222 584,222" fill="url(#road)" />
+      {/* Kerb lines */}
+      <line x1="475" y1="480" x2="584" y2="222" stroke="#666" strokeWidth="2" opacity="0.6" />
+      <line x1="725" y1="480" x2="616" y2="222" stroke="#666" strokeWidth="2" opacity="0.6" />
+      {/* Centre lane dashes — straight vertical at x=600 */}
+      <line x1="600" y1="480" x2="600" y2="222" stroke="white" strokeWidth="2.5"
+        strokeDasharray="24,20" opacity="0.45" />
+      {/* Pavement texture lines on sidewalks */}
+      <line x1="0"   y1="400" x2="475" y2="400" stroke="#444" strokeWidth="0.5" opacity="0.3" />
+      <line x1="725" y1="400" x2="1200" y2="400" stroke="#444" strokeWidth="0.5" opacity="0.3" />
+      <line x1="0"   y1="450" x2="475" y2="450" stroke="#444" strokeWidth="0.5" opacity="0.3" />
+      <line x1="725" y1="450" x2="1200" y2="450" stroke="#444" strokeWidth="0.5" opacity="0.3" />
 
-      </svg>
-    </div>
+      {/* ── Street lamps ──────────────────────────────────────────────────── */}
+      {/* Left lamp — pole base at x=458, arm points right toward road */}
+      <rect x="456" y="295" width="6" height="185" fill="#252320" />
+      <rect x="456" y="294" width="36" height="6" rx="3" fill="#252320" />
+      <ellipse cx="490" cy="291" rx="7"  ry="7"  fill="#ffe566" className="lg" filter="url(#glow)" />
+      <ellipse cx="490" cy="291" rx="16" ry="9"  fill="#ffe566" opacity="0.12" className="lg" />
+
+      {/* Right lamp — pole base at x=740, arm points left toward road */}
+      <rect x="738" y="295" width="6" height="185" fill="#252320" />
+      <rect x="708" y="294" width="36" height="6" rx="3" fill="#252320" />
+      <ellipse cx="710" cy="291" rx="7"  ry="7"  fill="#ffe566" className="lg" filter="url(#glow)" />
+      <ellipse cx="710" cy="291" rx="16" ry="9"  fill="#ffe566" opacity="0.12" className="lg" />
+
+      {/* ── Animated cars — clipped to road, perspective scale+translate ── */}
+      <g clipPath="url(#rc)">
+        {/* Left lane — approaching viewer (small→large, far→near) */}
+        <g className="a1"><ApproachCar fill="#1a3060" /></g>
+        <g className="a2"><ApproachCar fill="#8a1a1a" /></g>
+        <g className="a3"><ApproachCar fill="#1a5020" /></g>
+        {/* Right lane — receding from viewer (large→small, near→far) */}
+        <g className="r1"><RecedeCar fill="#464a55" /></g>
+        <g className="r2"><RecedeCar fill="#b83e18" /></g>
+      </g>
+
+      {/* ── Billboard glow halo ────────────────────────────────────────────── */}
+      <ellipse cx="468" cy="158" rx="210" ry="85" fill="url(#bg)" />
+
+      {/* Spotlight cones */}
+      <polygon className="spl" points="288,84 215,188 262,188" fill="#C9F31D" />
+      <polygon className="spr" points="672,84 746,188 698,188" fill="#C9F31D" />
+
+      {/* ── Billboard structure ────────────────────────────────────────────── */}
+      {/* Support pole */}
+      <rect x="455" y="210" width="22" height="270" rx="2" fill="#171615" />
+      {/* Diagonal braces */}
+      <line x1="466" y1="312" x2="415" y2="368" stroke="#171615" strokeWidth="10" strokeLinecap="round" />
+      <line x1="466" y1="344" x2="506" y2="378" stroke="#171615" strokeWidth="8"  strokeLinecap="round" />
+      {/* Outer metal frame */}
+      <rect x="280" y="82"  width="400" height="168" rx="3" fill="#090909" />
+      {/* Face */}
+      <rect x="286" y="88"  width="388" height="156" fill="#1a3560" />
+
+      {/* ── Billboard content — all contained within x 286–674, y 88–244 ── */}
+      {/* Top accent bar (y 88–116) */}
+      <rect x="286" y="88" width="388" height="28" fill="#C9F31D" />
+      <text x="480" y="107"
+        textAnchor="middle" fill="#0a0a0a"
+        fontSize="13" fontWeight="900"
+        fontFamily="'Arial Black', Arial, sans-serif" letterSpacing="3">
+        OUTDOOR ADVERTISING
+      </text>
+
+      {/* Brand name — scaled to fit (286+16 padding each side = max width 356) */}
+      <text x="480" y="172"
+        textAnchor="middle" fill="#ffffff"
+        fontSize="58" fontWeight="900"
+        fontFamily="'Arial Black', Arial, sans-serif" letterSpacing="-1">
+        ADDKARO
+      </text>
+
+      {/* Tagline line 1 */}
+      <text x="480" y="196"
+        textAnchor="middle" fill="#C9F31D"
+        fontSize="13" fontWeight="700"
+        fontFamily="Arial, sans-serif" letterSpacing="2">
+        INDIA'S HOARDING AGGREGATOR
+      </text>
+
+      {/* Tagline line 2 — services, smaller */}
+      <text x="480" y="214"
+        textAnchor="middle" fill="#8ab0d0"
+        fontSize="10" fontWeight="600"
+        fontFamily="Arial, sans-serif" letterSpacing="1.5">
+        PRINT · INSTALL · MAINTAIN
+      </text>
+
+      {/* Face border glow */}
+      <rect x="286" y="88" width="388" height="156" fill="none"
+        stroke="#C9F31D" strokeWidth="1.5" opacity="0.3" />
+
+      {/* Spotlight fixtures */}
+      <rect x="290" y="76" width="12" height="16" rx="2" fill="#222" />
+      <rect x="658" y="76" width="12" height="16" rx="2" fill="#222" />
+
+      {/* ── Scaffold (right side of billboard) ──────────────────────────── */}
+      <rect x="676" y="132" width="5" height="148" fill="#252220" />
+      <rect x="722" y="132" width="5" height="148" fill="#252220" />
+      <rect x="672" y="196" width="60" height="5" fill="#382e22" />
+      <rect x="672" y="248" width="60" height="5" fill="#382e22" />
+      <line x1="681" y1="196" x2="726" y2="248" stroke="#252220" strokeWidth="2" opacity="0.65" />
+      <circle cx="680" cy="136" r="4" fill="#ff6600" className="wbl" />
+
+      {/* ── Worker 1 — top platform, drilling into billboard ──────────── */}
+      <g className="w1g">
+        <rect x="688" y="172" width="11" height="22" rx="2" fill="#cc5500" />
+        <circle cx="693" cy="167" r="7" fill="#d4845a" />
+        <path d="M685 167 Q693 158 701 167 Z" fill="#ffcc00" />
+        <rect x="685" y="166" width="16" height="3" rx="1" fill="#ffcc00" />
+        <g className="waa">
+          <rect x="675" y="178" width="14" height="4" rx="2" fill="#cc5500" />
+          <rect x="668" y="176" width="8" height="6" rx="1" fill="#777" />
+          <rect x="665" y="178" width="4" height="2" rx="1" fill="#aaa" />
+        </g>
+        <rect x="699" y="178" width="4" height="12" rx="2" fill="#cc5500" />
+        <rect x="689" y="193" width="5" height="8" rx="1" fill="#223" />
+        <rect x="695" y="193" width="5" height="8" rx="1" fill="#223" />
+      </g>
+
+      {/* ── Worker 2 — same platform, hammering upward ────────────────── */}
+      <g className="w2g">
+        <rect x="708" y="172" width="11" height="22" rx="2" fill="#1a4a9a" />
+        <circle cx="713" cy="167" r="7" fill="#d4845a" />
+        <path d="M705 167 Q713 158 721 167 Z" fill="#ffcc00" />
+        <rect x="705" y="166" width="16" height="3" rx="1" fill="#ffcc00" />
+        <g className="wba">
+          <rect x="716" y="174" width="4" height="16" rx="2" fill="#1a4a9a" />
+          <ellipse cx="718" cy="190" rx="5" ry="3.5" fill="#777" />
+          <rect x="715" y="190" width="6" height="3" rx="1" fill="#555" />
+        </g>
+        <rect x="703" y="178" width="5" height="10" rx="2" fill="#1a4a9a" />
+        <rect x="709" y="193" width="5" height="8" rx="1" fill="#223" />
+        <rect x="715" y="193" width="5" height="8" rx="1" fill="#223" />
+      </g>
+
+      {/* Ground shadow */}
+      <ellipse cx="480" cy="478" rx="85" ry="7" fill="#000" opacity="0.28" />
+    </svg>
   )
 }
 
-// ── Counter animation ─────────────────────────────────────────────────────────
-function AnimatedCounter({ target, suffix = '' }: { target: number; suffix?: string }) {
-  const [count, setCount] = useState(0)
-  const ref = useRef<HTMLSpanElement>(null)
-  const started = useRef(false)
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const io = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting && !started.current) {
-        started.current = true
-        const duration = 1800
-        const start = performance.now()
-        const step = (now: number) => {
-          const progress = Math.min((now - start) / duration, 1)
-          const eased = 1 - Math.pow(1 - progress, 3)
-          setCount(Math.floor(eased * target))
-          if (progress < 1) requestAnimationFrame(step)
-        }
-        requestAnimationFrame(step)
-      }
-    }, { threshold: 0.5 })
-    io.observe(el)
-    return () => io.disconnect()
-  }, [target])
-  return <span ref={ref}>{count}{suffix}</span>
-}
+// ─────────────────────────────────────────────────────────────────────────────
+// Page
+// ─────────────────────────────────────────────────────────────────────────────
+const MARQUEE_ITEMS = [
+  'HOARDING OWNERS', 'ADVERTISERS', 'PRINT SERVICES', 'INSTALLATION TEAMS',
+  'MAINTENANCE', 'OOH AGGREGATOR', 'CONNECT WITH PROS', 'OUTDOOR ADVERTISING',
+]
+
+const WHO_WE_SERVE = [
+  {
+    icon: <Building2 className="w-6 h-6" />,
+    title: 'Hoarding Owners',
+    desc: 'List your sites, manage availability, and connect directly with advertisers looking for your space.',
+  },
+  {
+    icon: <Megaphone className="w-6 h-6" />,
+    title: 'Advertisers & Brands',
+    desc: 'Browse, shortlist, and make offers on the perfect billboard for your campaign — by city, size, traffic.',
+  },
+  {
+    icon: <Printer className="w-6 h-6" />,
+    title: 'Print Services',
+    desc: 'Connect your print shop with hoarding owners who need quality printing for their sites.',
+  },
+  {
+    icon: <Wrench className="w-6 h-6" />,
+    title: 'Installation Teams',
+    desc: 'Get discovered for hoarding installation, mounting, and setup work across your region.',
+  },
+  {
+    icon: <Hammer className="w-6 h-6" />,
+    title: 'Maintenance Services',
+    desc: 'Offer repair, upkeep, and servicing of hoarding infrastructure to owners on the platform.',
+  },
+]
 
 export default function LandingPage() {
-  const navigate = useNavigate()
-  const user = useAuthStore((s) => s.user)
-  const setAuth = useAuthStore((s) => s.setAuth)
-  const [modal, setModal] = useState<ModalType>(null)
-  const [registerSuccess, setRegisterSuccess] = useState(false)
-
-  useScrollReveal()
-
-  useEffect(() => {
-    if (!user) return
-    const role = user.role.toUpperCase()
-    if (role === 'OWNER') navigate('/owner/dashboard', { replace: true })
-    else if (role === 'ADMIN') navigate('/admin', { replace: true })
-    else navigate('/browse', { replace: true })
-  }, [user, navigate])
-
-  useEffect(() => {
-    document.body.style.overflow = modal ? 'hidden' : ''
-    return () => { document.body.style.overflow = '' }
-  }, [modal])
-
-  useEffect(() => {
-    const h = (e: KeyboardEvent) => { if (e.key === 'Escape') setModal(null) }
-    window.addEventListener('keydown', h)
-    return () => window.removeEventListener('keydown', h)
-  }, [])
-
-  const loginForm = useForm<LoginFormData>({ resolver: zodResolver(loginSchema) })
-  const loginMutation = useMutation({
-    mutationFn: loginUser,
-    onSuccess: (u) => {
-      setAuth(u)
-      setModal(null)
-      const role = u.role.toUpperCase()
-      if (role === 'OWNER') navigate('/owner/dashboard')
-      else if (role === 'ADMIN') navigate('/admin')
-      else navigate('/browse')
-    },
-  })
-
-  const registerForm = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: { role: 'customer' },
-  })
-  const registerRole = registerForm.watch('role')
-  const registerMutation = useMutation({
-    mutationFn: registerUser,
-    onSuccess: () => setRegisterSuccess(true),
-  })
-
-  function openModal(type: ModalType) {
-    setRegisterSuccess(false)
-    loginForm.reset()
-    setModal(type)
-  }
-
   return (
-    <>
-      {/* ── Global animation styles ─────────────────────────────────────── */}
-      <style>{`
-        [data-reveal] {
-          opacity: 0;
-          transform: translateY(36px);
-          transition: opacity 0.65s cubic-bezier(0.16,1,0.3,1), transform 0.65s cubic-bezier(0.16,1,0.3,1);
-          will-change: transform, opacity;
-        }
-        [data-reveal="left"]  { transform: translateX(-40px); }
-        [data-reveal="right"] { transform: translateX(40px); }
-        [data-reveal="scale"] { transform: scale(0.93); }
-        [data-reveal].revealed { opacity: 1 !important; transform: none !important; will-change: auto; }
+    <div className="min-h-screen" style={{ background: '#f5f1eb' }}>
 
-        @keyframes heroSlideUp {
-          from { opacity: 0; transform: translateY(50px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes heroFade {
-          from { opacity: 0; }
-          to   { opacity: 1; }
-        }
-        @keyframes floatA {
-          0%,100% { transform: rotate(45deg) translateY(0px); }
-          50%     { transform: rotate(45deg) translateY(-14px); }
-        }
-        @keyframes floatB {
-          0%,100% { transform: rotate(45deg) translateY(0px); }
-          50%     { transform: rotate(45deg) translateY(12px); }
-        }
-        @keyframes marquee {
-          from { transform: translate3d(0,0,0); }
-          to   { transform: translate3d(-50%,0,0); }
-        }
-        @keyframes pulse-ring {
-          0%   { box-shadow: 0 0 0 0 rgba(201,243,29,0.5); }
-          70%  { box-shadow: 0 0 0 14px rgba(201,243,29,0); }
-          100% { box-shadow: 0 0 0 0 rgba(201,243,29,0); }
-        }
-        html { scroll-behavior: smooth; }
-        .hero-line-1 { animation: heroSlideUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.05s both; will-change: transform, opacity; }
-        .hero-line-2 { animation: heroSlideUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.18s both; will-change: transform, opacity; }
-        .hero-line-3 { animation: heroSlideUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.30s both; will-change: transform, opacity; }
-        .hero-line-4 { animation: heroSlideUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.42s both; will-change: transform, opacity; }
-        .hero-line-5 { animation: heroFade 0.9s ease 0.55s both; will-change: opacity; }
-        .shape-a { animation: floatA 6s ease-in-out infinite; will-change: transform; }
-        .shape-b { animation: floatB 8s ease-in-out infinite; will-change: transform; }
-        .shape-c { animation: floatA 10s ease-in-out infinite 2s; will-change: transform; }
-        .marquee-track { animation: marquee 28s linear infinite; will-change: transform; display: flex; width: max-content; }
-        .pulse-dot { animation: pulse-ring 2.5s ease-out infinite; }
+      {/* ── Nav ──────────────────────────────────────────────────────────── */}
+      <header className="flex items-center justify-between px-6 py-5 md:px-12">
+        <span className="text-2xl font-black tracking-tight uppercase"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#111' }}>
+          AddKaro
+        </span>
+        <div className="flex items-center gap-3">
+          <Link to="/login" className="px-5 py-2 text-sm font-bold hover:opacity-70 transition-opacity"
+            style={{ color: '#555' }}>
+            Sign In
+          </Link>
+          <Link to="/register" className="px-5 py-2 text-sm font-bold text-white"
+            style={{ background: '#1a3560' }}>
+            Get Started
+          </Link>
+        </div>
+      </header>
 
-        @keyframes screenGlow {
-          0%,100% { filter: brightness(1); }
-          50%     { filter: brightness(1.18); }
-        }
-        .hoarding-scene { animation: screenGlow 4s ease-in-out infinite; will-change: filter; }
+      {/* ── Marquee ──────────────────────────────────────────────────────── */}
+      <div className="overflow-hidden py-3" style={{ background: '#0f0f13' }}>
+        <div className="marquee-track">
+          {[...MARQUEE_ITEMS, ...MARQUEE_ITEMS].map((item, i) => (
+            <span key={i}
+              className="flex items-center gap-6 px-6 text-xs font-bold tracking-widest uppercase whitespace-nowrap"
+              style={{ color: '#C9F31D' }}>
+              {item}
+              <span style={{ color: '#444' }}>✦</span>
+            </span>
+          ))}
+        </div>
+      </div>
 
-        .yk-btn {
-          display: inline-flex; align-items: center; gap: 8px;
-          background: ${Y}; color: ${D}; font-weight: 800;
-          padding: 14px 32px; border-radius: 4px; font-size: 14px;
-          letter-spacing: 0.03em; text-transform: uppercase;
-          transition: transform 0.18s ease, box-shadow 0.18s ease;
-        }
-        .yk-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(201,243,29,0.4); }
+      {/* ── Hero ─────────────────────────────────────────────────────────── */}
+      <section className="px-6 pt-20 pb-12 md:px-12 text-center page-enter">
+        <span className="section-label">India's #1 Hoarding Aggregator</span>
+        <h1 className="uppercase mx-auto" style={{
+          fontFamily: "'Barlow Condensed', sans-serif",
+          fontSize: 'clamp(3.5rem, 10vw, 8rem)',
+          fontWeight: 900, lineHeight: 0.92,
+          letterSpacing: '-0.02em', maxWidth: '900px',
+        }}>
+          The Complete
+          <br />
+          <span style={{ color: '#1a3560' }}>Outdoor Ad</span>
+          <br />
+          Ecosystem
+        </h1>
+        <p className="mt-6 text-base md:text-lg max-w-2xl mx-auto" style={{ color: '#555' }}>
+          AddKaro aggregates hoarding owners, advertisers, print shops, installation teams,
+          and maintenance services — everyone in outdoor advertising, one platform.
+        </p>
+        <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <Link to="/register"
+            className="pulse-glow inline-flex items-center gap-2 px-8 py-4 text-sm font-bold text-white"
+            style={{ background: '#1a3560' }}>
+            Browse Hoardings <ArrowRight className="w-4 h-4" />
+          </Link>
+          <Link to="/register"
+            className="inline-flex items-center gap-2 px-8 py-4 text-sm font-bold border-2 hover:bg-gray-100 transition-colors"
+            style={{ borderColor: '#111', color: '#111' }}>
+            Join as a Service Provider
+          </Link>
+        </div>
+      </section>
 
-        .yk-btn-outline {
-          display: inline-flex; align-items: center; gap: 8px;
-          background: transparent; color: white; font-weight: 700;
-          padding: 13px 28px; border-radius: 4px; font-size: 14px;
-          letter-spacing: 0.03em; text-transform: uppercase;
-          border: 2px solid rgba(255,255,255,0.25);
-          transition: border-color 0.18s, background 0.18s;
-        }
-        .yk-btn-outline:hover { border-color: ${Y}; color: ${Y}; }
+      {/* ── Animated cityscape ───────────────────────────────────────────── */}
+      <div className="w-full overflow-hidden" style={{ marginTop: '-1rem' }}>
+        <CityscapeSVG />
+      </div>
 
-        .feat-card {
-          background: #f9f9f9; border: 1px solid #ebebeb; border-radius: 4px;
-          padding: 32px 28px; transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s;
-        }
-        .feat-card:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(0,0,0,0.09); border-color: ${Y}; }
-
-        .step-num {
-          width: 52px; height: 52px; border-radius: 2px;
-          display: flex; align-items: center; justify-content: center;
-          font-size: 22px; font-weight: 900; flex-shrink: 0;
-          background: ${Y}; color: ${D};
-        }
-      `}</style>
-
-      <div style={{ fontFamily: 'system-ui,-apple-system,sans-serif', color: D }}>
-
-        {/* ══ NAV ══════════════════════════════════════════════════════════ */}
-        <nav style={{ background: D, borderBottom: '1px solid #222' }}
-          className="fixed top-0 inset-x-0 z-40">
-          <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 flex items-center justify-center" style={{ background: Y, borderRadius: 2 }}>
-                <Building2 className="w-4 h-4" style={{ color: D }} />
+      {/* ── Who We Serve ─────────────────────────────────────────────────── */}
+      <section className="px-6 py-16 md:px-12" style={{ background: '#0f0f13' }}>
+        <div className="max-w-5xl mx-auto">
+          <span className="section-label text-center block" style={{ color: '#555' }}>Who We Serve</span>
+          <h2 className="text-center uppercase mb-12 text-white"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 'clamp(2rem, 5vw, 3.5rem)', fontWeight: 900 }}>
+            Everyone in Outdoor Advertising
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-px stagger-children"
+            style={{ background: '#222' }}>
+            {WHO_WE_SERVE.map((item) => (
+              <div key={item.title} className="p-6 flex flex-col gap-4" style={{ background: '#0f0f13' }}>
+                <div className="w-10 h-10 flex items-center justify-center"
+                  style={{ background: '#1a3560', color: '#C9F31D' }}>
+                  {item.icon}
+                </div>
+                <h3 className="text-sm font-bold text-white leading-snug">{item.title}</h3>
+                <p className="text-xs leading-relaxed" style={{ color: '#888' }}>{item.desc}</p>
               </div>
-              <span className="text-lg font-black text-white tracking-tighter">AddKaro</span>
-            </div>
-            <div className="hidden md:flex items-center gap-8 text-sm font-semibold text-gray-400">
-              <a href="#features" className="hover:text-white transition-colors">Features</a>
-              <a href="#how" className="hover:text-white transition-colors">How It Works</a>
-              <a href="#stats" className="hover:text-white transition-colors">Platform</a>
-            </div>
-            <div className="flex items-center gap-3">
-              <button onClick={() => openModal('login')}
-                className="text-sm font-semibold text-gray-400 hover:text-white transition-colors px-4 py-2">
-                Log In
-              </button>
-              <button onClick={() => openModal('register')} className="yk-btn" style={{ padding: '9px 20px', fontSize: 13 }}>
-                Get Started
-              </button>
-            </div>
-          </div>
-        </nav>
-
-        {/* ══ HERO ═════════════════════════════════════════════════════════ */}
-        <section style={{ background: D, minHeight: '100vh', paddingTop: 64 }}
-          className="relative flex items-center overflow-hidden">
-
-          {/* Background: grid texture + hoarding scene */}
-          <div className="absolute inset-0 pointer-events-none overflow-hidden">
-            {/* Grid texture */}
-            <div className="absolute inset-0" style={{
-              backgroundImage: 'linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px)',
-              backgroundSize: '80px 80px',
-            }} />
-            {/* City hoarding scene — right half, desktop only */}
-            <div className="absolute top-0 right-0 bottom-0 hidden lg:flex items-end" style={{ width: '50%', opacity: 0.92 }}>
-              <HoardingScene />
-            </div>
-          </div>
-
-          <div className="relative z-10 max-w-7xl mx-auto px-6 py-28 w-full">
-            <div className="max-w-4xl">
-
-              {/* Label */}
-              <div className="hero-line-1 flex items-center gap-2 mb-8">
-                <span className="pulse-dot inline-block w-2 h-2 rounded-full" style={{ background: Y }} />
-                <span className="text-xs font-bold uppercase tracking-[0.2em]" style={{ color: Y }}>
-                  India's Hoarding Aggregator Platform
-                </span>
-              </div>
-
-              {/* Headline */}
-              <h1 className="hero-line-2 font-black leading-[0.95] tracking-tight mb-2"
-                style={{ fontSize: 'clamp(52px,8vw,110px)', color: 'white' }}>
-                Discover &amp;
-              </h1>
-              <h1 className="hero-line-3 font-black leading-[0.95] tracking-tight mb-8"
-                style={{ fontSize: 'clamp(52px,8vw,110px)', color: Y }}>
-                Book Hoardings.
-              </h1>
-
-              {/* Subheading */}
-              <p className="hero-line-4 text-gray-400 leading-relaxed mb-10"
-                style={{ fontSize: 'clamp(16px,2vw,20px)', maxWidth: 560 }}>
-                One platform aggregating verified hoarding spaces across India. Browse,
-                submit offers, and connect directly with owners — no brokers involved.
-              </p>
-
-              {/* CTAs */}
-              <div className="hero-line-4 flex flex-wrap gap-4 mb-14">
-                <button onClick={() => openModal('register')} className="yk-btn">
-                  Start for Free <ArrowRight className="w-4 h-4" />
-                </button>
-                <button onClick={() => openModal('login')} className="yk-btn-outline">
-                  Sign In
-                </button>
-              </div>
-
-              {/* Trust badges */}
-              <div className="hero-line-5 flex flex-wrap gap-6">
-                {[
-                  { icon: CheckCircle2, text: '500+ verified listings' },
-                  { icon: MapPin, text: 'Bangalore & Delhi NCR' },
-                  { icon: Shield, text: 'Direct owner connect' },
-                ].map(({ icon: Icon, text }) => (
-                  <div key={text} className="flex items-center gap-2 text-sm text-gray-500">
-                    <Icon className="w-4 h-4" style={{ color: Y }} />
-                    {text}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ══ MARQUEE STRIP ════════════════════════════════════════════════ */}
-        <div style={{ background: Y, padding: '14px 0', overflow: 'hidden', position: 'relative' }}>
-          {/* Two identical sets — animation moves -50% for seamless loop */}
-          <div className="marquee-track" style={{ alignItems: 'center' }}>
-            {[...Array(2)].flatMap(() =>
-              ['Outdoor Advertising', 'Hoardings', 'Billboards', 'LED Screens', 'Unipoles', 'No Brokers', 'Verified Owners', 'India'].map((t, i) => (
-                <span key={`${t}-${i}`} className="font-black uppercase tracking-widest text-sm whitespace-nowrap"
-                  style={{ color: D, padding: '0 32px' }}>
-                  {t} <span style={{ opacity: 0.35, margin: '0 8px' }}>◆</span>
-                </span>
-              ))
-            )}
+            ))}
           </div>
         </div>
+      </section>
 
-        {/* ══ FEATURES ═════════════════════════════════════════════════════ */}
-        <section id="features" style={{ background: 'white', padding: '100px 0' }}>
-          <div className="max-w-7xl mx-auto px-6">
-
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
-              <div>
-                <p data-reveal className="text-xs font-black uppercase tracking-[0.2em] mb-4" style={{ color: Y }}>
-                  What We Offer
-                </p>
-                <h2 data-reveal data-delay="100"
-                  className="font-black leading-tight"
-                  style={{ fontSize: 'clamp(32px,5vw,56px)', color: D }}>
-                  Everything you need<br />in one platform
-                </h2>
-              </div>
-              <p data-reveal data-delay="200" className="text-gray-500 max-w-sm leading-relaxed text-sm">
-                A transparent aggregator platform with verified listings and direct owner communication — built for India's outdoor advertising market.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {[
-                { icon: Search,        title: 'Smart Search',        body: 'Filter by city, type, size, price and availability. Find the perfect spot in seconds.',             delay: 0 },
-                { icon: Map,           title: 'Near Me Map',          body: 'Interactive map shows all hoardings near any location. Click to explore at street level.',         delay: 80 },
-                { icon: Shield,        title: 'Verified Listings',    body: 'Every hoarding reviewed by our admin team. Real photos, real dimensions, no fake listings.',       delay: 160 },
-                { icon: MessageCircle, title: 'Direct Owner Chat',    body: 'Submit an offer and instantly chat with the owner. Real-time negotiation, zero brokers.',          delay: 240 },
-                { icon: Building2,     title: 'Owner Dashboard',      body: 'List spaces, track offers, manage your portfolio — all in one clean dashboard.',                  delay: 320 },
-                { icon: TrendingUp,    title: 'Transparent Pricing',  body: 'Published rates make the market fair. Submit counter-offers and negotiate with confidence.',       delay: 400 },
-              ].map(({ icon: Icon, title, body, delay }) => (
-                <div key={title} data-reveal data-delay={delay} className="feat-card">
-                  <div className="w-12 h-12 flex items-center justify-center mb-6" style={{ background: Y, borderRadius: 2 }}>
-                    <Icon className="w-5 h-5" style={{ color: D }} />
-                  </div>
-                  <h3 className="font-black text-lg mb-3" style={{ color: D }}>{title}</h3>
-                  <p className="text-gray-500 text-sm leading-relaxed">{body}</p>
+      {/* ── How it works ─────────────────────────────────────────────────── */}
+      <section className="px-6 py-16 md:px-12">
+        <div className="max-w-5xl mx-auto">
+          <span className="section-label text-center block">How It Works</span>
+          <h2 className="text-center uppercase mb-12"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 'clamp(2rem, 5vw, 3.5rem)', fontWeight: 900 }}>
+            Simple. Direct. Effective.
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-0 stagger-children">
+            {[
+              {
+                icon: <Building2 className="w-7 h-7" style={{ color: '#1a3560' }} />,
+                step: '01',
+                title: 'Owners List Hoardings',
+                desc: 'Add your billboard with photos, location, dimensions, and pricing. Get discovered instantly.',
+              },
+              {
+                icon: <Eye className="w-7 h-7" style={{ color: '#1a3560' }} />,
+                step: '02',
+                title: 'Advertisers Browse',
+                desc: 'Search by city, area, or footfall. Filter by type and budget. Save favourites to your wishlist.',
+              },
+              {
+                icon: <MessageSquare className="w-7 h-7" style={{ color: '#1a3560' }} />,
+                step: '03',
+                title: 'Make an Offer & Connect',
+                desc: 'Submit an offer with your campaign dates. Chat directly with the owner to close the deal.',
+              },
+            ].map((item) => (
+              <div key={item.step} className="card p-8 border-r border-b" style={{ borderColor: '#e0dbd4' }}>
+                <div className="flex items-start justify-between mb-6">
+                  {item.icon}
+                  <span className="text-5xl font-black"
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#e0dbd4', lineHeight: 1 }}>
+                    {item.step}
+                  </span>
                 </div>
-              ))}
-            </div>
+                <h3 className="text-lg font-bold mb-2">{item.title}</h3>
+                <p className="text-sm leading-relaxed" style={{ color: '#666' }}>{item.desc}</p>
+              </div>
+            ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* ══ STATS ════════════════════════════════════════════════════════ */}
-        <section id="stats" style={{ background: D2, padding: '100px 0' }}>
-          <div className="max-w-7xl mx-auto px-6">
-            <p data-reveal className="text-xs font-black uppercase tracking-[0.2em] mb-4 text-center" style={{ color: Y }}>
-              By The Numbers
+      {/* ── Role split ───────────────────────────────────────────────────── */}
+      <section className="px-6 py-16 md:px-12">
+        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 stagger-children">
+          <div className="p-10" style={{ background: '#1a3560' }}>
+            <MapPin className="w-8 h-8 mb-6" style={{ color: '#C9F31D' }} />
+            <h3 className="text-3xl font-black uppercase text-white mb-3"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+              I Want to Advertise
+            </h3>
+            <p className="text-sm mb-8" style={{ color: '#a0b4d0' }}>
+              Find the perfect billboard for your brand. Filter by location, size, and footfall.
+              Submit offers and negotiate directly with owners.
             </p>
-            <h2 data-reveal data-delay="100"
-              className="font-black text-white text-center mb-20"
-              style={{ fontSize: 'clamp(28px,4vw,48px)' }}>
-              A growing platform<br />you can trust
-            </h2>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-px" style={{ background: '#2a2a2a' }}>
-              {[
-                { value: 500, suffix: '+', label: 'Active Listings' },
-                { value: 100, suffix: '+', label: 'Verified Owners' },
-                { value: 2,   suffix: '',  label: 'Major Cities' },
-                { value: 0,   suffix: '',  label: 'Brokerage Fees' },
-              ].map(({ value, suffix, label }) => (
-                <div key={label} data-reveal="scale"
-                  className="flex flex-col items-center justify-center py-14 px-8"
-                  style={{ background: D2 }}>
-                  <p className="font-black leading-none mb-3" style={{ fontSize: 'clamp(48px,7vw,88px)', color: Y }}>
-                    <AnimatedCounter target={value} suffix={suffix} />
-                  </p>
-                  <p className="text-gray-400 text-sm font-semibold uppercase tracking-widest">{label}</p>
-                </div>
-              ))}
-            </div>
+            <Link to="/register"
+              className="inline-flex items-center gap-2 px-6 py-3 text-sm font-bold"
+              style={{ background: '#C9F31D', color: '#111' }}>
+              Find Ad Space <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
-        </section>
-
-        {/* ══ PROBLEM ══════════════════════════════════════════════════════ */}
-        <section style={{ background: 'white', padding: '100px 0' }}>
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-              <div>
-                <p data-reveal className="text-xs font-black uppercase tracking-[0.2em] mb-4" style={{ color: Y }}>
-                  The Problem
-                </p>
-                <h2 data-reveal data-delay="100"
-                  className="font-black leading-tight mb-6"
-                  style={{ fontSize: 'clamp(28px,4vw,48px)', color: D }}>
-                  Outdoor advertising<br />was stuck in the past.
-                </h2>
-                <p data-reveal data-delay="200" className="text-gray-500 leading-relaxed mb-8">
-                  India has thousands of hoarding spaces with no digital layer. Advertisers relied on brokers,
-                  phone calls, and luck. Owners had no way to reach the right buyers at scale.
-                </p>
-                <button data-reveal data-delay="300" onClick={() => openModal('register')} className="yk-btn">
-                  Solve It Now <ArrowRight className="w-4 h-4" />
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                {[
-                  { icon: Search,      title: 'No central discovery',   body: 'Advertisers physically scouted locations or hired brokers. No map, no search, no structure.',  n: '01' },
-                  { icon: BarChart3,   title: 'Zero price transparency', body: 'Rental rates were negotiated blind. The same hoarding could be priced wildly differently.',    n: '02' },
-                  { icon: MessageCircle, title: 'Slow, manual deals',   body: 'Negotiations required multiple in-person visits — days or weeks before a deal could begin.',    n: '03' },
-                ].map(({ title, body, n }, i) => (
-                  <div key={n} data-reveal data-delay={i * 100}
-                    className="flex gap-5 p-6"
-                    style={{ background: '#f9f9f9', border: '1px solid #ebebeb', borderRadius: 4 }}>
-                    <span className="font-black text-2xl shrink-0" style={{ color: Y }}>{n}</span>
-                    <div>
-                      <h3 className="font-black mb-1" style={{ color: D }}>{title}</h3>
-                      <p className="text-gray-500 text-sm leading-relaxed">{body}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ══ HOW IT WORKS ═════════════════════════════════════════════════ */}
-        <section id="how" style={{ background: D, padding: '100px 0' }}>
-          <div className="max-w-7xl mx-auto px-6">
-            <p data-reveal className="text-xs font-black uppercase tracking-[0.2em] mb-4 text-center" style={{ color: Y }}>
-              How It Works
+          <div className="p-10 border-2" style={{ borderColor: '#1a3560', background: '#f5f1eb' }}>
+            <Handshake className="w-8 h-8 mb-6" style={{ color: '#1a3560' }} />
+            <h3 className="text-3xl font-black uppercase mb-3"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#111' }}>
+              I Own Hoardings
+            </h3>
+            <p className="text-sm mb-8" style={{ color: '#666' }}>
+              List your billboards and reach brands actively looking for outdoor space.
+              Manage offers and availability from one dashboard.
             </p>
-            <h2 data-reveal data-delay="100"
-              className="font-black text-white text-center mb-20"
-              style={{ fontSize: 'clamp(28px,4vw,48px)' }}>
-              Simple from first look<br />to final deal
-            </h2>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-              {/* Advertisers */}
-              <div>
-                <div data-reveal className="flex items-center gap-3 mb-10 pb-6" style={{ borderBottom: `2px solid ${Y}` }}>
-                  <Users className="w-5 h-5" style={{ color: Y }} />
-                  <p className="font-black uppercase tracking-widest text-sm text-white">For Advertisers</p>
-                </div>
-                <div className="space-y-8">
-                  {[
-                    { n: '01', title: 'Search & Discover', body: 'Browse listings by city or explore the interactive Near Me map to find hoardings around any location.' },
-                    { n: '02', title: 'Submit an Offer',   body: 'Share your budget, campaign dates and message. No phone calls, no site visits before shortlisting.' },
-                    { n: '03', title: 'Chat & Close',      body: 'Connect directly with the owner via built-in chat. Negotiate and finalise on your own terms.' },
-                  ].map(({ n, title, body }, i) => (
-                    <div key={n} data-reveal data-delay={i * 100} className="flex gap-5">
-                      <div className="step-num shrink-0">{n}</div>
-                      <div className="pt-2">
-                        <p className="font-black text-white mb-1">{title}</p>
-                        <p className="text-gray-400 text-sm leading-relaxed">{body}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Owners */}
-              <div>
-                <div data-reveal className="flex items-center gap-3 mb-10 pb-6" style={{ borderBottom: '2px solid #333' }}>
-                  <Building2 className="w-5 h-5 text-gray-400" />
-                  <p className="font-black uppercase tracking-widest text-sm text-gray-400">For Hoarding Owners</p>
-                </div>
-                <div className="space-y-8">
-                  {[
-                    { n: '01', title: 'List Your Space',   body: 'Add photos, dimensions, coordinates and your rental price. Submit for review — approved in hours.' },
-                    { n: '02', title: 'Get Discovered',    body: 'Your listing appears on search results and the map to thousands of advertisers across India.' },
-                    { n: '03', title: 'Review & Respond',  body: 'Receive offers to your dashboard, chat with interested advertisers, and close deals digitally.' },
-                  ].map(({ n, title, body }, i) => (
-                    <div key={n} data-reveal data-delay={i * 100} className="flex gap-5">
-                      <div className="step-num shrink-0" style={{ background: '#2a2a2a', color: 'white' }}>{n}</div>
-                      <div className="pt-2">
-                        <p className="font-black text-white mb-1">{title}</p>
-                        <p className="text-gray-400 text-sm leading-relaxed">{body}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+            <Link to="/register"
+              className="inline-flex items-center gap-2 px-6 py-3 text-sm font-bold text-white"
+              style={{ background: '#1a3560' }}>
+              List My Hoarding <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* ══ CTA STRIP ════════════════════════════════════════════════════ */}
-        <section style={{ background: Y, padding: '80px 0' }}>
-          <div className="max-w-7xl mx-auto px-6 flex flex-col lg:flex-row items-center justify-between gap-8">
-            <div>
-              <p data-reveal className="text-xs font-black uppercase tracking-[0.2em] mb-3" style={{ color: D, opacity: 0.5 }}>
-                Get Started Today
-              </p>
-              <h2 data-reveal data-delay="100"
-                className="font-black leading-tight"
-                style={{ fontSize: 'clamp(28px,4vw,52px)', color: D }}>
-                Get a quote for your<br />upcoming campaign.
-              </h2>
-            </div>
-            <div data-reveal="right" className="flex flex-col sm:flex-row gap-4 shrink-0">
-              <button onClick={() => openModal('register')}
-                className="inline-flex items-center gap-2 font-black uppercase tracking-wide text-sm px-8 py-4 transition-all hover:scale-105"
-                style={{ background: D, color: Y, borderRadius: 4 }}>
-                Create Free Account <ArrowRight className="w-4 h-4" />
-              </button>
-              <button onClick={() => openModal('login')}
-                className="inline-flex items-center gap-2 font-black uppercase tracking-wide text-sm px-8 py-4 transition-all hover:opacity-70"
-                style={{ background: 'transparent', color: D, borderRadius: 4, border: `2px solid ${D}` }}>
-                Sign In
-              </button>
-            </div>
-          </div>
-        </section>
+      {/* ── Footer ───────────────────────────────────────────────────────── */}
+      <footer className="px-6 py-8 md:px-12 flex flex-col sm:flex-row items-center justify-between gap-4 border-t"
+        style={{ borderColor: '#e0dbd4' }}>
+        <span className="text-xl font-black uppercase"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#111' }}>
+          AddKaro
+        </span>
+        <p className="text-xs" style={{ color: '#999' }}>
+          © {new Date().getFullYear()} AddKaro. All rights reserved.
+        </p>
+        <div className="flex gap-6">
+          <Link to="/login"    className="text-xs font-medium underline-link" style={{ color: '#555' }}>Sign In</Link>
+          <Link to="/register" className="text-xs font-medium underline-link" style={{ color: '#555' }}>Register</Link>
+        </div>
+      </footer>
 
-        {/* ══ FOOTER ═══════════════════════════════════════════════════════ */}
-        <footer style={{ background: '#0a0a0a', borderTop: '1px solid #1f1f1f', padding: '56px 0 32px' }}>
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
-              <div className="md:col-span-2">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-8 h-8 flex items-center justify-center" style={{ background: Y, borderRadius: 2 }}>
-                    <Building2 className="w-4 h-4" style={{ color: D }} />
-                  </div>
-                  <span className="font-black text-white text-lg tracking-tighter">AddKaro</span>
-                </div>
-                <p className="text-gray-500 text-sm leading-relaxed max-w-xs">
-                  India's hoarding aggregator platform — connecting advertisers with verified outdoor advertising owners. No brokers, no hassle.
-                </p>
-              </div>
-              <div>
-                <p className="font-black text-white text-xs uppercase tracking-widest mb-4">Cities</p>
-                <ul className="space-y-2 text-sm text-gray-500">
-                  <li>Bangalore</li>
-                  <li>Delhi NCR</li>
-                  <li>More coming soon</li>
-                </ul>
-              </div>
-              <div>
-                <p className="font-black text-white text-xs uppercase tracking-widest mb-4">Platform</p>
-                <ul className="space-y-2 text-sm text-gray-500">
-                  <li><button onClick={() => openModal('register')} className="hover:text-white transition-colors">Browse Hoardings</button></li>
-                  <li><button onClick={() => openModal('register')} className="hover:text-white transition-colors">List Your Space</button></li>
-                  <li><button onClick={() => openModal('login')} className="hover:text-white transition-colors">Sign In</button></li>
-                </ul>
-              </div>
-            </div>
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-6" style={{ borderTop: '1px solid #1f1f1f' }}>
-              <p className="text-xs text-gray-600">© 2026 AddKaro. India's outdoor advertising aggregator platform.</p>
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full" style={{ background: Y }} />
-                <span className="text-xs text-gray-600">Built in India</span>
-              </div>
-            </div>
-          </div>
-        </footer>
-
-        {/* ══ MODAL ════════════════════════════════════════════════════════ */}
-        {modal && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto"
-            style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)' }}
-            onClick={(e) => { if (e.target === e.currentTarget) setModal(null) }}
-          >
-            <div className="w-full max-w-md my-8 bg-white shadow-2xl overflow-hidden" style={{ borderRadius: 8 }}>
-              <div className="flex items-start justify-between px-7 pt-7 pb-5 border-b border-gray-100">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 flex items-center justify-center" style={{ background: Y, borderRadius: 4 }}>
-                    <Building2 className="w-5 h-5" style={{ color: D }} />
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-black" style={{ color: D }}>
-                      {modal === 'login' ? 'Welcome back' : 'Create your account'}
-                    </h2>
-                    <p className="text-xs text-gray-400 mt-0.5">
-                      {modal === 'login' ? 'Sign in to your AddKaro account' : 'Free to join — no credit card needed'}
-                    </p>
-                  </div>
-                </div>
-                <button onClick={() => setModal(null)}
-                  className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors shrink-0">
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <div className="px-7 py-6">
-                {modal === 'login' && (
-                  <form onSubmit={loginForm.handleSubmit((d) => loginMutation.mutate(d))} noValidate className="space-y-4">
-                    <div>
-                      <label className="label">Email Address</label>
-                      <input type="email" autoComplete="email" placeholder="you@example.com"
-                        className={cn('input-field', loginForm.formState.errors.email && 'input-error')}
-                        {...loginForm.register('email')} />
-                      {loginForm.formState.errors.email && <p className="error-text">{loginForm.formState.errors.email.message}</p>}
-                    </div>
-                    <div>
-                      <label className="label">Password</label>
-                      <input type="password" autoComplete="current-password"
-                        className={cn('input-field', loginForm.formState.errors.password && 'input-error')}
-                        {...loginForm.register('password')} />
-                      {loginForm.formState.errors.password && <p className="error-text">{loginForm.formState.errors.password.message}</p>}
-                    </div>
-                    {loginMutation.isError && (
-                      <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
-                        {loginMutation.error.message}
-                      </div>
-                    )}
-                    <button type="submit" disabled={loginMutation.isPending}
-                      className="w-full flex items-center justify-center gap-2 py-3 font-black uppercase tracking-wide text-sm transition-all hover:opacity-90"
-                      style={{ background: Y, color: D, borderRadius: 4 }}>
-                      {loginMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
-                      {loginMutation.isPending ? 'Signing in…' : 'Sign In'}
-                    </button>
-                    <p className="text-center text-sm text-gray-500 pt-1">
-                      No account yet?{' '}
-                      <button type="button" onClick={() => { setRegisterSuccess(false); setModal('register') }}
-                        className="font-black" style={{ color: D }}>Sign up free</button>
-                    </p>
-                  </form>
-                )}
-
-                {modal === 'register' && (
-                  <>
-                    {registerSuccess ? (
-                      <div className="text-center py-6">
-                        <div className="inline-flex items-center justify-center w-14 h-14 rounded-full mb-4" style={{ background: Y }}>
-                          <CheckCircle2 className="w-7 h-7" style={{ color: D }} />
-                        </div>
-                        <h3 className="text-lg font-black mb-2" style={{ color: D }}>Account created!</h3>
-                        <p className="text-gray-500 text-sm mb-6">You can now sign in with your new credentials.</p>
-                        <button onClick={() => { setRegisterSuccess(false); setModal('login') }}
-                          className="w-full py-3 font-black uppercase tracking-wide text-sm"
-                          style={{ background: Y, color: D, borderRadius: 4 }}>
-                          Sign In Now
-                        </button>
-                      </div>
-                    ) : (
-                      <form onSubmit={registerForm.handleSubmit((d) => registerMutation.mutate(d))} noValidate className="space-y-4">
-                        <div>
-                          <label className="label">I am a</label>
-                          <div className="flex rounded-xl border border-gray-200 bg-gray-50 p-1 gap-1">
-                            {(['customer', 'owner'] as const).map((r) => (
-                              <button key={r} type="button"
-                                onClick={() => registerForm.setValue('role', r, { shouldValidate: true })}
-                                className={cn('flex-1 py-2.5 px-4 rounded-lg text-sm font-bold capitalize transition-all',
-                                  registerRole === r ? 'bg-white shadow-sm' : 'text-gray-400 hover:text-gray-600'
-                                )}
-                                style={registerRole === r ? { color: D } : {}}>
-                                {r === 'customer' ? 'Customer' : 'Hoarding Owner'}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                        {['name','email','phone','password'].map((field) => (
-                          <div key={field}>
-                            <label className="label">
-                              {field === 'name' ? 'Full Name' : field === 'email' ? 'Email Address' : field === 'phone' ? 'Phone Number' : 'Password'}
-                            </label>
-                            <input
-                              type={field === 'email' ? 'email' : field === 'password' ? 'password' : field === 'phone' ? 'tel' : 'text'}
-                              autoComplete={field === 'name' ? 'name' : field === 'email' ? 'email' : field === 'phone' ? 'tel' : 'new-password'}
-                              maxLength={field === 'phone' ? 10 : undefined}
-                              placeholder={field === 'name' ? 'Your full name' : field === 'email' ? 'you@example.com' : field === 'phone' ? '10-digit mobile' : 'At least 6 characters'}
-                              className={cn('input-field', (registerForm.formState.errors as Record<string, {message?: string}>)[field] && 'input-error')}
-                              {...registerForm.register(field as 'name' | 'email' | 'phone' | 'password')}
-                            />
-                            {(registerForm.formState.errors as Record<string, {message?: string}>)[field] && (
-                              <p className="error-text">{(registerForm.formState.errors as Record<string, {message?: string}>)[field]?.message}</p>
-                            )}
-                          </div>
-                        ))}
-                        {registerMutation.isError && (
-                          <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
-                            {registerMutation.error.message}
-                          </div>
-                        )}
-                        <button type="submit" disabled={registerMutation.isPending}
-                          className="w-full flex items-center justify-center gap-2 py-3 font-black uppercase tracking-wide text-sm"
-                          style={{ background: Y, color: D, borderRadius: 4 }}>
-                          {registerMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
-                          {registerMutation.isPending ? 'Creating account…' : 'Create Account'}
-                        </button>
-                        <p className="text-center text-sm text-gray-500 pt-1">
-                          Already have an account?{' '}
-                          <button type="button" onClick={() => setModal('login')}
-                            className="font-black" style={{ color: D }}>Sign in</button>
-                        </p>
-                      </form>
-                    )}
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </>
+    </div>
   )
 }

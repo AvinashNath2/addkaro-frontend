@@ -54,7 +54,7 @@ export default function LoginPage() {
 
         {IS_MOCK && (
           <div className="mb-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-wider mb-3 text-[#C9F31D]" style={{ color: '#6b7f00' }}>Demo Mode — choose a role</p>
+            <p className="text-xs font-semibold uppercase tracking-wider mb-3 text-[#1a3560]" style={{ color: '#6b7f00' }}>Demo Mode — choose a role</p>
             <div className="grid grid-cols-3 gap-2">
               <button
                 onClick={() => loginAs(DEMO_USERS[0])}

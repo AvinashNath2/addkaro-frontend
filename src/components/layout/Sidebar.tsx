@@ -3,7 +3,7 @@ import { LayoutDashboard, Building2, Heart, FileText, Users, LogOut, MapPin, Set
 import { useAuthStore } from '@/store/auth.store'
 import { cn } from '@/lib/utils'
 
-const Y = '#C9F31D'
+const Y = '#1a3560'
 
 interface SidebarProps {
   onClose?: () => void
@@ -58,7 +58,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
           </div>
           <div>
             <p className="text-[15px] font-extrabold text-white tracking-tight leading-none">AddKaro</p>
-            <p className="text-[10px] font-semibold capitalize mt-0.5 leading-none tracking-wider" style={{ color: '#444' }}>
+            <p className="text-[10px] font-semibold capitalize mt-0.5 leading-none tracking-wider" style={{ color: '#888' }}>
               {user?.role?.toLowerCase()} portal
             </p>
           </div>
@@ -67,9 +67,9 @@ export default function Sidebar({ onClose }: SidebarProps) {
           <button
             onClick={onClose}
             className="p-1.5 rounded-lg transition-colors"
-            style={{ color: '#444' }}
-            onMouseOver={e => (e.currentTarget.style.color = '#888')}
-            onMouseOut={e => (e.currentTarget.style.color = '#444')}
+            style={{ color: '#888' }}
+            onMouseOver={e => (e.currentTarget.style.color = '#ccc')}
+            onMouseOut={e => (e.currentTarget.style.color = '#888')}
           >
             <X className="w-4 h-4" />
           </button>
@@ -78,7 +78,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
 
       {/* ── Navigation ────────────────────────────────────────────────────── */}
       <nav className="flex-1 px-3 py-5 space-y-0.5">
-        <p className="text-[9px] font-black uppercase tracking-[0.18em] px-3 mb-3" style={{ color: '#333' }}>
+        <p className="text-[9px] font-black uppercase tracking-[0.18em] px-3 mb-3" style={{ color: '#666' }}>
           Navigation
         </p>
         {links.map(({ to, icon: Icon, label, end }) => (
@@ -92,11 +92,11 @@ export default function Sidebar({ onClose }: SidebarProps) {
                 'transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]',
                 isActive
                   ? 'border border-transparent'
-                  : 'text-[#555] hover:text-white hover:translate-x-0.5 border border-transparent',
+                  : 'text-[#aaa] hover:text-white hover:translate-x-0.5 border border-transparent',
               )
             }
             style={({ isActive }) => isActive
-              ? { background: 'rgba(201,243,29,0.1)', borderColor: 'rgba(201,243,29,0.15)', color: Y }
+              ? { background: '#1a3560', borderColor: 'rgba(26,53,96,0.5)', color: '#ffffff' }
               : undefined
             }
           >
@@ -108,7 +108,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
                     !isActive && 'group-hover:bg-[#1a1a1a]',
                   )}
                   style={isActive
-                    ? { background: 'rgba(201,243,29,0.18)', color: Y }
+                    ? { background: 'rgba(255,255,255,0.15)', color: '#ffffff' }
                     : { background: '#1a1a1a' }
                   }
                 >
@@ -126,21 +126,21 @@ export default function Sidebar({ onClose }: SidebarProps) {
         <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl mb-1" style={{ background: '#1a1a1a' }}>
           <div
             className="w-8 h-8 rounded-full flex items-center justify-center text-[13px] font-extrabold shrink-0"
-            style={{ background: Y, color: '#111' }}
+            style={{ background: Y, color: '#ffffff' }}
           >
             {user?.name?.charAt(0).toUpperCase()}
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-[13px] font-bold text-white truncate leading-tight">{user?.name}</p>
-            <p className="text-[10px] truncate leading-none mt-0.5" style={{ color: '#444' }}>{user?.email}</p>
+            <p className="text-[10px] truncate leading-none mt-0.5" style={{ color: '#888' }}>{user?.email}</p>
           </div>
         </div>
         <button
           onClick={handleLogout}
           className="flex items-center gap-2.5 w-full px-3 py-2 rounded-xl text-[13px] font-medium transition-colors"
-          style={{ color: '#555' }}
-          onMouseOver={e => { e.currentTarget.style.background = '#1a1a1a'; e.currentTarget.style.color = '#aaa' }}
-          onMouseOut={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#555' }}
+          style={{ color: '#aaa' }}
+          onMouseOver={e => { e.currentTarget.style.background = '#1a1a1a'; e.currentTarget.style.color = '#fff' }}
+          onMouseOut={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#aaa' }}
         >
           <LogOut className="w-4 h-4" />
           Sign out

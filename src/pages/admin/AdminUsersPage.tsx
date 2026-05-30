@@ -1,18 +1,11 @@
-// AdminUsersPage.tsx — user management for admins
-//
-// Features:
-//   - Role filter tabs (All / Customer / Owner / Admin)
-//   - Search bar — filters by name or email within the current page
-//   - Pagination — server-side, 15 users per page
-//   - Click any row to open a detail modal with full user info
-
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Loader2, Search, X, Mail, Phone, Calendar, Shield } from 'lucide-react'
+import { Loader2, Search, X, Mail, Phone, Calendar, Shield, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react'
 import { getAllUsers } from '@/api/admin.api'
 import type { AdminUser } from '@/types/index'
 import EmptyState from '@/components/ui/EmptyState'
 import { cn } from '@/lib/utils'
+import { formatDate } from '@/lib/formatters'
 
 const ROLE_TABS = [
   { label: 'All Users', value: '' },
@@ -27,12 +20,14 @@ const ROLE_BADGE_STYLES: Record<string, string> = {
   ADMIN: 'bg-red-50 text-red-700 border border-red-200',
 }
 
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  })
+type SortKey = 'name' | 'email' | 'phone' | 'role' | 'createdAt'
+type SortDir = 'asc' | 'desc'
+
+function SortIcon({ col, sortKey, sortDir }: { col: SortKey; sortKey: SortKey | null; sortDir: SortDir }) {
+  if (sortKey !== col) return <ChevronsUpDown className="w-3.5 h-3.5 text-gray-300 ml-1 inline" />
+  return sortDir === 'asc'
+    ? <ChevronUp className="w-3.5 h-3.5 text-brand-500 ml-1 inline" />
+    : <ChevronDown className="w-3.5 h-3.5 text-brand-500 ml-1 inline" />
 }
 
 export default function AdminUsersPage() {
@@ -40,6 +35,8 @@ export default function AdminUsersPage() {
   const [currentPage, setCurrentPage] = useState(0)
   const [search, setSearch] = useState('')
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null)
+  const [sortKey, setSortKey] = useState<SortKey | null>(null)
+  const [sortDir, setSortDir] = useState<SortDir>('asc')
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['admin-users', activeRole, currentPage],
@@ -52,20 +49,55 @@ export default function AdminUsersPage() {
     setSearch('')
   }
 
-  // Client-side search: filter the current page's items by name or email
-  const filteredItems = data?.items.filter(
-    (u) =>
-      u.name.toLowerCase().includes(search.toLowerCase()) ||
-      u.email.toLowerCase().includes(search.toLowerCase()),
-  ) ?? []
+  const handleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
+    } else {
+      setSortKey(key)
+      setSortDir('asc')
+    }
+  }
+
+  const filteredItems = useMemo(() => {
+    let items = data?.items ?? []
+
+    if (search.trim()) {
+      const q = search.toLowerCase()
+      items = items.filter(
+        (u) =>
+          u.name.toLowerCase().includes(q) ||
+          u.email.toLowerCase().includes(q) ||
+          u.phone?.toLowerCase().includes(q),
+      )
+    }
+
+    if (sortKey) {
+      items = [...items].sort((a, b) => {
+        const av = a[sortKey] ?? ''
+        const bv = b[sortKey] ?? ''
+        const cmp = String(av).localeCompare(String(bv), 'en', { sensitivity: 'base', numeric: sortKey === 'createdAt' })
+        return sortDir === 'asc' ? cmp : -cmp
+      })
+    }
+
+    return items
+  }, [data, search, sortKey, sortDir])
+
+  const colHdr = (label: string, key: SortKey) => (
+    <th
+      className="text-left px-6 py-3 font-medium text-gray-500 cursor-pointer select-none hover:text-gray-700 whitespace-nowrap"
+      onClick={() => handleSort(key)}
+    >
+      {label}
+      <SortIcon col={key} sortKey={sortKey} sortDir={sortDir} />
+    </th>
+  )
 
   return (
     <div>
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-900">Users</h2>
-        <p className="text-sm text-gray-500 mt-1">
-          All registered users on the AddKaro platform
-        </p>
+        <p className="text-sm text-gray-500 mt-1">All registered users on the AddKaro platform</p>
       </div>
 
       {/* Role filter tabs */}
@@ -90,7 +122,7 @@ export default function AdminUsersPage() {
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
         <input
           type="text"
-          placeholder="Search by name or email…"
+          placeholder="Search by name, email or phone…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="input-field pl-9 pr-9"
@@ -143,11 +175,11 @@ export default function AdminUsersPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-100">
-                  <th className="text-left px-6 py-3 font-medium text-gray-500">Name</th>
-                  <th className="text-left px-6 py-3 font-medium text-gray-500">Email</th>
-                  <th className="text-left px-6 py-3 font-medium text-gray-500">Phone</th>
-                  <th className="text-left px-6 py-3 font-medium text-gray-500">Role</th>
-                  <th className="text-left px-6 py-3 font-medium text-gray-500">Joined</th>
+                  {colHdr('Name', 'name')}
+                  {colHdr('Email', 'email')}
+                  {colHdr('Phone', 'phone')}
+                  {colHdr('Role', 'role')}
+                  {colHdr('Joined', 'createdAt')}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -160,7 +192,6 @@ export default function AdminUsersPage() {
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        {/* Avatar circle with first letter */}
                         <div className="w-7 h-7 rounded-full bg-brand-500/20 text-gray-900 flex items-center justify-center text-xs font-bold shrink-0">
                           {user.name.charAt(0).toUpperCase()}
                         </div>
@@ -221,19 +252,14 @@ export default function AdminUsersPage() {
             className="bg-white rounded-2xl shadow-xl w-full max-w-md border border-gray-200"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Modal header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
               <h3 className="text-lg font-semibold text-gray-900">User Details</h3>
-              <button
-                onClick={() => setSelectedUser(null)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
+              <button onClick={() => setSelectedUser(null)} className="text-gray-400 hover:text-gray-600 transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="p-6">
-              {/* Avatar + name + role */}
               <div className="flex items-center gap-4 mb-6 pb-5 border-b border-gray-100">
                 <div className="w-14 h-14 rounded-full bg-brand-500/20 flex items-center justify-center text-2xl font-bold text-gray-900 shrink-0">
                   {selectedUser.name.charAt(0).toUpperCase()}
@@ -251,7 +277,6 @@ export default function AdminUsersPage() {
                 </div>
               </div>
 
-              {/* Detail rows */}
               <div className="space-y-4 text-sm">
                 <div className="flex items-center gap-3 text-gray-500">
                   <Mail className="w-4 h-4 shrink-0 text-gray-400" />

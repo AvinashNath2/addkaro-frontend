@@ -10,7 +10,7 @@ export default function AppLayout() {
   const user = useAuthStore((s) => s.user)
 
   return (
-    <div className="flex h-screen overflow-hidden" style={{ background: '#f7f7f5' }}>
+    <div className="flex h-screen overflow-hidden" style={{ background: '#f5f1eb' }}>
 
       {/* Mobile backdrop */}
       {sidebarOpen && (
@@ -39,7 +39,7 @@ export default function AppLayout() {
         <div
           className="sticky top-0 z-10 flex items-center justify-between px-6 h-14 shrink-0"
           style={{
-            background: 'rgba(247,247,245,0.9)',
+            background: 'rgba(245,241,235,0.92)',
             backdropFilter: 'blur(16px)',
             borderBottom: '1px solid rgba(0,0,0,0.07)',
           }}
@@ -78,7 +78,7 @@ export default function AppLayout() {
             </div>
             <div
               className="w-8 h-8 flex items-center justify-center text-[12px] font-extrabold shrink-0"
-              style={{ background: '#C9F31D', color: '#111111', borderRadius: 0 }}
+              style={{ background: '#1a3560', color: '#ffffff', borderRadius: 0 }}
             >
               {user?.name?.charAt(0).toUpperCase()}
             </div>
