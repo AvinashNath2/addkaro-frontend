@@ -5,17 +5,16 @@
       "title": "Premium Unipole — Connaught Place",
       "location": "Connaught Place, New Delhi",
       "locationType": "URBAN",
+      "ownerType": "PRIVATE",
       "latitude": 28.6315,
       "longitude": 77.2167,
       "width": 40,
       "height": 25,
-      "preferredAdTypes": ["FMCG", "Real Estate", "Automobile", "Fashion"],
       "rentalCost": 120000,
-      "status": "PUBLISHED",
+      "availability": "AVAILABLE",
+      "status": "ACTIVE",
       "ownerVerified": true,
       "rejectionReason": null,
-      "bookedFrom": null,
-      "bookedTo": null,
       "photos": [
         "https://loremflickr.com/800/500/billboard,outdoor?lock=11",
         "https://loremflickr.com/800/500/billboard,advertising?lock=12"
@@ -23,24 +22,75 @@
       "documents": [],
       "offersCount": 7,
       "createdAt": "2026-03-10T09:15:00",
-      "updatedAt": "2026-04-01T12:00:00"
+      "updatedAt": "2026-04-01T12:00:00",
+      "address": {
+        "street": "Connaught Place Inner Circle",
+        "area": "Connaught Place",
+        "city": "New Delhi",
+        "state": "Delhi",
+        "pinCode": "110001",
+        "landmark": "Near Palika Bazaar"
+      },
+      "typeSpecs": {
+        "holdingType": "UNIPOLE",
+        "numFaces": "SINGLE",
+        "displayTechnology": "FLEX_VINYL",
+        "printableAreaSqft": 1000,
+        "facingDirection": "NORTH",
+        "mountingHeightFt": 40
+      },
+      "illumination": {
+        "isIlluminated": true,
+        "illuminationType": "FRONT_LIT",
+        "illuminationHours": "SIX_PM_TO_MIDNIGHT"
+      },
+      "amenities": {
+        "electricityAvailable": true,
+        "ladderAccess": true,
+        "cctvInstalled": true,
+        "onSiteWatchman": false,
+        "nearbyParking": true,
+        "waterAvailable": false,
+        "powerSupplyType": "TWENTY_FOUR_SEVEN"
+      },
+      "audience": {
+        "dailyVehiclesRange": "50000_100000",
+        "dailyFootfallRange": "ABOVE_50000",
+        "trafficDataSource": "OWNER_ESTIMATE"
+      },
+      "pricing": {
+        "monthlyRate": 120000,
+        "quarterlyDiscountPct": 8.0,
+        "halfYearlyDiscountPct": 12.5,
+        "yearlyDiscountPct": 16.5,
+        "minimumBookingMonths": 1,
+        "securityDepositRequired": true,
+        "securityDepositRange": "ABOVE_50000",
+        "installationCostRange": "100000_300000"
+      },
+      "legal": {
+        "permitStatus": "YES",
+        "permitNumber": "MCD-2024-CP-001",
+        "permitValidTill": "2027-03-31",
+        "nocFromAuthority": true
+      },
+      "locationAdvantages": ["SIGNAL_JUNCTION", "PEDESTRIAN_FOOTPATH_ZONE", "NEAR_IT_PARK", "IN_MARKET_BAZAAR", "TOURIST_HERITAGE_AREA"]
     },
     {
       "id": "hd003",
       "title": "Metro Station Facade — Indiranagar",
       "location": "Indiranagar Metro Station, Bangalore",
       "locationType": "URBAN",
+      "ownerType": "PRIVATE",
       "latitude": 12.9784,
       "longitude": 77.6408,
       "width": 30,
       "height": 15,
-      "preferredAdTypes": ["FMCG", "Retail", "Education"],
       "rentalCost": 65000,
-      "status": "PUBLISHED",
+      "availability": "AVAILABLE",
+      "status": "ACTIVE",
       "ownerVerified": true,
       "rejectionReason": null,
-      "bookedFrom": null,
-      "bookedTo": null,
       "photos": [
         "https://loremflickr.com/800/500/outdoor,advertising?lock=31",
         "https://loremflickr.com/800/500/billboard,city?lock=32"
@@ -48,24 +98,75 @@
       "documents": [],
       "offersCount": 4,
       "createdAt": "2026-03-20T14:30:00",
-      "updatedAt": "2026-04-10T09:00:00"
+      "updatedAt": "2026-04-10T09:00:00",
+      "address": {
+        "street": "100 Feet Road",
+        "area": "Indiranagar",
+        "city": "Bangalore",
+        "state": "Karnataka",
+        "pinCode": "560038",
+        "landmark": "Indiranagar Metro Station"
+      },
+      "typeSpecs": {
+        "holdingType": "BILLBOARD",
+        "numFaces": "DOUBLE",
+        "displayTechnology": "FLEX_VINYL",
+        "printableAreaSqft": 450,
+        "facingDirection": "EAST",
+        "mountingHeightFt": 25
+      },
+      "illumination": {
+        "isIlluminated": true,
+        "illuminationType": "BACK_LIT",
+        "illuminationHours": "DUSK_TO_DAWN"
+      },
+      "amenities": {
+        "electricityAvailable": true,
+        "ladderAccess": true,
+        "cctvInstalled": false,
+        "onSiteWatchman": false,
+        "nearbyParking": false,
+        "waterAvailable": false,
+        "powerSupplyType": "TWENTY_FOUR_SEVEN"
+      },
+      "audience": {
+        "dailyVehiclesRange": "30000_50000",
+        "dailyFootfallRange": "ABOVE_50000",
+        "trafficDataSource": "MUNICIPAL"
+      },
+      "pricing": {
+        "monthlyRate": 65000,
+        "quarterlyDiscountPct": 7.5,
+        "halfYearlyDiscountPct": 11.5,
+        "yearlyDiscountPct": 15.0,
+        "minimumBookingMonths": 1,
+        "securityDepositRequired": true,
+        "securityDepositRange": "30000_50000",
+        "installationCostRange": "40000_100000"
+      },
+      "legal": {
+        "permitStatus": "YES",
+        "permitNumber": "BBMP-2025-IND-003",
+        "permitValidTill": "2026-12-31",
+        "nocFromAuthority": true
+      },
+      "locationAdvantages": ["NEAR_METRO_STATION", "PEDESTRIAN_FOOTPATH_ZONE", "IN_MARKET_BAZAAR"]
     },
     {
       "id": "hd006",
       "title": "IT Park Entry Billboard — Hinjewadi",
       "location": "Hinjewadi Phase 1, Pune",
       "locationType": "URBAN",
+      "ownerType": "PRIVATE",
       "latitude": 18.5912,
       "longitude": 73.7389,
       "width": 45,
       "height": 22,
-      "preferredAdTypes": ["IT/Software", "Finance", "Education"],
       "rentalCost": 80000,
-      "status": "PUBLISHED",
+      "availability": "AVAILABLE",
+      "status": "ACTIVE",
       "ownerVerified": true,
       "rejectionReason": null,
-      "bookedFrom": null,
-      "bookedTo": null,
       "photos": [
         "https://loremflickr.com/800/500/billboard,urban?lock=61",
         "https://loremflickr.com/800/500/outdoor,hoarding?lock=62"
@@ -73,53 +174,119 @@
       "documents": [],
       "offersCount": 3,
       "createdAt": "2026-04-05T11:00:00",
-      "updatedAt": "2026-04-20T16:45:00"
+      "updatedAt": "2026-04-20T16:45:00",
+      "address": {
+        "street": "Hinjewadi Rajiv Gandhi Infotech Park",
+        "area": "Hinjewadi",
+        "city": "Pune",
+        "state": "Maharashtra",
+        "pinCode": "411057",
+        "landmark": "Phase 1 Main Gate"
+      },
+      "typeSpecs": {
+        "holdingType": "BILLBOARD",
+        "numFaces": "SINGLE",
+        "displayTechnology": "FLEX_VINYL",
+        "printableAreaSqft": 990,
+        "facingDirection": "SOUTH",
+        "mountingHeightFt": 35
+      },
+      "illumination": {
+        "isIlluminated": true,
+        "illuminationType": "FRONT_LIT",
+        "illuminationHours": "SIX_PM_TO_MIDNIGHT"
+      },
+      "amenities": {
+        "electricityAvailable": true,
+        "ladderAccess": true,
+        "cctvInstalled": false,
+        "onSiteWatchman": true,
+        "nearbyParking": true,
+        "waterAvailable": false,
+        "powerSupplyType": "TWENTY_FOUR_SEVEN"
+      },
+      "audience": {
+        "dailyVehiclesRange": "50000_100000",
+        "dailyFootfallRange": "30000_50000",
+        "trafficDataSource": "OWNER_ESTIMATE"
+      },
+      "pricing": {
+        "monthlyRate": 80000,
+        "quarterlyDiscountPct": 6.0,
+        "halfYearlyDiscountPct": 9.5,
+        "yearlyDiscountPct": 12.5,
+        "minimumBookingMonths": 1,
+        "securityDepositRequired": true,
+        "securityDepositRange": "30000_50000",
+        "installationCostRange": "100000_300000"
+      },
+      "legal": {
+        "permitStatus": "YES",
+        "permitNumber": "PMC-2025-HIN-006",
+        "permitValidTill": "2027-06-30",
+        "nocFromAuthority": true
+      },
+      "locationAdvantages": ["NEAR_IT_PARK", "UPSCALE_NEIGHBOURHOOD", "HIGH_VEHICLE_TRAFFIC"]
     },
     {
       "id": "own-hd-004",
       "title": "Roadside Display — Whitefield",
       "location": "Whitefield Main Road, Bangalore",
       "locationType": "LOCAL",
+      "ownerType": "PRIVATE",
       "latitude": 12.9698,
       "longitude": 77.7500,
       "width": 20,
       "height": 10,
-      "preferredAdTypes": ["Retail", "Restaurants", "Services"],
       "rentalCost": 28000,
-      "status": "PENDING_REVIEW",
+      "availability": "AVAILABLE",
+      "status": "PENDING",
       "ownerVerified": true,
       "rejectionReason": null,
-      "bookedFrom": null,
-      "bookedTo": null,
       "photos": [
         "https://loremflickr.com/800/500/billboard,road?lock=131"
       ],
       "documents": [],
       "offersCount": 0,
       "createdAt": "2026-05-10T08:30:00",
-      "updatedAt": "2026-05-10T08:30:00"
+      "updatedAt": "2026-05-10T08:30:00",
+      "address": null,
+      "typeSpecs": null,
+      "illumination": null,
+      "amenities": null,
+      "audience": null,
+      "pricing": null,
+      "legal": null,
+      "locationAdvantages": []
     },
     {
       "id": "own-hd-005",
       "title": "Basement Parking Signage — Viman Nagar",
       "location": "Viman Nagar Phoenix Marketcity, Pune",
       "locationType": "LOCAL",
+      "ownerType": "GOVERNMENT",
       "latitude": 18.5593,
       "longitude": 73.9182,
       "width": 15,
       "height": 8,
-      "preferredAdTypes": ["Retail", "Local Business"],
       "rentalCost": 18000,
-      "status": "ADMIN_REJECT",
+      "availability": "AVAILABLE",
+      "status": "REJECTED",
       "ownerVerified": true,
       "rejectionReason": "Submitted photos are low resolution and do not clearly show the space dimensions. Please resubmit with high-quality images.",
-      "bookedFrom": null,
-      "bookedTo": null,
       "photos": [],
       "documents": [],
       "offersCount": 0,
       "createdAt": "2026-04-28T15:00:00",
-      "updatedAt": "2026-05-02T10:15:00"
+      "updatedAt": "2026-05-02T10:15:00",
+      "address": null,
+      "typeSpecs": null,
+      "illumination": null,
+      "amenities": null,
+      "audience": null,
+      "pricing": null,
+      "legal": null,
+      "locationAdvantages": []
     }
   ],
   "page": 0,

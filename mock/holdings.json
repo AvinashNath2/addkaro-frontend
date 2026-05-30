@@ -8,12 +8,18 @@
       "width": 40,
       "height": 25,
       "rentalCost": 120000,
-      "status": "PUBLISHED",
+      "status": "ACTIVE",
       "ownerVerified": true,
       "photos": [
         "https://loremflickr.com/800/500/billboard,outdoor?lock=11",
         "https://loremflickr.com/800/500/billboard,advertising?lock=12"
-      ]
+      ],
+      "holdingType": "UNIPOLE",
+      "city": "New Delhi",
+      "area": "Connaught Place",
+      "isIlluminated": true,
+      "minimumBookingMonths": 1,
+      "topAdvantages": ["SIGNAL_JUNCTION", "PEDESTRIAN_FOOTPATH_ZONE", "NEAR_IT_PARK"]
     },
     {
       "id": "hd002",
@@ -23,12 +29,18 @@
       "width": 50,
       "height": 20,
       "rentalCost": 85000,
-      "status": "PUBLISHED",
+      "status": "ACTIVE",
       "ownerVerified": true,
       "photos": [
         "https://loremflickr.com/800/500/billboard,highway?lock=21",
         "https://loremflickr.com/800/500/billboard,outdoor?lock=22"
-      ]
+      ],
+      "holdingType": "GANTRY",
+      "city": "Mumbai",
+      "area": "Panvel Junction",
+      "isIlluminated": true,
+      "minimumBookingMonths": 1,
+      "topAdvantages": ["NATIONAL_HIGHWAY_FACING", "HIGH_VEHICLE_TRAFFIC", "TOLL_BOOTH_AREA"]
     },
     {
       "id": "hd003",
@@ -38,13 +50,19 @@
       "width": 30,
       "height": 15,
       "rentalCost": 65000,
-      "status": "PUBLISHED",
+      "status": "ACTIVE",
       "ownerVerified": true,
       "photos": [
         "https://loremflickr.com/800/500/outdoor,advertising?lock=31",
         "https://loremflickr.com/800/500/billboard,city?lock=32",
         "https://loremflickr.com/800/500/hoarding,sign?lock=33"
-      ]
+      ],
+      "holdingType": "BILLBOARD",
+      "city": "Bangalore",
+      "area": "Indiranagar",
+      "isIlluminated": true,
+      "minimumBookingMonths": 1,
+      "topAdvantages": ["NEAR_METRO_STATION", "PEDESTRIAN_FOOTPATH_ZONE", "IN_MARKET_BAZAAR"]
     },
     {
       "id": "hd004",
@@ -54,12 +72,18 @@
       "width": 40,
       "height": 20,
       "rentalCost": 75000,
-      "status": "PUBLISHED",
+      "status": "ACTIVE",
       "ownerVerified": true,
       "photos": [
         "https://loremflickr.com/800/500/billboard,building?lock=41",
         "https://loremflickr.com/800/500/outdoor,sign?lock=42"
-      ]
+      ],
+      "holdingType": "BILLBOARD",
+      "city": "Hyderabad",
+      "area": "Jubilee Hills",
+      "isIlluminated": true,
+      "minimumBookingMonths": 1,
+      "topAdvantages": ["FLYOVER_APPROACH", "HIGH_VEHICLE_TRAFFIC", "UPSCALE_NEIGHBOURHOOD"]
     },
     {
       "id": "hd005",
@@ -69,11 +93,17 @@
       "width": 25,
       "height": 15,
       "rentalCost": 45000,
-      "status": "PUBLISHED",
+      "status": "ACTIVE",
       "ownerVerified": false,
       "photos": [
         "https://loremflickr.com/800/500/billboard,advertising?lock=51"
-      ]
+      ],
+      "holdingType": "WALL_PAINTING",
+      "city": "Chennai",
+      "area": "Anna Nagar",
+      "isIlluminated": false,
+      "minimumBookingMonths": 1,
+      "topAdvantages": ["IN_MARKET_BAZAAR", "PEDESTRIAN_FOOTPATH_ZONE"]
     },
     {
       "id": "hd006",
@@ -83,28 +113,40 @@
       "width": 45,
       "height": 22,
       "rentalCost": 80000,
-      "status": "PUBLISHED",
+      "status": "ACTIVE",
       "ownerVerified": true,
       "photos": [
         "https://loremflickr.com/800/500/billboard,urban?lock=61",
         "https://loremflickr.com/800/500/outdoor,hoarding?lock=62",
         "https://loremflickr.com/800/500/advertising,city?lock=63"
-      ]
+      ],
+      "holdingType": "BILLBOARD",
+      "city": "Pune",
+      "area": "Hinjewadi",
+      "isIlluminated": true,
+      "minimumBookingMonths": 1,
+      "topAdvantages": ["NEAR_IT_PARK", "UPSCALE_NEIGHBOURHOOD", "HIGH_VEHICLE_TRAFFIC"]
     },
     {
       "id": "hd007",
-      "title": "Mall Facade Hoarding — Salt Lake City",
+      "title": "Mall Facade LED Screen — Salt Lake",
       "location": "City Centre Mall, Salt Lake, Kolkata",
       "locationType": "URBAN",
       "width": 50,
       "height": 25,
       "rentalCost": 90000,
-      "status": "PUBLISHED",
+      "status": "ACTIVE",
       "ownerVerified": true,
       "photos": [
         "https://loremflickr.com/800/500/billboard,mall?lock=71",
         "https://loremflickr.com/800/500/advertising,outdoor?lock=72"
-      ]
+      ],
+      "holdingType": "LED_SCREEN",
+      "city": "Kolkata",
+      "area": "Salt Lake",
+      "isIlluminated": true,
+      "minimumBookingMonths": 1,
+      "topAdvantages": ["NEAR_SHOPPING_MALL", "PEDESTRIAN_FOOTPATH_ZONE", "NEAR_CINEMA"]
     },
     {
       "id": "hd008",
@@ -114,12 +156,18 @@
       "width": 35,
       "height": 18,
       "rentalCost": 70000,
-      "status": "PUBLISHED",
+      "status": "ACTIVE",
       "ownerVerified": true,
       "photos": [
         "https://loremflickr.com/800/500/outdoor,advertisement?lock=81",
         "https://loremflickr.com/800/500/billboard,street?lock=82"
-      ]
+      ],
+      "holdingType": "BILLBOARD",
+      "city": "Bangalore",
+      "area": "MG Road",
+      "isIlluminated": true,
+      "minimumBookingMonths": 1,
+      "topAdvantages": ["SIGNAL_JUNCTION", "PEDESTRIAN_FOOTPATH_ZONE", "IN_MARKET_BAZAAR"]
     },
     {
       "id": "hd009",
@@ -129,11 +177,17 @@
       "width": 20,
       "height": 12,
       "rentalCost": 40000,
-      "status": "PUBLISHED",
+      "status": "ACTIVE",
       "ownerVerified": false,
       "photos": [
         "https://loremflickr.com/800/500/billboard,road?lock=91"
-      ]
+      ],
+      "holdingType": "BILLBOARD",
+      "city": "Ahmedabad",
+      "area": "Makarba",
+      "isIlluminated": false,
+      "minimumBookingMonths": 1,
+      "topAdvantages": ["STATE_HIGHWAY_FACING", "HIGH_VEHICLE_TRAFFIC"]
     },
     {
       "id": "hd010",
@@ -143,12 +197,18 @@
       "width": 40,
       "height": 20,
       "rentalCost": 60000,
-      "status": "PUBLISHED",
+      "status": "ACTIVE",
       "ownerVerified": true,
       "photos": [
         "https://loremflickr.com/800/500/billboard,airport?lock=101",
         "https://loremflickr.com/800/500/outdoor,advertising?lock=102"
-      ]
+      ],
+      "holdingType": "UNIPOLE",
+      "city": "Kochi",
+      "area": "Ernakulam",
+      "isIlluminated": true,
+      "minimumBookingMonths": 1,
+      "topAdvantages": ["NEAR_AIRPORT", "NATIONAL_HIGHWAY_FACING", "TOURIST_HERITAGE_AREA"]
     },
     {
       "id": "hd011",
@@ -158,12 +218,18 @@
       "width": 30,
       "height": 20,
       "rentalCost": 55000,
-      "status": "PUBLISHED",
+      "status": "ACTIVE",
       "ownerVerified": false,
       "photos": [
         "https://loremflickr.com/800/500/billboard,junction?lock=111",
         "https://loremflickr.com/800/500/hoarding,outdoor?lock=112"
-      ]
+      ],
+      "holdingType": "BILLBOARD",
+      "city": "Pune",
+      "area": "Deccan",
+      "isIlluminated": false,
+      "minimumBookingMonths": 1,
+      "topAdvantages": ["SIGNAL_JUNCTION", "NEAR_SCHOOL_COLLEGE", "IN_MARKET_BAZAAR"]
     },
     {
       "id": "hd012",
@@ -173,11 +239,17 @@
       "width": 30,
       "height": 15,
       "rentalCost": 35000,
-      "status": "PUBLISHED",
+      "status": "ACTIVE",
       "ownerVerified": true,
       "photos": [
         "https://loremflickr.com/800/500/billboard,sign?lock=121"
-      ]
+      ],
+      "holdingType": "GANTRY",
+      "city": "Bhopal",
+      "area": "Habibganj",
+      "isIlluminated": false,
+      "minimumBookingMonths": 1,
+      "topAdvantages": ["STATE_HIGHWAY_FACING", "NEAR_RAILWAY_STATION"]
     }
   ],
   "page": 0,

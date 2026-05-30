@@ -3,12 +3,13 @@
   "title": "Premium Unipole — Connaught Place",
   "location": "Connaught Place, New Delhi",
   "locationType": "URBAN",
+  "ownerType": "PRIVATE",
   "coordinates": { "latitude": 28.6315, "longitude": 77.2167 },
   "width": 40,
   "height": 25,
-  "preferredAdTypes": ["FMCG", "Real Estate", "Automobile", "Fashion"],
   "rentalCost": 120000,
-  "status": "PUBLISHED",
+  "availability": "AVAILABLE",
+  "status": "ACTIVE",
   "ownerVerified": true,
   "ownerId": "owner-001",
   "photos": [
@@ -17,6 +18,56 @@
     "https://loremflickr.com/800/500/hoarding,sign?lock=33"
   ],
   "createdAt": "2026-03-10T09:15:00",
-  "bookedFrom": null,
-  "bookedTo": null
+  "address": {
+    "street": "Connaught Place Inner Circle",
+    "area": "Connaught Place",
+    "city": "New Delhi",
+    "state": "Delhi",
+    "pinCode": "110001",
+    "landmark": "Near Palika Bazaar"
+  },
+  "typeSpecs": {
+    "holdingType": "UNIPOLE",
+    "numFaces": "SINGLE",
+    "displayTechnology": "FLEX_VINYL",
+    "printableAreaSqft": 1000,
+    "facingDirection": "NORTH",
+    "mountingHeightFt": 40
+  },
+  "illumination": {
+    "isIlluminated": true,
+    "illuminationType": "FRONT_LIT",
+    "illuminationHours": "SIX_PM_TO_MIDNIGHT"
+  },
+  "amenities": {
+    "electricityAvailable": true,
+    "ladderAccess": true,
+    "cctvInstalled": true,
+    "onSiteWatchman": false,
+    "nearbyParking": true,
+    "waterAvailable": false,
+    "powerSupplyType": "TWENTY_FOUR_SEVEN"
+  },
+  "audience": {
+    "dailyVehiclesRange": "50000_100000",
+    "dailyFootfallRange": "ABOVE_50000",
+    "trafficDataSource": "OWNER_ESTIMATE"
+  },
+  "pricing": {
+    "monthlyRate": 120000,
+    "quarterlyDiscountPct": 8.0,
+    "halfYearlyDiscountPct": 12.5,
+    "yearlyDiscountPct": 16.5,
+    "minimumBookingMonths": 1,
+    "securityDepositRequired": true,
+    "securityDepositRange": "ABOVE_50000",
+    "installationCostRange": "100000_300000"
+  },
+  "legal": {
+    "permitStatus": "YES",
+    "permitNumber": "MCD-2024-CP-001",
+    "permitValidTill": "2027-03-31",
+    "nocFromAuthority": true
+  },
+  "locationAdvantages": ["SIGNAL_JUNCTION", "PEDESTRIAN_FOOTPATH_ZONE", "NEAR_IT_PARK", "IN_MARKET_BAZAAR", "TOURIST_HERITAGE_AREA"]
 }
