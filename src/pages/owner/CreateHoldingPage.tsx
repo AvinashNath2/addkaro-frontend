@@ -501,8 +501,8 @@ export default function CreateHoldingPage() {
                   className={cn(
                     'text-xs px-3 py-1.5 rounded-lg border font-medium transition-colors',
                     selected
-                      ? 'bg-[#C9F31D] text-[#111] border-[#C9F31D]'
-                      : 'bg-white text-gray-600 border-gray-200 hover:border-[#C9F31D]'
+                      ? 'bg-[#1a3560] text-[#111] border-[#1a3560]'
+                      : 'bg-white text-gray-600 border-gray-200 hover:border-[#1a3560]'
                   )}
                 >
                   {adv.replace(/_/g, ' ')}

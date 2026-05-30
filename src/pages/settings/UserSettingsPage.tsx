@@ -21,16 +21,14 @@ export default function UserSettingsPage() {
 
   return (
     <div className="max-w-xl">
-      <div className="flex items-center gap-3 mb-6">
-        <Settings className="w-6 h-6 text-gray-500" />
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Preferences</h2>
-          <p className="text-sm text-gray-500 mt-0.5">These defaults auto-fill your browse filters</p>
-        </div>
+      <div className="page-header">
+        <p className="section-label">Account</p>
+        <h2 className="page-title">Preferences</h2>
+        <p className="page-subtitle">These defaults auto-fill your browse filters</p>
       </div>
 
       {/* Browse defaults */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm space-y-5 mb-5">
+      <div className="p-6 space-y-5 mb-5" style={{ background: '#f0ece6', border: '1px solid rgba(0,0,0,0.07)' }}>
         <h3 className="font-semibold text-gray-900">Browse Defaults</h3>
 
         <div>
@@ -96,7 +94,7 @@ export default function UserSettingsPage() {
       </div>
 
       {/* Account info (read-only) */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+      <div className="p-6" style={{ background: '#f0ece6', border: '1px solid rgba(0,0,0,0.07)' }}>
         <h3 className="font-semibold text-gray-900 mb-4">Account</h3>
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">

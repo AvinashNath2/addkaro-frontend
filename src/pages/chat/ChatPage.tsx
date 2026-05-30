@@ -136,7 +136,7 @@ export default function ChatPage() {
                     ? 'rounded-br-sm'
                     : 'bg-gray-100 text-gray-900 rounded-bl-sm',
                 )}
-                style={isMe ? { background: '#C9F31D', color: '#111111' } : undefined}
+                style={isMe ? { background: '#1a3560', color: '#ffffff' } : undefined}
               >
                 <p className="text-sm leading-relaxed">{msg.message}</p>
                 <p className={cn('text-xs mt-1', isMe ? 'opacity-60' : 'text-gray-400')}>
@@ -156,7 +156,7 @@ export default function ChatPage() {
         {/* Optimistic "sending" bubble */}
         {sendMutation.isPending && (
           <div className="flex justify-end">
-            <div className="max-w-[72%] rounded-2xl rounded-br-sm px-4 py-2.5 opacity-70" style={{ background: '#C9F31D', color: '#111111' }}>
+            <div className="max-w-[72%] rounded-2xl rounded-br-sm px-4 py-2.5 opacity-70" style={{ background: '#1a3560', color: '#ffffff' }}>
               <p className="text-sm">{messageText || AUTO_MESSAGE}</p>
             </div>
           </div>
@@ -184,7 +184,7 @@ export default function ChatPage() {
           type="submit"
           disabled={!messageText.trim() || sendMutation.isPending}
           className="w-11 h-11 rounded-xl flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
-          style={{ background: '#C9F31D', color: '#111111' }}
+          style={{ background: '#1a3560', color: '#ffffff' }}
         >
           {sendMutation.isPending
             ? <Loader2 className="w-4 h-4 animate-spin" />

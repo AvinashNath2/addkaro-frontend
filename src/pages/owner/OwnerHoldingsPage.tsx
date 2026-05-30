@@ -13,6 +13,7 @@ import StatusBadge from '@/components/ui/StatusBadge'
 import EmptyState from '@/components/ui/EmptyState'
 import ChatBox from '@/components/chat/ChatBox'
 import StatusChangeModal from '@/components/ui/StatusChangeModal'
+import { formatRupees, formatDate } from '@/lib/formatters'
 import type { OwnerHolding, OwnerOffer } from '@/types'
 
 const STATUS_TABS = [
@@ -23,14 +24,6 @@ const STATUS_TABS = [
   { label: 'Rejected', value: 'REJECTED' },
   { label: 'Suspended', value: 'SUSPENDED' },
 ]
-
-function formatRupees(amount: number): string {
-  return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount)
-}
-
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
-}
 
 type PendingAction = { fromStatus: string; toStatus: string; onConfirm: () => void }
 
@@ -131,7 +124,7 @@ function HoldingOffersPanel({ holdingId }: { holdingId: string }) {
               <button
                 onClick={() => setChatOffer({ offerId: offer.offerId, customerName: offer.customerName, lockedMessage: chatLock(offer) })}
                 className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-opacity"
-                style={{ background: '#C9F31D', color: '#111111' }}
+                style={{ background: '#1a3560', color: '#ffffff' }}
               >
                 <MessageCircle className="w-3.5 h-3.5" />
                 {offer.status === 'NEW' ? 'View Message' : 'Chat'}

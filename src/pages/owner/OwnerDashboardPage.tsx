@@ -11,6 +11,7 @@ import StatusBadge from '@/components/ui/StatusBadge'
 import EmptyState from '@/components/ui/EmptyState'
 import ChatBox from '@/components/chat/ChatBox'
 import StatusChangeModal from '@/components/ui/StatusChangeModal'
+import { formatRupees, formatDate } from '@/lib/formatters'
 import type { OwnerOffer, OwnerDashboard } from '@/types'
 
 type PendingAction = { fromStatus: string; toStatus: string; onConfirm: () => void }
@@ -19,13 +20,6 @@ function chatLock(offer: OwnerOffer): string | undefined {
   if (offer.status === 'NEW') return 'Reveal contact to start chatting'
   if (offer.status === 'DECLINED') return 'Chat is locked — offer was declined'
   return undefined
-}
-
-function formatRupees(amount: number): string {
-  return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount)
-}
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
 // ── Stage definitions ─────────────────────────────────────────────────────────
@@ -276,7 +270,7 @@ function OfferDetailPanel({
             <button
               onClick={onChat}
               className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium"
-              style={{ background: '#C9F31D', color: '#111111' }}
+              style={{ background: '#1a3560', color: '#ffffff' }}
             >
               <MessageCircle className="w-3.5 h-3.5" />
               {offer.status === 'NEW' ? 'View Message' : 'Chat'}

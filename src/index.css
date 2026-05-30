@@ -1,96 +1,251 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400&display=swap');
 @import 'leaflet/dist/leaflet.css';
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   DESIGN TOKENS  (Wix QUENX template language, adapted for AddKaro)
+   Page bg:   #f5f1eb  warm cream
+   Card bg:   #f0ece6  soft warm gray
+   White:     #ffffff
+   Text:      #111111  primary | #555555 secondary | #999 muted
+   Dark strip:#0f0f13  marquee / footer
+   Accent:    #C9F31D  brand yellow (replaces template's blue)
+───────────────────────────────────────────────────────────────────────────── */
+
 /* ── Base ──────────────────────────────────────────────────────────────────── */
 @layer base {
   * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
 
   body {
-    background-color: #f4f6fb;
-    @apply text-gray-900 antialiased;
+    background-color: #f5f1eb;   /* warm cream — matches QUENX page bg */
+    color: #111111;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3 {
+    font-family: 'Barlow Condensed', 'Plus Jakarta Sans', sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    line-height: 1.0;
+    color: #111111;
+  }
+
+  h4, h5, h6 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 700;
+    color: #111111;
+  }
+
+  /* Smooth transitions on all interactives */
+  button, a, [role="button"] {
+    transition-property: color, background-color, border-color, opacity, transform, box-shadow;
+    transition-duration: 220ms;
+    transition-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
 }
 
 /* ── Components ────────────────────────────────────────────────────────────── */
 @layer components {
 
+  /* ── Input fields ──────────────────────────────────────────────────────── */
   .input-field {
-    @apply w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400
-           transition-all duration-150
-           focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20
+    @apply w-full bg-white px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400
+           focus:outline-none
            disabled:cursor-not-allowed disabled:bg-gray-50 disabled:opacity-60;
+    border: 1px solid rgba(0,0,0,0.14);
+    border-radius: 0;
+    transition: border-color 0.2s, box-shadow 0.2s;
   }
-
-  .input-error {
-    @apply border-red-400 focus:border-red-500 focus:ring-red-500/15;
+  .input-field:focus {
+    border-color: #1a3560;
+    box-shadow: 0 0 0 3px rgba(26,53,96,0.15);
   }
+  .input-error { border-color: #ef4444 !important; }
+  .input-error:focus { box-shadow: 0 0 0 3px rgba(239,68,68,0.12) !important; }
 
+  /* ── Labels ────────────────────────────────────────────────────────────── */
   .label {
-    @apply block text-xs font-bold text-gray-500 mb-1.5 uppercase tracking-widest;
+    @apply block text-[10px] font-bold text-gray-400 mb-1.5 uppercase tracking-[0.18em];
+  }
+  .error-text { @apply mt-1.5 text-xs text-red-500; }
+
+  /* ── Section eyebrow label (small uppercase above headings) ─────────────── */
+  .section-label {
+    display: block;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #999999;
+    margin-bottom: 10px;
   }
 
-  .error-text {
-    @apply mt-1.5 text-xs text-red-600;
-  }
-
+  /* ── Primary button  ───────────────────────────────────────────────────── */
   .btn-primary {
-    @apply inline-flex w-full items-center justify-center gap-2 rounded-xl
-           px-5 py-2.5 text-sm font-bold
-           active:scale-[0.98]
-           focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:ring-offset-2
-           disabled:cursor-not-allowed disabled:opacity-60 transition-all duration-150;
-    background: #C9F31D;
-    color: #111111;
+    @apply inline-flex w-full items-center justify-center gap-2
+           px-6 py-3 text-sm font-bold tracking-wide
+           focus:outline-none
+           disabled:cursor-not-allowed disabled:opacity-50;
+    background: #1a3560;
+    color: #ffffff;
+    border-radius: 0;
+    letter-spacing: 0.04em;
+    transition: background 0.2s, transform 0.22s cubic-bezier(0.25,0.46,0.45,0.94),
+                box-shadow 0.22s;
   }
-  .btn-primary:hover { background: #d4f530; }
+  .btn-primary:hover {
+    background: #1f4070;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(26,53,96,0.4);
+  }
+  .btn-primary:active { transform: none; box-shadow: none; }
 
+  /* ── Card  — warm cream bg like QUENX product tiles ────────────────────── */
   .card {
-    @apply bg-white rounded-2xl border border-gray-100 shadow-card;
+    background: #f0ece6;
+    border: none;
+    border-radius: 0;
+    transition: transform 0.35s cubic-bezier(0.25,0.46,0.45,0.94),
+                box-shadow 0.35s cubic-bezier(0.25,0.46,0.45,0.94);
+  }
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 48px rgba(0,0,0,0.10);
   }
 
-  .page-header {
-    @apply mb-7;
-  }
+  /* ── Page layout ───────────────────────────────────────────────────────── */
+  .page-header { @apply mb-10; }
 
   .page-title {
-    @apply text-2xl font-extrabold text-gray-900 tracking-tight;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 900;
+    letter-spacing: -0.01em;
+    line-height: 1.0;
+    color: #111111;
+    text-transform: uppercase;
   }
 
   .page-subtitle {
-    @apply text-sm text-gray-400 mt-1 font-medium;
-  }
-
-  .landing-page {
-    @apply text-base;
+    @apply text-sm mt-2 font-normal;
+    color: #888888;
+    letter-spacing: 0.01em;
   }
 }
 
 /* ── Scrollbar ─────────────────────────────────────────────────────────────── */
-::-webkit-scrollbar          { width: 4px; height: 4px; }
-::-webkit-scrollbar-track    { background: transparent; }
-::-webkit-scrollbar-thumb    { background: #d1d5db; border-radius: 99px; }
-::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
-
-/* Hide scrollbar on sidebar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #ccc; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #aaa; }
 aside::-webkit-scrollbar { display: none; }
 
-/* ── Animations ────────────────────────────────────────────────────────────── */
-@keyframes lp-modal-in {
-  from { opacity: 0; transform: scale(0.94) translateY(14px); }
-  to   { opacity: 1; transform: scale(1)    translateY(0);    }
+/* ══════════════════════════════════════════════════════════════════════════════
+   ANIMATIONS
+══════════════════════════════════════════════════════════════════════════════ */
+
+/* Page entrance */
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-.lp-modal {
-  animation: lp-modal-in 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+.page-enter { animation: page-enter 0.5s cubic-bezier(0.25,0.46,0.45,0.94) both; }
+
+/* Staggered grid entrance */
+@keyframes stagger-up {
+  from { opacity: 0; transform: translateY(32px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.stagger-children > * {
+  animation: stagger-up 0.55s cubic-bezier(0.25,0.46,0.45,0.94) both;
+}
+.stagger-children > *:nth-child(1)  { animation-delay:  0ms; }
+.stagger-children > *:nth-child(2)  { animation-delay: 80ms; }
+.stagger-children > *:nth-child(3)  { animation-delay: 160ms; }
+.stagger-children > *:nth-child(4)  { animation-delay: 240ms; }
+.stagger-children > *:nth-child(5)  { animation-delay: 320ms; }
+.stagger-children > *:nth-child(6)  { animation-delay: 400ms; }
+.stagger-children > *:nth-child(7)  { animation-delay: 480ms; }
+.stagger-children > *:nth-child(8)  { animation-delay: 560ms; }
+.stagger-children > *:nth-child(n+9){ animation-delay: 640ms; }
+
+/* Hover lift */
+.hover-lift {
+  transition: transform 0.35s cubic-bezier(0.25,0.46,0.45,0.94),
+              box-shadow 0.35s cubic-bezier(0.25,0.46,0.45,0.94);
+}
+.hover-lift:hover { transform: translateY(-5px); box-shadow: 0 24px 56px rgba(0,0,0,0.11); }
+
+/* Image zoom — same as QUENX product hover */
+.img-zoom { overflow: hidden; }
+.img-zoom img {
+  transition: transform 0.65s cubic-bezier(0.25,0.46,0.45,0.94);
+  will-change: transform;
+}
+.group:hover .img-zoom img,
+.img-zoom:hover img { transform: scale(1.07); }
+
+/* Fade variants */
+@keyframes fade-in    { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fade-up    { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes scale-in   { from { opacity: 0; transform: scale(0.96) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+@keyframes slide-up   { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+.animate-fade-in  { animation: fade-in  0.35s ease both; }
+.animate-fade-up  { animation: fade-up  0.45s cubic-bezier(0.25,0.46,0.45,0.94) both; }
+.animate-scale-in { animation: scale-in 0.32s cubic-bezier(0.25,0.46,0.45,0.94) both; }
+.animate-slide-up { animation: slide-up 0.4s  cubic-bezier(0.25,0.46,0.45,0.94) both; }
+
+/* Pulse glow — brand CTAs */
+@keyframes pulse-glow {
+  0%,100% { box-shadow: 0 0 0 0   rgba(26,53,96,0.55); }
+  50%      { box-shadow: 0 0 0 12px rgba(26,53,96,0); }
+}
+.pulse-glow { animation: pulse-glow 2.8s ease-in-out infinite; }
+
+/* ── Marquee ticker (like QUENX "LIMITED EDITION" dark strip) ───────────── */
+@keyframes marquee {
+  from { transform: translate3d(0,0,0); }
+  to   { transform: translate3d(-50%,0,0); }
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 28s linear infinite;
+  will-change: transform;
+}
+.marquee-track:hover { animation-play-state: paused; }
+
+/* Skeleton */
+@keyframes skeleton-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+.skeleton {
+  background: #e5e0d8;
+  animation: skeleton-pulse 1.6s ease-in-out infinite;
 }
 
-@keyframes fade-up {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0);    }
+/* Landing modal */
+@keyframes lp-modal-in {
+  from { opacity: 0; transform: scale(0.96) translateY(12px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0); }
 }
-.animate-fade-up {
-  animation: fade-up 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+.lp-modal { animation: lp-modal-in 0.3s cubic-bezier(0.25,0.46,0.45,0.94) both; }
+
+/* Underline hover link */
+.underline-link { position: relative; display: inline-block; }
+.underline-link::after {
+  content: ''; position: absolute; bottom: -1px; left: 0;
+  width: 0; height: 1px; background: currentColor;
+  transition: width 0.3s cubic-bezier(0.25,0.46,0.45,0.94);
 }
+.underline-link:hover::after { width: 100%; }
+
+/* Backdrop */
+@keyframes backdrop-in { from { opacity: 0; } to { opacity: 1; } }
+.backdrop-enter { animation: backdrop-in 0.25s ease both; }

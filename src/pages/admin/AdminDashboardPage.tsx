@@ -1,18 +1,6 @@
-// AdminDashboardPage.tsx — platform administration home screen
-//
-// Two sections:
-//   1. Stats row — platform-wide counts (users, holdings, offers, pending approvals)
-//   2. Pending Holdings table — holdings awaiting admin approval, with inline actions
-//
-// Admin actions:
-//   - Approve: transitions PENDING_REVIEW → PUBLISHED
-//   - Reject: shows an inline text input for the rejection reason, then sends ADMIN_REJECT
-//
-// Both mutations invalidate ['pending-holdings'] and ['admin-dashboard'] queries
-// so the page updates instantly after an action.
-
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
 import { Loader2, CheckCircle, XCircle } from 'lucide-react'
 import {
   getAdminDashboard,
@@ -23,17 +11,11 @@ import {
 import StatCard from '@/components/ui/StatCard'
 import StatusBadge from '@/components/ui/StatusBadge'
 import EmptyState from '@/components/ui/EmptyState'
-
-function formatRupees(amount: number): string {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    maximumFractionDigits: 0,
-  }).format(amount)
-}
+import { formatRupees } from '@/lib/formatters'
 
 export default function AdminDashboardPage() {
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
 
   // Track which holding has the rejection reason input open
   // Key = holdingId, value = the reason text being typed
@@ -110,14 +92,14 @@ export default function AdminDashboardPage() {
 
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <StatCard label="Total Users"        value={stats.totalUsers}         accent="bg-brand-500" />
-          <StatCard label="Customers"          value={stats.totalCustomers}     accent="bg-blue-500" />
-          <StatCard label="Owners"             value={stats.totalOwners}        accent="bg-purple-500" />
-          <StatCard label="Total Holdings"     value={stats.totalHoldings}      accent="bg-gray-400" />
-          <StatCard label="Pending Approvals"  value={stats.pendingApprovals}   accent="bg-yellow-400" />
-          <StatCard label="Published Holdings" value={stats.activeHoldings}     accent="bg-green-500" />
-          <StatCard label="Delisted"           value={stats.suspendedHoldings}  accent="bg-red-400" />
-          <StatCard label="Total Offers"       value={stats.totalOffers}        accent="bg-orange-400" />
+          <StatCard label="Total Users"        value={stats.totalUsers}        accent="bg-brand-500"   onClick={() => navigate('/admin/users')} />
+          <StatCard label="Customers"          value={stats.totalCustomers}    accent="bg-blue-500"    onClick={() => navigate('/admin/users')} />
+          <StatCard label="Owners"             value={stats.totalOwners}       accent="bg-purple-500"  onClick={() => navigate('/admin/users')} />
+          <StatCard label="Total Holdings"     value={stats.totalHoldings}     accent="bg-gray-400"    onClick={() => navigate('/admin/holdings')} />
+          <StatCard label="Pending Approvals"  value={stats.pendingApprovals}  accent="bg-yellow-400"  onClick={() => navigate('/admin/holdings')} />
+          <StatCard label="Published Holdings" value={stats.activeHoldings}    accent="bg-green-500"   onClick={() => navigate('/admin/holdings')} />
+          <StatCard label="Delisted"           value={stats.suspendedHoldings} accent="bg-red-400"     onClick={() => navigate('/admin/holdings')} />
+          <StatCard label="Total Offers"       value={stats.totalOffers}       accent="bg-orange-400" />
         </div>
       )}
 

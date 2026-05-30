@@ -6,16 +6,17 @@ import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/store/auth.store'
 
 export default function AppLayout() {
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const user = useAuthStore((s) => s.user)
 
   return (
-    <div className="flex h-screen overflow-hidden" style={{ background: '#f4f6fb' }}>
+    <div className="flex h-screen overflow-hidden" style={{ background: '#f5f1eb' }}>
 
       {/* Mobile backdrop */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-20 bg-black/50 md:hidden backdrop-blur-sm"
+          className="fixed inset-0 z-20 bg-black/30 md:hidden backdrop-enter"
+          style={{ backdropFilter: 'blur(4px)' }}
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -24,10 +25,8 @@ export default function AppLayout() {
       <div
         className={cn(
           'fixed inset-y-0 left-0 z-30 md:relative md:inset-auto md:z-auto',
-          'transition-all duration-300 ease-in-out overflow-hidden shrink-0',
-          sidebarOpen
-            ? 'w-64 translate-x-0'
-            : 'w-64 -translate-x-full md:w-0 md:translate-x-0',
+          'transition-all duration-[350ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)] overflow-hidden shrink-0',
+          sidebarOpen ? 'w-64 translate-x-0' : 'w-0 -translate-x-full',
         )}
       >
         <Sidebar onClose={() => setSidebarOpen(false)} />
@@ -36,30 +35,37 @@ export default function AppLayout() {
       {/* Main content */}
       <main className="flex-1 min-w-0 overflow-auto flex flex-col">
 
-        {/* ── Top bar ─────────────────────────────────────────────────────── */}
+        {/* ── Top bar ──────────────────────────────────────────────────────── */}
         <div
-          className="sticky top-0 z-10 flex items-center justify-between px-6 h-16 shrink-0 border-b border-gray-100/80"
-          style={{ background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(12px)' }}
+          className="sticky top-0 z-10 flex items-center justify-between px-6 h-14 shrink-0"
+          style={{
+            background: 'rgba(245,241,235,0.92)',
+            backdropFilter: 'blur(16px)',
+            borderBottom: '1px solid rgba(0,0,0,0.07)',
+          }}
         >
           {/* Left */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <button
               onClick={() => setSidebarOpen((s) => !s)}
-              className="p-2 rounded-xl hover:bg-gray-100 transition-colors text-gray-500 hover:text-gray-800"
+              className="p-2 hover:bg-black/5 transition-colors text-gray-400 hover:text-gray-700"
+              style={{ borderRadius: 4 }}
             >
               <Menu className="w-5 h-5" />
             </button>
 
             {user?.role?.toUpperCase() === 'OWNER' && (
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 border border-amber-200/80">
-                <Building2 className="w-3.5 h-3.5 text-amber-500" />
-                <span className="text-xs font-bold text-amber-700 tracking-wide">Owner Portal</span>
+              <div className="flex items-center gap-1.5 px-3 py-1 text-amber-700"
+                style={{ background: '#fffbeb', border: '1px solid rgba(217,119,6,0.2)', borderRadius: 2 }}>
+                <Building2 className="w-3 h-3" />
+                <span className="text-[10px] font-bold uppercase tracking-[0.15em]">Owner Portal</span>
               </div>
             )}
             {user?.role?.toUpperCase() === 'ADMIN' && (
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-50 border border-red-200/80">
-                <Shield className="w-3.5 h-3.5 text-red-500" />
-                <span className="text-xs font-bold text-red-700 tracking-wide">Admin Portal</span>
+              <div className="flex items-center gap-1.5 px-3 py-1 text-red-700"
+                style={{ background: '#fff1f2', border: '1px solid rgba(220,38,38,0.2)', borderRadius: 2 }}>
+                <Shield className="w-3 h-3" />
+                <span className="text-[10px] font-bold uppercase tracking-[0.15em]">Admin Portal</span>
               </div>
             )}
           </div>
@@ -67,12 +73,12 @@ export default function AppLayout() {
           {/* Right: user info */}
           <div className="flex items-center gap-3">
             <div className="hidden sm:block text-right">
-              <p className="text-[13px] font-bold text-gray-800 leading-tight">{user?.name}</p>
-              <p className="text-[11px] text-gray-400 leading-none mt-0.5">{user?.email}</p>
+              <p className="text-[13px] font-semibold text-gray-800 leading-tight tracking-tight">{user?.name}</p>
+              <p className="text-[11px] text-gray-400 leading-none mt-0.5 tracking-wide">{user?.email}</p>
             </div>
             <div
-              className="w-9 h-9 rounded-full flex items-center justify-center text-[13px] font-extrabold shrink-0"
-              style={{ background: '#C9F31D', color: '#111111' }}
+              className="w-8 h-8 flex items-center justify-center text-[12px] font-extrabold shrink-0"
+              style={{ background: '#1a3560', color: '#ffffff', borderRadius: 0 }}
             >
               {user?.name?.charAt(0).toUpperCase()}
             </div>
@@ -80,7 +86,7 @@ export default function AppLayout() {
         </div>
 
         {/* Page content */}
-        <div className="flex-1 p-6 md:p-8">
+        <div className="flex-1 p-6 md:p-10 page-enter">
           <Outlet />
         </div>
 

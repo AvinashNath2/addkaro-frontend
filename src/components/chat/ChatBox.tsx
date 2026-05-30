@@ -74,12 +74,14 @@ export default function ChatBox({ offerId, offerLabel, onClose, lockedMessage }:
       />
 
       {/* Chat panel */}
-      <div className="fixed right-0 top-0 h-full z-50 w-full sm:w-[420px] flex flex-col bg-white shadow-2xl border-l border-gray-100">
+      <div className="fixed right-0 top-0 h-full z-50 w-full sm:w-[420px] flex flex-col shadow-2xl"
+        style={{ background: '#f5f1eb', borderLeft: '1px solid rgba(0,0,0,0.1)' }}>
 
         {/* Header */}
-        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-gray-100 bg-white shrink-0">
-          <div className="w-9 h-9 rounded-full bg-brand-50 flex items-center justify-center shrink-0">
-            <MessageCircle className="w-5 h-5 text-brand-500" />
+        <div className="flex items-center gap-3 px-4 py-3.5 shrink-0"
+          style={{ background: '#f0ece6', borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
+          <div className="w-9 h-9 flex items-center justify-center shrink-0" style={{ background: '#1a3560' }}>
+            <MessageCircle className="w-5 h-5" style={{ color: '#ffffff' }} />
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-gray-900 text-sm truncate">
@@ -91,7 +93,7 @@ export default function ChatBox({ offerId, offerLabel, onClose, lockedMessage }:
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-400"
+            className="p-2 transition-colors text-gray-400 hover:text-gray-900"
             title="Close"
           >
             <X className="w-5 h-5" />
@@ -102,7 +104,7 @@ export default function ChatBox({ offerId, offerLabel, onClose, lockedMessage }:
         <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
           {isLoading && (
             <div className="flex items-center justify-center py-16">
-              <Loader2 className="w-6 h-6 animate-spin" style={{ color: '#C9F31D' }} />
+              <Loader2 className="w-6 h-6 animate-spin" style={{ color: '#1a3560' }} />
             </div>
           )}
 
@@ -114,7 +116,7 @@ export default function ChatBox({ offerId, offerLabel, onClose, lockedMessage }:
 
           {!isLoading && !isError && messages.length === 0 && !sendMutation.isPending && (
             <div className="flex flex-col items-center justify-center h-full py-16 text-center">
-              <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+              <div className="w-14 h-14 flex items-center justify-center mb-3" style={{ background: '#e8e3db' }}>
                 <MessageCircle className="w-7 h-7 text-gray-300" />
               </div>
               <p className="text-sm font-medium text-gray-400">No messages yet</p>
@@ -132,13 +134,11 @@ export default function ChatBox({ offerId, offerLabel, onClose, lockedMessage }:
                   </div>
                 )}
                 <div
-                  className={cn(
-                    'max-w-[75%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed',
-                    isMe
-                      ? 'rounded-br-sm'
-                      : 'bg-gray-100 text-gray-900 rounded-bl-sm',
-                  )}
-                  style={isMe ? { background: '#C9F31D', color: '#111111' } : undefined}
+                  className="max-w-[75%] px-3.5 py-2.5 text-sm leading-relaxed"
+                  style={isMe
+                    ? { background: '#1a3560', color: '#ffffff' }
+                    : { background: '#e8e3db', color: '#111111' }
+                  }
                 >
                   <p>{msg.message}</p>
                   <p className={cn('text-xs mt-1', isMe ? 'opacity-60' : 'text-gray-400')}>
@@ -153,7 +153,8 @@ export default function ChatBox({ offerId, offerLabel, onClose, lockedMessage }:
           {/* Optimistic sending bubble */}
           {sendMutation.isPending && (
             <div className="flex justify-end">
-              <div className="max-w-[75%] rounded-2xl rounded-br-sm px-3.5 py-2.5 text-sm opacity-50" style={{ background: '#C9F31D', color: '#111111' }}>
+              <div className="max-w-[75%] px-3.5 py-2.5 text-sm opacity-50"
+                style={{ background: '#1a3560', color: '#ffffff' }}>
                 {messageText}
               </div>
             </div>
@@ -164,13 +165,15 @@ export default function ChatBox({ offerId, offerLabel, onClose, lockedMessage }:
 
         {/* Send form or locked notice */}
         {lockedMessage ? (
-          <div className="px-4 py-3.5 border-t border-gray-100 bg-gray-50 shrink-0 text-center">
-            <p className="text-xs text-gray-400">{lockedMessage}</p>
+          <div className="px-4 py-3.5 shrink-0 text-center"
+            style={{ background: '#e8e3db', borderTop: '1px solid rgba(0,0,0,0.07)' }}>
+            <p className="text-xs text-gray-500">{lockedMessage}</p>
           </div>
         ) : (
           <form
             onSubmit={handleSend}
-            className="flex gap-2 px-4 py-3 border-t border-gray-100 bg-white shrink-0"
+            className="flex gap-2 px-4 py-3 shrink-0"
+            style={{ background: '#f0ece6', borderTop: '1px solid rgba(0,0,0,0.08)' }}
           >
             <input
               ref={inputRef}
@@ -186,8 +189,8 @@ export default function ChatBox({ offerId, offerLabel, onClose, lockedMessage }:
             <button
               type="submit"
               disabled={!messageText.trim() || sendMutation.isPending}
-              className="w-11 h-11 rounded-xl flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
-              style={{ background: '#C9F31D', color: '#111111' }}
+              className="w-11 h-11 flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+              style={{ background: '#1a3560', color: '#ffffff' }}
             >
               {sendMutation.isPending
                 ? <Loader2 className="w-4 h-4 animate-spin" />
