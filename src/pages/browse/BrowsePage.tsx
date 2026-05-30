@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Bookmark, BookmarkCheck, MapPin, Zap, Ruler, Calendar, CheckCircle2, ArrowRight,
-  Building2, SlidersHorizontal, X, ChevronDown,
+  Building2, SlidersHorizontal, X, ChevronDown, Loader2,
 } from 'lucide-react'
 import { searchHoldings, type HoldingSearchParams } from '@/api/holdings.api'
 import { addToWishlist, removeFromWishlist, getWishlist } from '@/api/customer.api'
@@ -141,8 +141,8 @@ function HoldingCard({
   id, title, location, locationType, holdingType, city, area,
   width, height, rentalCost, ownerVerified, isIlluminated,
   minimumBookingMonths, topAdvantages,
-  photos, saved, isCustomer, onWishlistToggle,
-}: HoldingCardType & { saved: boolean; isCustomer: boolean; onWishlistToggle: (id: string) => void }) {
+  photos, saved, isCustomer, wishlistPending, onWishlistToggle,
+}: HoldingCardType & { saved: boolean; isCustomer: boolean; wishlistPending: boolean; onWishlistToggle: (id: string) => void }) {
   const navigate = useNavigate()
   const imageUrl = photos?.[0] ?? null
   const displayLocation = city ? (area ? `${area}, ${city}` : city) : location
@@ -191,16 +191,19 @@ function HoldingCard({
         {/* Wishlist — top right */}
         {isCustomer && (
           <button
-            onClick={e => { e.stopPropagation(); onWishlistToggle(id) }}
+            onClick={e => { e.stopPropagation(); if (!wishlistPending) onWishlistToggle(id) }}
+            disabled={wishlistPending}
             className="absolute top-2.5 right-2.5 w-8 h-8 flex items-center justify-center"
-            style={{ background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(8px)', transition: 'transform 0.2s' }}
-            onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.12)')}
+            style={{ background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(8px)', transition: 'transform 0.2s', opacity: wishlistPending ? 0.7 : 1 }}
+            onMouseEnter={e => { if (!wishlistPending) e.currentTarget.style.transform = 'scale(1.12)' }}
             onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
             title={saved ? 'Remove from wishlist' : 'Save'}
           >
-            {saved
-              ? <BookmarkCheck className="w-4 h-4" style={{ color: '#16a34a', transition: 'color 0.2s' }} />
-              : <Bookmark className="w-4 h-4 text-gray-400" style={{ transition: 'color 0.2s' }} />
+            {wishlistPending
+              ? <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+              : saved
+                ? <BookmarkCheck className="w-4 h-4" style={{ color: '#16a34a', transition: 'color 0.2s' }} />
+                : <Bookmark className="w-4 h-4 text-gray-400" style={{ transition: 'color 0.2s' }} />
             }
           </button>
         )}
@@ -536,6 +539,10 @@ export default function BrowsePage() {
               {...h}
               saved={isSaved(h.id)}
               isCustomer={isCustomer}
+              wishlistPending={
+                (addMutation.isPending && addMutation.variables === h.id) ||
+                (removeMutation.isPending && removeMutation.variables === h.id)
+              }
               onWishlistToggle={handleWishlistToggle}
             />
           ))}

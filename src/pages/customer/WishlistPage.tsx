@@ -400,7 +400,7 @@ function WishlistCard({
         )}
 
         <button
-          onClick={() => navigate(`/browse/${item.holdingId}`)}
+          onClick={() => navigate(`/holdings/${item.holdingId}`)}
           className="btn-primary w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[13px] font-bold transition-all active:scale-[0.98]"
         >
           View Details <ArrowRight className="w-3.5 h-3.5" />
@@ -550,16 +550,27 @@ export default function WishlistPage() {
           {/* Map view */}
           {viewMode === 'map' && (
             <div>
-              <p className="text-sm text-gray-500 mb-3">
-                {items.filter(i => i.latitude != null).length} of {items.length} hoardings have location data.
-              </p>
-              <Suspense fallback={
-                <div className="h-[520px] bg-gray-50 rounded-2xl border border-gray-100 flex items-center justify-center">
-                  <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
-                </div>
-              }>
-                <WishlistMap items={items} />
-              </Suspense>
+              {(() => {
+                const mapItems = selectedIds.size > 0 ? selectedItems : items
+                const withCoords = mapItems.filter(i => i.latitude != null)
+                return (
+                  <>
+                    <p className="text-sm text-gray-500 mb-3">
+                      {selectedIds.size > 0
+                        ? `Showing ${withCoords.length} selected hoarding${withCoords.length !== 1 ? 's' : ''} on map`
+                        : `${withCoords.length} of ${items.length} hoardings have location data`
+                      }
+                    </p>
+                    <Suspense fallback={
+                      <div className="h-[520px] bg-gray-50 rounded-2xl border border-gray-100 flex items-center justify-center">
+                        <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+                      </div>
+                    }>
+                      <WishlistMap items={mapItems} />
+                    </Suspense>
+                  </>
+                )
+              })()}
             </div>
           )}
         </>

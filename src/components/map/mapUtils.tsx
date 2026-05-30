@@ -11,7 +11,7 @@ export const brandPin = L.divIcon({
   html: `<div style="position:relative;width:32px;height:42px;filter:drop-shadow(0 4px 10px rgba(0,0,0,0.25));">
     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="42" viewBox="0 0 32 42">
       <path d="M16 0C7.16 0 0 7.16 0 16c0 10.4 16 26 16 26S32 26.4 32 16C32 7.16 24.84 0 16 0z" fill="#1a3560"/>
-      <circle cx="16" cy="15" r="7" fill="#111"/>
+      <circle cx="16" cy="15" r="7" fill="white"/>
       <circle cx="16" cy="15" r="3" fill="#1a3560"/>
     </svg>
   </div>`,
@@ -26,7 +26,7 @@ export const brandPinLarge = L.divIcon({
   html: `<div style="position:relative;width:36px;height:46px;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.22));">
     <svg xmlns="http://www.w3.org/2000/svg" width="36" height="46" viewBox="0 0 36 46">
       <path d="M18 0C8.06 0 0 8.06 0 18c0 11.6 18 28 18 28S36 29.6 36 18C36 8.06 27.94 0 18 0z" fill="#1a3560"/>
-      <circle cx="18" cy="17" r="8" fill="#111"/>
+      <circle cx="18" cy="17" r="8" fill="white"/>
       <circle cx="18" cy="17" r="3.5" fill="#1a3560"/>
     </svg>
   </div>`,
